@@ -1043,6 +1043,8 @@ int manager_startup(Manager *m, FILE *serialization, FDSet *fds) {
 int manager_add_job(Manager *m, JobType type, Unit *unit, JobMode mode, bool override, sd_bus_error *e, Job **_ret) {
         int r;
         Transaction *tr;
+        Job *j;
+        Iterator i;
 
         assert(m);
         assert(type < _JOB_TYPE_MAX);
@@ -1052,6 +1054,29 @@ int manager_add_job(Manager *m, JobType type, Unit *unit, JobMode mode, bool ove
         if (mode == JOB_ISOLATE && type != JOB_START) {
                 sd_bus_error_setf(e, SD_BUS_ERROR_INVALID_ARGS, "Isolate is only valid for start.");
                 return -EINVAL;
+        }
+
+        if (type == JOB_RELOAD || type == JOB_RELOAD_OR_START || type == JOB_RESTART || type == JOB_TRY_RESTART) {
+                HASHMAP_FOREACH(j, m->jobs, i) {
+                        assert(j->installed);
+
+                        /* If final.target is queued (happens on poweroff, reboot and
+                         * halt), we will not accept new reload jobs. They would not be
+                         * executed ever anyways (since the shutdown comes first), but
+                         * they block the shutdown process: when systemd tries to stop
+                         * a unit such as ifup@eth0.service, that unit might invoke a
+                         * systemctl reload command, which blockingly waits (but only
+                         * gets executed after all other queued units for the shutdown
+                         * have been executed).
+                         *
+                         * See http://bugs.debian.org/624599 and
+                         *     http://bugs.debian.org/635777 */
+                        if (strcmp(j->unit->id, "final.target") == 0) {
+                                log_debug("final.target is queued, ignoring %s request for unit %s", job_type_to_string(type), unit->id);
+                                sd_bus_error_setf(e, BUS_ERROR_SHUTTING_DOWN, "final.target is queued, ignoring %s request for unit %s", job_type_to_string(type), unit->id);
+                                return -EINVAL;
+                        }
+                }
         }
 
         if (mode == JOB_ISOLATE && !unit->allow_isolate) {
