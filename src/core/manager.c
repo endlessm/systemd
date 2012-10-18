@@ -1076,6 +1076,21 @@ int manager_add_job(Manager *m, JobType type, Unit *unit, JobMode mode, bool ove
                                 sd_bus_error_setf(e, BUS_ERROR_SHUTTING_DOWN, "final.target is queued, ignoring %s request for unit %s", job_type_to_string(type), unit->id);
                                 return -EINVAL;
                         }
+                        /* Trying to reload services from multi-user.target
+                         * during the early boot stage can lead to deadlocks.
+                         * An example is samba being reloaded by the dhcp hook
+                         * when the network is activated during rcS.
+                         * As a workaround we ignore reload or (re)start
+                         * requests while sysinit.target is queued for
+                         * services which have the DefaultDependencies option
+                         * set to yes.
+                         *
+                         * See http://bugs.debian.org/624599 */
+                        if (strcmp(j->unit->id, "sysinit.target") == 0 && unit->default_dependencies) {
+                                log_debug("sysinit.target is queued, ignoring %s request for unit %s", job_type_to_string(type), unit->id);
+                                sd_bus_error_setf(e, SD_BUS_ERROR_INVALID_ARGS, "sysinit.target is queued, ignoring %s request for unit %s", job_type_to_string(type), unit->id);
+                                return -EINVAL;
+                        }
                 }
         }
 
