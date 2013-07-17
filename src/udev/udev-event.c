@@ -754,6 +754,7 @@ static int rename_netif(struct udev_event *event)
         char name[IFNAMSIZ];
         const char *oldname;
         int r;
+        int loop;
 
         oldname = udev_device_get_sysname(dev);
 
@@ -767,12 +768,44 @@ static int rename_netif(struct udev_event *event)
                 return r;
 
         r = rtnl_set_link_name(rtnl, udev_device_get_ifindex(dev), name);
-        if (r < 0)
-                log_error("error changing net interface name %s to %s: %s",
-                          oldname, name, strerror(-r));
-        else
+        if (r >= 0) {
                 print_kmsg("renamed network interface %s to %s\n", oldname, name);
+                goto out;
+        }
 
+        /* keep trying if the destination interface name already exists */
+        if (r != -EEXIST)
+                goto out;
+
+        /* free our own name, another process may wait for us */
+        snprintf(name, IFNAMSIZ, "rename%u", udev_device_get_ifindex(dev));
+        r = rtnl_set_link_name(rtnl, udev_device_get_ifindex(dev), name);
+        if (r < 0)
+          goto out;
+
+        /* log temporary name */
+        print_kmsg("renamed network interface %s to %s\n", oldname, name);
+
+        /* wait a maximum of 90 seconds for our target to become available */
+        strscpy(name, IFNAMSIZ, event->name);
+        loop = 90 * 20;
+        while (loop--) {
+                const struct timespec duration = { 0, 1000 * 1000 * 1000 / 20 };
+
+                nanosleep(&duration, NULL);
+
+                r = rtnl_set_link_name(rtnl, udev_device_get_ifindex(dev), name);
+                if (r >= 0) {
+                        print_kmsg("renamed network interface %s to %s\n", oldname, name);
+                        break;
+                }
+                if (r != -EEXIST)
+                        break;
+        }
+
+out:
+        if (r < 0)
+                log_error("error changing net interface name %s to %s: %m\n", oldname, name);
         return r;
 }
 
