@@ -680,6 +680,7 @@ static int rename_netif(UdevEvent *event) {
         const char *action, *oldname;
         char name[IFNAMSIZ];
         int ifindex, r;
+        int loop;
 
         if (!event->name)
                 return 0; /* No new name is requested. */
@@ -705,17 +706,57 @@ static int rename_netif(UdevEvent *event) {
                 return log_device_error_errno(dev, r, "Failed to get ifindex: %m");
 
         strscpy(name, IFNAMSIZ, event->name);
+
+        r = rtnl_set_link_name(&event->rtnl, ifindex, name);
+        if (r >= 0) {
+                r = device_rename(dev, event->name);
+                if (r < 0)
+                        return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
+
+                log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
+
+                return 1;
+        }
+
+        /* keep trying if the destination interface name already exists */
+        if (r != -EEXIST)
+                goto out;
+
+        /* free our own name, another process may wait for us */
+        snprintf(name, IFNAMSIZ, "rename%u", ifindex);
         r = rtnl_set_link_name(&event->rtnl, ifindex, name);
         if (r < 0)
-                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m", ifindex, oldname, name);
+                goto out;
 
-        r = device_rename(dev, event->name);
-        if (r < 0)
-                return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
-
+        /* log temporary name */
         log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
 
-        return 1;
+        /* wait a maximum of 90 seconds for our target to become available */
+        strscpy(name, IFNAMSIZ, event->name);
+        loop = 90 * 20;
+        while (loop--) {
+                const struct timespec duration = { 0, 1000 * 1000 * 1000 / 20 };
+
+                nanosleep(&duration, NULL);
+
+                r = rtnl_set_link_name(&event->rtnl, ifindex, name);
+                if (r >= 0) {
+                        r = device_rename(dev, event->name);
+                        if (r < 0)
+                                return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
+
+                        log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
+
+                        return 1;
+                }
+                if (r != -EEXIST)
+                        goto out;
+        }
+
+out:
+        if (r < 0)
+                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m", ifindex, oldname, name);
+        return r;
 }
 
 static int update_devnode(UdevEvent *event) {
