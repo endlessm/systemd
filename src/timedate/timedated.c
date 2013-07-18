@@ -136,6 +136,12 @@ static int context_read_data(Context *c) {
                 }
         }
 
+        r = read_one_line_file("/etc/timezone", &c->zone);
+        if (r < 0) {
+                if (r != -ENOENT)
+                        log_warning("Failed to read /etc/timezone: %s", strerror(-r));
+        }
+
 have_timezone:
         if (isempty(c->zone)) {
                 free(c->zone);
@@ -150,11 +156,15 @@ have_timezone:
 static int context_write_data_timezone(Context *c) {
         _cleanup_free_ char *p = NULL;
         int r = 0;
+        struct stat st;
 
         assert(c);
 
         if (isempty(c->zone)) {
                 if (unlink("/etc/localtime") < 0 && errno != ENOENT)
+                        r = -errno;
+
+                if (unlink("/etc/timezone") < 0 && errno != ENOENT)
                         r = -errno;
 
                 return r;
@@ -167,6 +177,12 @@ static int context_write_data_timezone(Context *c) {
         r = symlink_atomic(p, "/etc/localtime");
         if (r < 0)
                 return r;
+
+        if (stat("/etc/timezone", &st) == 0 && S_ISREG(st.st_mode)) {
+                r = write_string_file_atomic("/etc/timezone", c->zone);
+                if (r < 0)
+                        return r;
+        }
 
         return 0;
 }
