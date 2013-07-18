@@ -1395,8 +1395,25 @@ int get_timezone(char **tz) {
         int r;
 
         r = readlink_malloc("/etc/localtime", &t);
-        if (r < 0)
-                return r; /* returns EINVAL if not a symlink */
+        if (r < 0) {
+                if (r != -EINVAL)
+                        return r; /* returns EINVAL if not a symlink */
+
+                r = read_one_line_file("/etc/timezone", &t);
+                if (r < 0) {
+                        if (r != -ENOENT)
+                                log_warning_errno(r, "Failed to read /etc/timezone: %m");
+                        return -EINVAL;
+                }
+
+                if (!timezone_is_valid(t, LOG_DEBUG))
+                        return -EINVAL;
+                z = strdup(t);
+                if (!z)
+                        return -ENOMEM;
+                *tz = z;
+                return 0;
+        }
 
         e = path_startswith(t, "/usr/share/zoneinfo/");
         if (!e)
