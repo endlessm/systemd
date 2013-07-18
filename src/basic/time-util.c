@@ -1456,19 +1456,43 @@ int get_timezone(char **ret) {
         const char *e;
         char *z;
         int r;
+        bool use_utc_fallback = false;
 
         r = readlink_malloc("/etc/localtime", &t);
-        if (r == -ENOENT) {
-                /* If the symlink does not exist, assume "UTC", like glibc does*/
-                z = strdup("UTC");
+        if (r < 0) {
+                if (r == -ENOENT)
+                        use_utc_fallback = true;
+                else if (r != -EINVAL)
+                        return r; /* returns EINVAL if not a symlink */
+
+                r = read_one_line_file("/etc/timezone", &t);
+                if (r < 0) {
+                        if (r != -ENOENT)
+                                log_warning_errno(r, "Failed to read /etc/timezone: %m");
+
+                        if (use_utc_fallback) {
+                                /* If the /etc/localtime symlink does not exist and we failed
+                                 * to read /etc/timezone, assume "UTC", like glibc does. */
+                                z = strdup("UTC");
+                                if (!z)
+                                        return -ENOMEM;
+
+                                *ret = z;
+                                return 0;
+                        }
+
+                        return -EINVAL;
+                }
+
+                if (!timezone_is_valid(t, LOG_DEBUG))
+                        return -EINVAL;
+                z = strdup(t);
                 if (!z)
                         return -ENOMEM;
 
                 *ret = z;
                 return 0;
         }
-        if (r < 0)
-                return r; /* returns EINVAL if not a symlink */
 
         e = PATH_STARTSWITH_SET(t, "/usr/share/zoneinfo/", "../usr/share/zoneinfo/");
         if (!e)
