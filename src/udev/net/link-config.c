@@ -200,13 +200,13 @@ static bool enable_name_policy(void) {
         if (r < 0)
                 log_warning("Failed to read /proc/cmdline, ignoring: %s", strerror(-r));
         if (r <= 0)
-                return true;
+                return false;
 
         FOREACH_WORD_QUOTED(w, l, line, state)
-                if (strneq(w, "net.ifnames=0", l))
-                        return false;
+                if (strneq(w, "net.ifnames=1", l))
+                        return true;
 
-        return true;
+        return false;
 }
 
 int link_config_load(link_config_ctx *ctx) {
@@ -218,7 +218,7 @@ int link_config_load(link_config_ctx *ctx) {
 
         if (!enable_name_policy()) {
                 ctx->enable_name_policy = false;
-                log_info("Network interface NamePolicy= disabled on kernel commandline, ignoring.");
+                log_debug("Network interface NamePolicy= disabled on kernel commandline, ignoring.");
         }
 
         /* update timestamp */
