@@ -222,10 +222,6 @@ _public_ PAM_EXTERN int pam_sm_open_session(
 
         assert(handle);
 
-        /* Make this a NOP on non-logind systems */
-        if (!logind_running())
-                return PAM_SUCCESS;
-
         if (parse_argv(handle,
                        argc, argv,
                        &class_pam,
