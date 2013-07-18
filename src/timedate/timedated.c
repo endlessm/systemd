@@ -283,6 +283,8 @@ static int context_read_data(Context *c) {
 static int context_write_data_timezone(Context *c) {
         _cleanup_free_ char *p = NULL;
         const char *source;
+        int r = 0;
+        struct stat st;
 
         assert(c);
 
@@ -296,9 +298,12 @@ static int context_write_data_timezone(Context *c) {
                 if (access("/usr/share/zoneinfo/UTC", F_OK) < 0) {
 
                         if (unlink("/etc/localtime") < 0 && errno != ENOENT)
-                                return -errno;
+                                r = -errno;
 
-                        return 0;
+                        if (unlink("/etc/timezone") < 0 && errno != ENOENT)
+                                r = -errno;
+
+                        return r;
                 }
 
                 source = "../usr/share/zoneinfo/UTC";
@@ -310,7 +315,17 @@ static int context_write_data_timezone(Context *c) {
                 source = p;
         }
 
-        return symlink_atomic(source, "/etc/localtime");
+        r = symlink_atomic(source, "/etc/localtime");
+        if (r < 0)
+                return r;
+
+        if (stat("/etc/timezone", &st) == 0 && S_ISREG(st.st_mode)) {
+                r = write_string_file("/etc/timezone", c->zone, WRITE_STRING_FILE_CREATE|WRITE_STRING_FILE_ATOMIC);
+                if (r < 0)
+                        return r;
+        }
+
+        return 0;
 }
 
 static int context_write_data_local_rtc(Context *c) {
