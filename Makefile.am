@@ -5363,8 +5363,7 @@ SYSINIT_TARGET_WANTS += \
 	ldconfig.service
 
 LOCAL_FS_TARGET_WANTS += \
-	systemd-remount-fs.service \
-	tmp.mount
+	systemd-remount-fs.service
 
 MULTI_USER_TARGET_WANTS += \
 	getty.target \
