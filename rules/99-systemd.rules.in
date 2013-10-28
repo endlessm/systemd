@@ -7,6 +7,12 @@
 
 ACTION=="remove", GOTO="systemd_end"
 
+# short-circuit most rules when not running under systemd; just keep calling
+# path_id so that we can use the hardware status helpers under other init
+# systems
+SUBSYSTEM=="backlight|leds|rfkill", IMPORT{builtin}="path_id"
+TEST!="/run/systemd/system", GOTO="systemd_end"
+
 SUBSYSTEM=="tty", KERNEL=="tty[a-zA-Z]*|hvc*|xvc*|hvsi*|ttysclp*|sclp_line*|3270/tty[0-9]*", TAG+="systemd"
 
 KERNEL=="vport*", TAG+="systemd"
@@ -57,12 +63,12 @@ ACTION=="add", SUBSYSTEM=="net", KERNEL!="lo", RUN+="@rootlibexecdir@/systemd-sy
 # Pull in backlight save/restore for all backlight devices and
 # keyboard backlights
 
-SUBSYSTEM=="backlight", TAG+="systemd", IMPORT{builtin}="path_id", ENV{SYSTEMD_WANTS}+="systemd-backlight@backlight:$name.service"
-SUBSYSTEM=="leds", KERNEL=="*kbd_backlight", TAG+="systemd", IMPORT{builtin}="path_id", ENV{SYSTEMD_WANTS}+="systemd-backlight@leds:$name.service"
+SUBSYSTEM=="backlight", TAG+="systemd", ENV{SYSTEMD_WANTS}+="systemd-backlight@backlight:$name.service"
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight", TAG+="systemd", ENV{SYSTEMD_WANTS}+="systemd-backlight@leds:$name.service"
 
 # Pull in rfkill save/restore for all rfkill devices
 
-SUBSYSTEM=="rfkill", TAG+="systemd", IMPORT{builtin}="path_id", ENV{SYSTEMD_WANTS}+="systemd-rfkill@$name.service"
+SUBSYSTEM=="rfkill", TAG+="systemd", ENV{SYSTEMD_WANTS}+="systemd-rfkill@$name.service"
 
 # Asynchronously mount file systems implemented by these modules as
 # soon as they are loaded.
