@@ -22,6 +22,9 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "sd-id128.h"
 #include "sd-messages.h"
@@ -39,6 +42,7 @@
 #include "bus-util.h"
 #include "bus-errors.h"
 #include "event-util.h"
+#include "copy.h"
 
 #define NULL_ADJTIME_UTC "0.0 0 0\n0\nUTC\n"
 #define NULL_ADJTIME_LOCAL "0.0 0 0\n0\nLOCAL\n"
@@ -104,6 +108,94 @@ static bool valid_timezone(const char *name) {
                 return false;
 
         return true;
+}
+
+static int symlink_or_copy(const char *from, const char *to) {
+        char *pf = NULL, *pt = NULL;
+        struct stat a, b;
+        int r;
+
+        assert(from);
+        assert(to);
+
+        if (path_get_parent(from, &pf) < 0 ||
+            path_get_parent(to, &pt) < 0) {
+                r = -ENOMEM;
+                goto finish;
+        }
+
+        if (stat(pf, &a) < 0 ||
+            stat(pt, &b) < 0) {
+                r = -errno;
+                goto finish;
+        }
+
+        if (a.st_dev != b.st_dev) {
+                free(pf);
+                free(pt);
+
+                return copy_file(from, to, O_EXCL, 0644);
+        }
+
+        if (symlink(from, to) < 0) {
+                r = -errno;
+                goto finish;
+        }
+
+        r = 0;
+
+finish:
+        free(pf);
+        free(pt);
+
+        return r;
+}
+
+static int symlink_or_copy_atomic(const char *from, const char *to) {
+        char *t, *x;
+        const char *fn;
+        size_t k;
+        uint64_t u;
+        unsigned i;
+        int r;
+
+        assert(from);
+        assert(to);
+
+        t = new(char, strlen(to) + 1 + 16 + 1);
+        if (!t)
+                return -ENOMEM;
+
+        fn = basename(to);
+        k = fn-to;
+        memcpy(t, to, k);
+        t[k] = '.';
+        x = stpcpy(t+k+1, fn);
+
+        u = random_u64();
+        for (i = 0; i < 16; i++) {
+                *(x++) = hexchar(u & 0xF);
+                u >>= 4;
+        }
+
+        *x = 0;
+
+        r = symlink_or_copy(from, t);
+        if (r < 0) {
+                unlink(t);
+                free(t);
+                return r;
+        }
+
+        if (rename(t, to) < 0) {
+                r = -errno;
+                unlink(t);
+                free(t);
+                return r;
+        }
+
+        free(t);
+        return r;
 }
 
 static int context_read_data(Context *c) {
@@ -174,7 +266,7 @@ static int context_write_data_timezone(Context *c) {
         if (!p)
                 return log_oom();
 
-        r = symlink_atomic(p, "/etc/localtime");
+        r = symlink_or_copy_atomic(p, "/etc/localtime");
         if (r < 0)
                 return r;
 
