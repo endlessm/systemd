@@ -539,6 +539,12 @@ nodist_systemunit_DATA = \
 	units/systemd-nspawn@.service \
 	units/systemd-update-done.service
 
+if HAVE_SYSV_COMPAT
+nodist_systemunit_DATA += \
+	units/x-display-manager.target \
+	units/mail-transport-agent.target
+endif
+
 dist_userunit_DATA = \
 	units/user/basic.target \
 	units/user/default.target \
