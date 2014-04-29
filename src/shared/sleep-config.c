@@ -226,6 +226,12 @@ static bool enough_memory_for_hibernation(void) {
         size_t size = 0, used = 0;
         int r;
 
+        /* TuxOnIce is an alternate implementation for hibernation.
+         * It can be configured to compress the image to a file or an inactive
+         * swap partition, so there's nothing more we can do here. */
+        if (access("/sys/power/tuxonice", F_OK) == 0)
+                return true;
+
         r = hibernation_partition_size(&size, &used);
         if (r < 0)
                 return false;
