@@ -267,6 +267,12 @@ static bool enough_swap_for_hibernation(void) {
         if (getenv_bool("SYSTEMD_BYPASS_HIBERNATION_MEMORY_CHECK") > 0)
                 return true;
 
+        /* TuxOnIce is an alternate implementation for hibernation.
+         * It can be configured to compress the image to a file or an inactive
+         * swap partition, so there's nothing more we can do here. */
+        if (access("/sys/power/tuxonice", F_OK) == 0)
+                return true;
+
         r = find_hibernate_location(NULL, NULL, &size, &used);
         if (r < 0)
                 return false;
