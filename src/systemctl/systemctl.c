@@ -7992,17 +7992,22 @@ static int talk_initctl(void) {
 
         request.runlevel = rl;
 
-        fd = open(INIT_FIFO, O_WRONLY|O_NDELAY|O_CLOEXEC|O_NOCTTY);
+        /* Try /run/initctl first since that is what sysvinit in Debian uses */
+        fd = open("/run/initctl", O_WRONLY|O_NDELAY|O_CLOEXEC|O_NOCTTY);
         if (fd < 0) {
-                if (errno == ENOENT)
-                        return 0;
+                /* Fall back to /dev/initctl */
+                fd = open(INIT_FIFO, O_WRONLY|O_NDELAY|O_CLOEXEC|O_NOCTTY);
+                if (fd < 0) {
+                        if (errno == ENOENT)
+                                return 0;
 
-                return log_error_errno(errno, "Failed to open "INIT_FIFO": %m");
+                        return log_error_errno(errno, "Failed to open "INIT_FIFO": %m");
+                }
         }
 
         r = loop_write(fd, &request, sizeof(request), false);
         if (r < 0)
-                return log_error_errno(r, "Failed to write to "INIT_FIFO": %m");
+                return log_error_errno(r, "Failed to write to initctl FIFO: %m");
 
         return 1;
 #else
