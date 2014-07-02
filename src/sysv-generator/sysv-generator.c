@@ -736,6 +736,25 @@ static int fix_order(SysvStub *s, Hashmap *all_services) {
         return 0;
 }
 
+static int native_unit_exists(LookupPaths lp, char *name) {
+        char **p;
+
+        STRV_FOREACH(p, lp.unit_path) {
+                struct stat st;
+                _cleanup_free_ char *path = NULL;
+
+                path = strjoin(*p, "/", name, NULL);
+                if (!path)
+                        return -ENOMEM;
+
+                if (lstat(path, &st) < 0)
+                        continue;
+
+                return 1;
+        }
+        return 0;
+}
+
 static int enumerate_sysv(LookupPaths lp, Hashmap *all_services) {
         char **path;
 
@@ -774,6 +793,12 @@ static int enumerate_sysv(LookupPaths lp, Hashmap *all_services) {
                                 return log_oom();
 
                         if (hashmap_contains(all_services, name))
+                                continue;
+
+                        r = native_unit_exists(lp, name);
+                        if (r < 0)
+                                return log_oom();
+                        if (r > 0)
                                 continue;
 
                         service = new0(SysvStub, 1);
@@ -864,7 +889,8 @@ static int set_dependencies_from_rcnd(LookupPaths lp, Hashmap *all_services) {
                                 if (hashmap_contains(all_services, name))
                                         service = hashmap_get(all_services, name);
                                 else {
-                                        log_warning("Could not find init script for %s", name);
+                                        log_debug("Ignoring %s symlink in %s, not generating %s.",
+                                                  de->d_name, rcnd_table[i].path, name);
                                         continue;
                                 }
 
