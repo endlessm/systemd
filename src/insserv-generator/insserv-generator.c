@@ -62,7 +62,7 @@ static int sysv_translate_facility(const char *name, const char *filename, char 
 
         static const char * const table[] = {
                 /* LSB defined facilities */
-                "local_fs",             NULL,
+                "local_fs",             SPECIAL_LOCAL_FS_TARGET,
                 "network",              SPECIAL_NETWORK_TARGET,
                 "named",                SPECIAL_NSS_LOOKUP_TARGET,
                 "portmap",              SPECIAL_RPCBIND_TARGET,

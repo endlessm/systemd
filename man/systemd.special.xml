@@ -368,6 +368,15 @@
                                         that have the
                                         <option>auto</option> mount
                                         option set.</para>
+
+                                        <para>systemd automatically
+                                        adds dependencies of type
+                                        <varname>After=</varname> for
+                                        this target unit to all SysV
+                                        init script service units with
+                                        an LSB header referring to the
+                                        <literal>$local_fs</literal>
+                                        facility.</para>
                                 </listitem>
                         </varlistentry>
                         <varlistentry>
