@@ -283,8 +283,15 @@ static int sysv_translate_facility(const char *name, const char *filename, char 
                 "named",                SPECIAL_NSS_LOOKUP_TARGET,
                 "portmap",              SPECIAL_RPCBIND_TARGET,
                 "remote_fs",            SPECIAL_REMOTE_FS_TARGET,
-                "syslog",               NULL,
+                "syslog",               "systemd-journald-dev-log.socket",
                 "time",                 SPECIAL_TIME_SYNC_TARGET,
+                /* special rcS init scripts */
+                "cryptdisks",           "cryptsetup.target",
+                "mountall",             SPECIAL_LOCAL_FS_TARGET,
+                "mountnfs",             SPECIAL_REMOTE_FS_TARGET,
+                "checkroot",            "systemd-remount-fs.service",
+                "dbus",                 "dbus.socket",
+
         };
 
         unsigned i;
