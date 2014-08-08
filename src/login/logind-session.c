@@ -985,8 +985,8 @@ int session_kill(Session *s, KillWho who, int signo) {
 static int session_open_vt(Session *s) {
         char path[sizeof("/dev/tty") + DECIMAL_STR_MAX(s->vtnr)];
 
-        if (!s->vtnr)
-                return -1;
+        if (s->vtnr < 1)
+                return -ENODEV;
 
         if (s->vtfd >= 0)
                 return s->vtfd;
@@ -1010,26 +1010,38 @@ static int session_vt_fn(sd_event_source *source, const struct signalfd_siginfo 
         return 0;
 }
 
-void session_prepare_vt(Session *s) {
+int session_prepare_vt(Session *s) {
         int vt, r;
         struct vt_mode mode = { 0 };
         sigset_t mask;
 
+        if (s->vtnr < 1)
+                return 0;
+
         vt = session_open_vt(s);
         if (vt < 0)
-                return;
+                return vt;
 
         r = fchown(vt, s->user->uid, -1);
-        if (r < 0)
+        if (r < 0) {
+                r = -errno;
+                log_error("Cannot change owner of /dev/tty%u: %m", s->vtnr);
                 goto error;
+        }
 
         r = ioctl(vt, KDSKBMODE, K_OFF);
-        if (r < 0)
+        if (r < 0) {
+                r = -errno;
+                log_error("Cannot set K_OFF on /dev/tty%u: %m", s->vtnr);
                 goto error;
+        }
 
         r = ioctl(vt, KDSETMODE, KD_GRAPHICS);
-        if (r < 0)
+        if (r < 0) {
+                r = -errno;
+                log_error("Cannot set KD_GRAPHICS on /dev/tty%u: %m", s->vtnr);
                 goto error;
+        }
 
         sigemptyset(&mask);
         sigaddset(&mask, SIGUSR1);
@@ -1046,14 +1058,17 @@ void session_prepare_vt(Session *s) {
         mode.relsig = SIGUSR1;
         mode.acqsig = SIGUSR1;
         r = ioctl(vt, VT_SETMODE, &mode);
-        if (r < 0)
+        if (r < 0) {
+                r = -errno;
+                log_error("Cannot set VT_PROCESS on /dev/tty%u: %m", s->vtnr);
                 goto error;
+        }
 
-        return;
+        return 0;
 
 error:
-        log_error("cannot mute VT %u for session %s (%d/%d)", s->vtnr, s->id, r, errno);
         session_restore_vt(s);
+        return r;
 }
 
 void session_restore_vt(Session *s) {
@@ -1132,8 +1147,6 @@ int session_set_controller(Session *s, const char *sender, bool force) {
                 return r;
         }
 
-        session_swap_controller(s, t);
-
         /* When setting a session controller, we forcibly mute the VT and set
          * it into graphics-mode. Applications can override that by changing
          * VT state after calling TakeControl(). However, this serves as a good
@@ -1142,7 +1155,11 @@ int session_set_controller(Session *s, const char *sender, bool force) {
          * exits.
          * If logind crashes/restarts, we restore the controller during restart
          * or reset the VT in case it crashed/exited, too. */
-        session_prepare_vt(s);
+        r = session_prepare_vt(s);
+        if (r < 0)
+                return r;
+
+        session_swap_controller(s, t);
 
         return 0;
 }
