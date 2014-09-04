@@ -10,7 +10,6 @@
 # These files are considered legacy and are unnecessary on legacy-free
 # systems.
 
-d /run/lock 0755 root root -
 L /var/lock - - - - ../run/lock
 {% if CREATE_LOG_DIRS %}
 L /var/log/README - - - - ../..{{DOC_DIR}}/README.logs
