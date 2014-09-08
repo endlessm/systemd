@@ -160,51 +160,14 @@ static const char* fallback_chassis(void) {
         if (VIRTUALIZATION_IS_CONTAINER(v))
                 return "container";
 
-        r = read_one_line_file("/sys/firmware/acpi/pm_profile", &type);
-        if (r < 0)
-                goto try_dmi;
-
-        r = safe_atou(type, &t);
-        free(type);
-        if (r < 0)
-                goto try_dmi;
-
-        /* We only list the really obvious cases here as the ACPI data
-         * is not really super reliable.
-         *
-         * See the ACPI 5.0 Spec Section 5.2.9.1 for details:
-         *
-         * http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
-         */
-
-        switch(t) {
-
-        case 1:
-        case 3:
-        case 6:
-                return "desktop";
-
-        case 2:
-                return "laptop";
-
-        case 4:
-        case 5:
-        case 7:
-                return "server";
-
-        case 8:
-                return "tablet";
-        }
-
-try_dmi:
         r = read_one_line_file("/sys/class/dmi/id/chassis_type", &type);
         if (r < 0)
-                return NULL;
+                goto try_acpi;
 
         r = safe_atou(type, &t);
         free(type);
         if (r < 0)
-                return NULL;
+                goto try_acpi;
 
         /* We only list the really obvious cases here. The DMI data is
            unreliable enough, so let's not do any additional guesswork
@@ -239,6 +202,43 @@ try_dmi:
                 return "server";
 
         case 0x1E:
+                return "tablet";
+        }
+
+ try_acpi:
+        r = read_one_line_file("/sys/firmware/acpi/pm_profile", &type);
+        if (r < 0)
+                return NULL;
+
+        r = safe_atou(type, &t);
+        free(type);
+        if (r < 0)
+                return NULL;
+
+        /* We only list the really obvious cases here as the ACPI data
+         * is not really super reliable.
+         *
+         * See the ACPI 5.0 Spec Section 5.2.9.1 for details:
+         *
+         * http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
+         */
+
+        switch(t) {
+
+        case 1:
+        case 3:
+        case 6:
+                return "desktop";
+
+        case 2:
+                return "laptop";
+
+        case 4:
+        case 5:
+        case 7:
+                return "server";
+
+        case 8:
                 return "tablet";
         }
 
