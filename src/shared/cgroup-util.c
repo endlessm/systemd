@@ -1619,8 +1619,6 @@ int cg_create_everywhere(CGroupControllerMask supported, CGroupControllerMask ma
         NULSTR_FOREACH(n, mask_names) {
                 if (mask & bit)
                         cg_create(n, path);
-                else if (supported & bit)
-                        cg_trim(n, path, true);
 
                 bit <<= 1;
         }
