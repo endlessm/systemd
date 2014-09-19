@@ -1866,8 +1866,6 @@ int cg_create_everywhere(CGroupMask supported, CGroupMask mask, const char *path
 
                 if (mask & bit)
                         (void) cg_create(n, path);
-                else if (supported & bit)
-                        (void) cg_trim(n, path, true);
         }
 
         return 0;
