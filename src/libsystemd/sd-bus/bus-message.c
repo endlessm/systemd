@@ -5035,7 +5035,7 @@ int bus_message_parse_fields(sd_bus_message *m) {
                         if (!streq(signature, "s"))
                                 return -EBADMSG;
 
-                        r = message_peek_field_string(m, service_name_is_valid, &ri, item_size, &m->destination);
+                        r = message_peek_field_string(m, sender_name_is_valid, &ri, item_size, &m->destination);
                         break;
 
                 case BUS_MESSAGE_HEADER_SENDER:
@@ -5046,7 +5046,7 @@ int bus_message_parse_fields(sd_bus_message *m) {
                         if (!streq(signature, "s"))
                                 return -EBADMSG;
 
-                        r = message_peek_field_string(m, service_name_is_valid, &ri, item_size, &m->sender);
+                        r = message_peek_field_string(m, sender_name_is_valid, &ri, item_size, &m->sender);
 
                         if (r >= 0 && m->sender[0] == ':' && m->bus->bus_client && !m->bus->is_kernel) {
                                 m->creds.unique_name = (char*) m->sender;

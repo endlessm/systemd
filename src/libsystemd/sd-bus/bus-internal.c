@@ -166,6 +166,19 @@ bool service_name_is_valid(const char *p) {
         return true;
 }
 
+bool sender_name_is_valid(const char *p) {
+        if (isempty(p))
+                return false;
+
+#ifndef NOLEGACY
+        if (streq(p, ":no-sender"))
+                return true;
+#endif
+
+        return service_name_is_valid(p);
+}
+
+
 bool member_name_is_valid(const char *p) {
         const char *q;
 
