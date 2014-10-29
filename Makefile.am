@@ -3828,6 +3828,12 @@ destdir-sphinx: all
 		$(MAKE) DESTDIR="$$dir" sphinx-html && \
 		rm -rf "$$dir"
 
+# Horrible hack to make sure libsystemd-journal.la gets installed
+# before _journal.la tries to be relinked to it. We need to use a
+# separate make variable so we don't override the real install
+# rules.
+python_install = install-pkgpyexecLTLIBRARIES
+$(python_install): install-libLTLIBRARIES
 endif
 
 CLEAN_LOCAL_HOOKS += clean-sphinx
