@@ -4147,7 +4147,8 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-bashcompletiondir=$$dc_install_base/$(bashcompletiondir) \
 	--with-pamlibdir=$$dc_install_base/$(pamlibdir) \
 	--with-rootprefix=$$dc_install_base \
-	--disable-split-usr
+	--disable-split-usr \
+	--disable-tests
 
 if HAVE_SYSV_COMPAT
 DISTCHECK_CONFIGURE_FLAGS += \
