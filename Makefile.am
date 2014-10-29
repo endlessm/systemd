@@ -2091,9 +2091,11 @@ hwdb-remove-hook:
 	-test -n "$(DESTDIR)" || rm -f $(udevlibexecdir)/hwdb.bin
 
 # ------------------------------------------------------------------------------
+if ENABLE_TESTS
 TESTS += \
 	test/udev-test.pl \
 	test/rules-test.sh
+endif
 
 manual_tests += \
 	test-libudev \
@@ -2397,8 +2399,10 @@ dist_udevhome_SCRIPTS = \
 	src/udev/keymap/findkeyboards \
 	src/udev/keymap/keyboard-force-release.sh
 
+if ENABLE_TESTS
 TESTS += \
 	src/udev/keymap/check-keymaps.sh
+endif
 
 CLEANFILES += \
 	src/udev/keymap/keys.txt \
