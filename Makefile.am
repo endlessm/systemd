@@ -3113,9 +3113,11 @@ hwdb-remove-hook:
 	-test -n "$(DESTDIR)" || rm -f /etc/udev/hwdb.bin
 
 # ------------------------------------------------------------------------------
+if ENABLE_TESTS
 TESTS += \
 	test/udev-test.pl \
 	test/rules-test.sh
+endif
 
 manual_tests += \
 	test-libudev \
@@ -5494,6 +5496,7 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-rootprefix=$$dc_install_base \
 	--disable-split-usr \
 	--enable-kdbus \
+	--disable-tests \
 	--enable-compat-libs
 
 if HAVE_SYSV_COMPAT
