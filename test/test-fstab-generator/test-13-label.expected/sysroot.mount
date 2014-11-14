@@ -11,4 +11,4 @@ After=blockdev@dev-disk-by\x2dlabel-Root.target
 [Mount]
 What=/dev/disk/by-label/Root
 Where=/sysroot
-Options=ro
+Options=rw

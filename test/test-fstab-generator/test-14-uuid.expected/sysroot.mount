@@ -11,4 +11,4 @@ After=blockdev@dev-disk-by\x2duuid-3f5ad593\x2d4546\x2d4a94\x2da374\x2dbcfb68aa1
 [Mount]
 What=/dev/disk/by-uuid/3f5ad593-4546-4a94-a374-bcfb68aa11f7
 Where=/sysroot
-Options=ro
+Options=rw

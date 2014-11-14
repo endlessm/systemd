@@ -11,4 +11,4 @@ After=blockdev@dev-sdx1.target
 [Mount]
 What=/dev/sdx1
 Where=/sysroot
-Options=ro
+Options=rw
