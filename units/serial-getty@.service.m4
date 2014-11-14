@@ -22,10 +22,10 @@ Before=getty.target
 IgnoreOnIsolate=yes
 
 [Service]
-ExecStart=-/sbin/agetty -s %I 115200,38400,9600 vt102
+ExecStart=-/sbin/agetty --noclear -w -a root -s %I 115200,38400,9600
 Type=idle
 Restart=always
-RestartSec=0
+RestartSec=1
 UtmpIdentifier=%I
 TTYPath=/dev/%I
 TTYReset=yes
