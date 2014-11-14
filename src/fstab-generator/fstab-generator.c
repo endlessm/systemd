@@ -810,6 +810,10 @@ static int add_sysroot_mount(void) {
                 default_rw = false; /* read-only, unless overridden */
         }
 
+        /* Enforce /sysroot mount as rw, so that we can generate machine-
+         * during first boot. */
+        arg_root_rw = true;
+
         if (!arg_root_options)
                 opts = arg_root_rw > 0 || (arg_root_rw < 0 && default_rw) ? "rw" : "ro";
         else if (arg_root_rw >= 0 ||
