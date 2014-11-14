@@ -14,10 +14,10 @@ CONFFLAGS = \
 	--with-debug-shell=/bin/bash \
 	--enable-libcryptsetup \
 	--enable-tcpwrap \
+	--enable-vconsole \
 	--disable-coredump \
 	--disable-efi \
 	--disable-myhostname \
-	--disable-vconsole \
 	--disable-silent-rules
 
 CONFFLAGS_deb = \
@@ -139,15 +139,12 @@ override_dh_install:
 		debian/systemd/lib/lsb/init-functions.d/40-systemd
 	install --mode=644 debian/tmpfiles.d/debian.conf \
 		debian/systemd/usr/lib/tmpfiles.d/
-	install --mode=644 debian/debian-fixup.service debian/ifup@.service \
+	install --mode=644 debian/ifup@.service \
 		debian/units/run-lock.mount debian/units/run-user.mount \
 		debian/systemd/lib/systemd/system/
-	install --mode=755 debian/debian-fixup \
-		debian/systemd/lib/systemd/
 	install --mode=755 debian/systemd-logind-launch \
 		debian/systemd/lib/systemd/
-	# Remove tmp.mount symlink to avoid mounting /tmp as tmpfs by default.
-	rm debian/systemd/lib/systemd/system/local-fs.target.wants/tmp.mount
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
 	# remove duplicates
 	# files shipped by systemd-sysv / sysvinit
 	rm debian/systemd/usr/share/man/man1/init.1
