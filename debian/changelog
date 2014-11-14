@@ -1,3 +1,97 @@
+systemd (204-6endless10) eos; urgency=low
+
+  * debian/patches/endless-use-dmi-first-for-chassis-type.patch:
+    Add a patch to prefer DMI information to ACPI for chassis type
+    detection.
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Mon, 08 Sep 2014 16:18:48 -0700
+
+systemd (204-6endless9) eos; urgency=medium
+
+  * Re-add systemd-machine-id-setup. The machine-id is needed in chroot
+    environments (e.g. to start dbus daemons for testing).
+  + endless-always-mount-sysroot-rw.patch
+    Always mount /sysroot as rw from the initramfs. This is what we need
+    to properly generate machine-id, and we have no cleaner way of making
+    this happen on upgrade from buggy EOS-2.1.0.
+
+ -- Daniel Drake <drake@endlessm.com>  Wed, 30 Jul 2014 05:32:26 +0800
+
+systemd (204-6endless8) eos; urgency=medium
+
+  * Don't call systemd-machine-id-setup during postinst
+  * Avoids a machine id being included in our ostree.
+
+ -- Daniel Drake <drake@endlessm.com>  Mon, 21 Jul 2014 08:53:32 +0100
+
+systemd (204-6endless7) eos; urgency=medium
+
+  + endless-fstab-generator-When-parsing-the-root-cmdline-option.patch
+    Upstream patch to enable rootfs fsck from initramfs.
+  + endless-make-fsck-units-remain-after-exit.patch
+    Upstream patch to prevent fsck from running twice in initramfs.
+  + endless-disable-fsck-emergency.patch
+    Prevent fsck from aborting boot
+  + endless-disable-root-fsck.patch
+    Don't run systemd-fsck-root.service - equivalent to newer upstream
+    behaviour on our setup.
+
+ -- Daniel Drake <drake@endlessm.com>  Wed, 02 Jul 2014 11:13:03 +0100
+
+systemd (204-6endless6) eos; urgency=low
+
+  * debian/systemd.links:
+    Enable readahead.
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Fri, 30 May 2014 15:55:01 -0700
+
+systemd (204-6endless5) unstable; urgency=low
+
+  * debian/rules:
+    Make sure to mount /tmp as tmpfs. 
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Wed, 16 Apr 2014 13:13:02 -0700
+
+systemd (204-6endless4) unstable; urgency=low
+
+  * debian/patches/endless-journald-runtime-max-use.patch:
+    Set RuntimeMaxUse=4M for journald.
+    [endlessm/eos-shell#2087]
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Wed, 26 Mar 2014 18:59:53 -0700
+
+systemd (204-6endless3) eos; urgency=low
+
+  * debian/rules, debian/systemd.links:
+    Remove debian-fixup.service.
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Wed, 12 Mar 2014 08:38:15 -0700
+
+systemd (204-6endless2) eos; urgency=low
+
+  * Create /etc/locale.conf with default en_US language, and create
+    compat symlink at /etc/default/locale. eos-shell #1938
+
+ -- Daniel Drake <drake@endlessm.com>  Tue, 18 Feb 2014 16:21:17 -0600
+
+systemd (204-6endless1) unstable; urgency=low
+
+  * Rebase on top of new upstream release. Below changes carried from
+    Collabora package.
+    - debian/rules: enable systemd-vconsole-setup.service
+    - debian/systemd.links: drop the /etc/modules-load.d/modules.conf ->
+      /etc/modules symlink, so systemd-modules-load doesn't get started
+    - debian/systemd.preinst: only copy unit file to /run if it exists
+    - debian/control: set systemd to required
+    - debian/control: set breaks to match version shipped in EOS
+    - debian/extra/initramfs.bottom: use rm -rf instead of nuke
+    - debian/patches/endless-collabora-auto-serial-console.patch: auto
+      login for root with serial console
+    - debian/patches/endless-collabora-enable-more-cgroups.patch: enable
+      blkio and memory cgroups by default
+
+ -- Cosimo Cecchi <cosimo@endlessm.com>  Thu, 02 Jan 2014 18:19:39 -0800
+
 systemd (204-6) unstable; urgency=low
 
   [ Michael Stapelberg ]

@@ -7,7 +7,8 @@
 
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/module-init-tools.service
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/kmod.service
-/etc/modules /etc/modules-load.d/modules.conf
+# Don't ship the symlink so the service files know to skip this
+#/etc/modules /etc/modules-load.d/modules.conf
 
 /dev/null /lib/systemd/system/x11-common.service
 /dev/null /lib/systemd/system/hostname.service
@@ -53,11 +54,17 @@
 /dev/null /lib/systemd/system/single.service
 /dev/null /lib/systemd/system/killprocs.service
 
-# Run fixups early
-/lib/systemd/system/debian-fixup.service /lib/systemd/system/sysinit.target.wants/debian-fixup.service
 # Compat symlink
 /lib/systemd/systemd /bin/systemd
 
 # Mount separate tmpfs file systems for /run/user and /run/lock
 /lib/systemd/system/run-user.mount /lib/systemd/system/local-fs.target.wants/run-user.mount
 /lib/systemd/system/run-lock.mount /lib/systemd/system/local-fs.target.wants/run-lock.mount
+
+# Enable readahead
+/lib/systemd/system/systemd-readahead-collect.service /lib/systemd/system/default.target.wants/systemd-readahead-collect.service
+/lib/systemd/system/systemd-readahead-replay.service /lib/systemd/system/default.target.wants/systemd-readahead-replay.service
+/lib/systemd/system/systemd-readahead-drop.service /lib/systemd/system/system-update.target.wants/systemd-readahead-drop.service
+
+# Added by Endless. Store locale info in just 1 place, but add a compat symlink.
+/etc/locale.conf /etc/default/locale
