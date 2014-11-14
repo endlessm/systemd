@@ -546,6 +546,15 @@ static int parse_new_root_from_proc_cmdline(void) {
                 }
         }
 
+        /* Enforce /sysroot mount as rw, so that we can generate machine-id
+         * during first boot. */
+        w = strjoin(opts, ",", "rw", NULL);
+        if (!w)
+            return log_oom();
+
+        free(opts);
+        opts = w;
+
         if (!what) {
                 log_debug("Could not find a root= entry on the kernel commandline.");
                 return 0;
