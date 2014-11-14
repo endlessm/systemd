@@ -22,7 +22,7 @@ Before=getty.target
 IgnoreOnIsolate=yes
 
 [Service]
-ExecStart=-/sbin/agetty --keep-baud 115200,38400,9600 %I $TERM
+ExecStart=-/sbin/agetty --noclear -w -a root -s %I 115200,38400,9600
 Type=idle
 Restart=always
 UtmpIdentifier=%I
