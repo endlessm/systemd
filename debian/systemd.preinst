@@ -13,7 +13,7 @@ fi
 # This is necessary at least for certain .mount units when upgrading from 44 to
 # 204, see http://bugs.debian.org/723936
 preserve_unit() {
-    if [ ! -e /run/systemd/system/$1 ]; then
+    if [ ! -e /run/systemd/system/$1 ] && [ -e /lib/systemd/system/$1 ]; then
         cp /lib/systemd/system/$1 /run/systemd/system/$1
     fi
 }

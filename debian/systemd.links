@@ -7,7 +7,8 @@
 
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/module-init-tools.service
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/kmod.service
-/etc/modules /etc/modules-load.d/modules.conf
+# Don't ship the symlink so the service files know to skip this
+#/etc/modules /etc/modules-load.d/modules.conf
 
 # X server and ICE socket directories are created by /usr/lib/tmpfiles.d/x11.conf
 /dev/null /lib/systemd/system/x11-common.service
@@ -76,7 +77,6 @@
 /dev/null /lib/systemd/system/bootlogs.service
 
 # Enable Debian specific units
-/lib/systemd/system/debian-fixup.service /lib/systemd/system/sysinit.target.wants/debian-fixup.service
 /lib/systemd/system/getty-static.service /lib/systemd/system/getty.target.wants/getty-static.service
 
 # Compat symlink
@@ -84,3 +84,11 @@
 
 # Create a compat symlink as systemd-sysctl no longer reads /etc/sysctl.conf
 /etc/sysctl.conf /etc/sysctl.d/99-sysctl.conf
+
+# Enable readahead
+/lib/systemd/system/systemd-readahead-collect.service /lib/systemd/system/default.target.wants/systemd-readahead-collect.service
+/lib/systemd/system/systemd-readahead-replay.service /lib/systemd/system/default.target.wants/systemd-readahead-replay.service
+/lib/systemd/system/systemd-readahead-drop.service /lib/systemd/system/system-update.target.wants/systemd-readahead-drop.service
+
+# Added by Endless. Store locale info in just 1 place, but add a compat symlink.
+/etc/locale.conf /etc/default/locale
