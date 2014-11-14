@@ -468,7 +468,7 @@ int main(int argc, char *argv[]) {
                 if (status.si_code == CLD_EXITED && (status.si_status & FSCK_SYSTEM_SHOULD_REBOOT) && root_directory)
                         /* System should be rebooted. */
                         start_target(SPECIAL_REBOOT_TARGET, "replace-irreversibly");
-                else if (status.si_code == CLD_EXITED && (status.si_status & (FSCK_SYSTEM_SHOULD_REBOOT | FSCK_ERRORS_LEFT_UNCORRECTED)))
+                else if (0 && status.si_code == CLD_EXITED && (status.si_status & (FSCK_SYSTEM_SHOULD_REBOOT | FSCK_ERRORS_LEFT_UNCORRECTED)))
                         /* Some other problem */
                         start_target(SPECIAL_EMERGENCY_TARGET, "replace");
                 else {
