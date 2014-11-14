@@ -4017,8 +4017,9 @@ static int enable_sysv_units(char **args) {
                 return 0;
 
         if (!streq(verb, "enable") &&
-            !streq(verb, "disable") &&
-            !streq(verb, "is-enabled"))
+            !streq(verb, "disable"))
+            // update-rc.d currently does not provide is-enabled
+            //!streq(verb, "is-enabled"))
                 return 0;
 
         /* Processes all SysV units, and reshuffles the array so that
@@ -4034,7 +4035,7 @@ static int enable_sysv_units(char **args) {
                 _cleanup_free_ char *p = NULL, *q = NULL;
                 bool found_native = false, found_sysv;
                 unsigned c = 1;
-                const char *argv[6] = { "/sbin/chkconfig", NULL, NULL, NULL, NULL };
+                const char *argv[6] = { "/usr/sbin/update-rc.d", NULL, NULL, NULL, NULL };
                 char **k, *l;
                 int j;
                 pid_t pid;
@@ -4079,24 +4080,67 @@ static int enable_sysv_units(char **args) {
                         goto finish;
                 }
 
-                p[strlen(p) - sizeof(".service") + 1] = 0;
+                if (endswith(name, ".service"))
+                        p[strlen(p) - sizeof(".service") + 1] = 0;
                 found_sysv = access(p, F_OK) >= 0;
 
                 if (!found_sysv)
                         continue;
 
-                /* Mark this entry, so that we don't try enabling it as native unit */
-                args[f] = (char*) "";
+                if (!found_native) {
+                        /* Mark this entry, so that we don't try enabling it as native unit */
+                        args[f] = (char*) "";
+                }
 
-                log_info("%s is not a native service, redirecting to /sbin/chkconfig.", name);
+                log_info("Synchronizing state for %s with sysvinit using update-rc.d...", name);
 
-                if (!isempty(arg_root))
-                        argv[c++] = q = strappend("--root=", arg_root);
-
+                /* Run update-rc.d <file> defaults first to ensure the K- and
+                 * S-symlinks are present. If they are missing, update-rc.d
+                 * <enable|disable> will fail. See
+                 * http://bugs.debian.org/722523 */
                 argv[c++] = path_get_file_name(p);
-                argv[c++] =
-                        streq(verb, "enable") ? "on" :
-                        streq(verb, "disable") ? "off" : "--level=5";
+                argv[c++] = "defaults";
+                argv[c] = NULL;
+
+                l = strv_join((char**)argv, " ");
+                if (!l) {
+                        r = log_oom();
+                        goto finish;
+                }
+
+                log_info("Executing %s", l);
+                free(l);
+
+                pid = fork();
+                if (pid < 0) {
+                        log_error("Failed to fork: %m");
+                        r = -errno;
+                        goto finish;
+                } else if (pid == 0) {
+                        /* Child */
+
+                        execv(argv[0], (char**) argv);
+                        _exit(EXIT_FAILURE);
+                }
+
+                j = wait_for_terminate(pid, &status);
+                if (j < 0) {
+                        log_error("Failed to wait for child: %s", strerror(-r));
+                        r = j;
+                        goto finish;
+                }
+
+                if (status.si_code == CLD_EXITED) {
+                        if (status.si_status != 0) {
+                                r = -EINVAL;
+                                goto finish;
+                        }
+                } else {
+                        r = -EPROTO;
+                        goto finish;
+                }
+
+                argv[c-1] = verb;
                 argv[c] = NULL;
 
                 l = strv_join((char**)argv, " ");
@@ -4208,33 +4252,37 @@ static int enable_unit(DBusConnection *bus, char **args) {
         _cleanup_dbus_error_free_ DBusError error;
         _cleanup_strv_free_ char **mangled_names = NULL;
 
-        dbus_error_init(&error);
+        if (!args[1])
+                return 0;
+
+        r = mangle_names(args+1, &mangled_names);
+        if (r < 0)
+                goto finish;
 
         r = enable_sysv_units(args);
         if (r < 0)
                 return r;
 
-        if (!args[1])
-                return 0;
+        dbus_error_init(&error);
 
         if (!bus || avoid_bus()) {
                 if (streq(verb, "enable")) {
-                        r = unit_file_enable(arg_scope, arg_runtime, arg_root, args+1, arg_force, &changes, &n_changes);
+                        r = unit_file_enable(arg_scope, arg_runtime, arg_root, mangled_names, arg_force, &changes, &n_changes);
                         carries_install_info = r;
                 } else if (streq(verb, "disable"))
-                        r = unit_file_disable(arg_scope, arg_runtime, arg_root, args+1, &changes, &n_changes);
+                        r = unit_file_disable(arg_scope, arg_runtime, arg_root, mangled_names, &changes, &n_changes);
                 else if (streq(verb, "reenable")) {
-                        r = unit_file_reenable(arg_scope, arg_runtime, arg_root, args+1, arg_force, &changes, &n_changes);
+                        r = unit_file_reenable(arg_scope, arg_runtime, arg_root, mangled_names, arg_force, &changes, &n_changes);
                         carries_install_info = r;
                 } else if (streq(verb, "link"))
-                        r = unit_file_link(arg_scope, arg_runtime, arg_root, args+1, arg_force, &changes, &n_changes);
+                        r = unit_file_link(arg_scope, arg_runtime, arg_root, mangled_names, arg_force, &changes, &n_changes);
                 else if (streq(verb, "preset")) {
-                        r = unit_file_preset(arg_scope, arg_runtime, arg_root, args+1, arg_force, &changes, &n_changes);
+                        r = unit_file_preset(arg_scope, arg_runtime, arg_root, mangled_names, arg_force, &changes, &n_changes);
                         carries_install_info = r;
                 } else if (streq(verb, "mask"))
-                        r = unit_file_mask(arg_scope, arg_runtime, arg_root, args+1, arg_force, &changes, &n_changes);
+                        r = unit_file_mask(arg_scope, arg_runtime, arg_root, mangled_names, arg_force, &changes, &n_changes);
                 else if (streq(verb, "unmask"))
-                        r = unit_file_unmask(arg_scope, arg_runtime, arg_root, args+1, &changes, &n_changes);
+                        r = unit_file_unmask(arg_scope, arg_runtime, arg_root, mangled_names, &changes, &n_changes);
                 else
                         assert_not_reached("Unknown verb");
 

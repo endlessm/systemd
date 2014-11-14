@@ -97,6 +97,7 @@
                 <filename>swap.target</filename>,
                 <filename>sysinit.target</filename>,
                 <filename>syslog.socket</filename>,
+                <filename>syslog.target</filename>,
                 <filename>system-update.target</filename>,
                 <filename>time-sync.target</filename>,
                 <filename>timers.target</filename>,
@@ -363,6 +364,27 @@
                                         that have the
                                         <option>auto</option> mount
                                         option set.</para>
+
+                                        <para>systemd automatically
+                                        adds dependencies of type
+                                        After for this target unit to
+                                        all SysV init script service
+                                        units with an LSB header
+                                        referring to the
+                                        <literal>$local_fs</literal>
+                                        facility.</para>
+                                </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                                <term><filename>local-fs-pre.target</filename></term>
+                                <listitem>
+                                        <para>This target unit is
+                                        automatically ordered before
+                                        all local mount points marked
+                                        with <option>auto</option>
+                                        (see above). It can be used to
+                                        execute certain units before
+                                        all local mounts.</para>
                                 </listitem>
                         </varlistentry>
                         <varlistentry>
@@ -668,6 +690,23 @@
                                         url="http://www.freedesktop.org/wiki/Software/systemd/syslog">Syslog
                                         Interface</ulink>
                                         document.</para>
+                                </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                                <term><filename>system-update.target</filename></term>
+                                <listitem>
+                                        <para>A special target unit
+                                        that is used for off-line
+                                        system updates.
+                                        <citerefentry><refentrytitle>systemd-system-update-generator</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+                                        will redirect the boot process
+                                        to this target if
+                                        <filename>/system-update</filename>
+                                        exists. For more information
+                                        see the <ulink
+                                        url="http://freedesktop.org/wiki/Software/systemd/SystemUpdates">System
+                                        Updates
+                                        Specification</ulink>.</para>
                                 </listitem>
                         </varlistentry>
                         <varlistentry>
