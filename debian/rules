@@ -21,7 +21,7 @@ CONFFLAGS = \
 	--disable-coredump \
 	--disable-efi \
 	--disable-myhostname \
-	--disable-vconsole \
+	--enable-vconsole \
 	--disable-microhttpd \
 	--disable-sysusers \
 	--disable-silent-rules \
@@ -183,15 +183,13 @@ override_dh_install:
 		debian/systemd/lib/lsb/init-functions.d/40-systemd
 	install --mode=644 debian/tmpfiles.d/debian.conf \
 		debian/systemd/usr/lib/tmpfiles.d/
-	install --mode=644 debian/debian-fixup.service debian/ifup@.service debian/extra/getty-static.service \
+	install --mode=644 debian/ifup@.service debian/extra/getty-static.service \
 		debian/systemd/lib/systemd/system/
 	install -D --mode=644 debian/extra/network-pre.conf \
 		debian/systemd/lib/systemd/system/networking.service.d/network-pre.conf
 	install --mode=644 debian/extra/udev-finish.service \
 		debian/udev/lib/systemd/system/
 	ln -s ../udev-finish.service debian/udev/lib/systemd/system/sysinit.target.wants/
-	install --mode=755 debian/debian-fixup \
-		debian/systemd/lib/systemd/
 	# Make sure the runlevel services are known by systemd so their targets
 	# get launches. See https://bugzilla.redhat.com/show_bug.cgi?id=1002806
 	for t in poweroff rescue multi-user graphical reboot; do \
@@ -206,6 +204,7 @@ override_dh_install:
 		debian/systemd/usr/share/man/man3/
 	install --mode=755 debian/systemd-logind-launch \
 		debian/systemd/lib/systemd/
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
 	# remove duplicates
 	# files shipped by systemd-sysv / sysvinit
 	rm debian/systemd/usr/share/man/man1/init.1
