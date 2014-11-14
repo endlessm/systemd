@@ -413,10 +413,12 @@ static int run(int argc, char *argv[]) {
                         /* System should be rebooted. */
                         start_target(SPECIAL_REBOOT_TARGET, "replace-irreversibly");
                         return -EINVAL;
+#if 0
                 } else if (exit_status & (FSCK_SYSTEM_SHOULD_REBOOT | FSCK_ERRORS_LEFT_UNCORRECTED))
                         /* Some other problem */
                         start_target(SPECIAL_EMERGENCY_TARGET, "replace");
-                else
+#endif
+                } else
                         log_warning("Ignoring error.");
         }
 
