@@ -383,7 +383,7 @@ int main(int argc, char *argv[]) {
                 if (status.si_code == CLD_EXITED && (status.si_status & 2) && root_directory)
                         /* System should be rebooted. */
                         start_target(SPECIAL_REBOOT_TARGET);
-                else if (status.si_code == CLD_EXITED && (status.si_status & 6))
+                else if (0 && status.si_code == CLD_EXITED && (status.si_status & 6))
                         /* Some other problem */
                         start_target(SPECIAL_EMERGENCY_TARGET);
                 else {
