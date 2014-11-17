@@ -2090,6 +2090,8 @@ INSTALL_DATA_HOOKS += \
 hwdb-remove-hook:
 	-test -n "$(DESTDIR)" || rm -f $(udevlibexecdir)/hwdb.bin
 
+UNINSTALL_DATA_HOOKS += \
+	hwdb-remove-hook
 # ------------------------------------------------------------------------------
 if ENABLE_TESTS
 TESTS += \
