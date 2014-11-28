@@ -2198,6 +2198,7 @@ int server_init(Server *s, const char *namespace) {
                 .ratelimit_interval = DEFAULT_RATE_LIMIT_INTERVAL,
                 .ratelimit_burst = DEFAULT_RATE_LIMIT_BURST,
 
+                .forward_to_syslog = true,
                 .forward_to_wall = true,
 
                 .max_file_usec = DEFAULT_MAX_FILE_USEC,
