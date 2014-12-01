@@ -551,6 +551,9 @@ static int manager_setup_notify(Manager *m) {
                 if (!m->notify_socket)
                         return log_oom();
 
+                (void) mkdir_parents_label(m->notify_socket, 0755);
+                (void) unlink(m->notify_socket);
+
                 strncpy(sa.un.sun_path, m->notify_socket, sizeof(sa.un.sun_path)-1);
                 r = bind(fd, &sa.sa, offsetof(struct sockaddr_un, sun_path) + strlen(sa.un.sun_path));
                 if (r < 0) {
