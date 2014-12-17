@@ -995,10 +995,13 @@ _public_ int sd_login_monitor_new(const char *category, sd_login_monitor **m) {
 
         if (!category || streq(category, "machine")) {
                 k = inotify_add_watch(fd, "/run/systemd/machines/", IN_MOVED_TO|IN_DELETE);
+                /* when running logind without pid 1, this will fail */
+                /*
                 if (k < 0) {
                         safe_close(fd);
                         return -errno;
                 }
+                */
 
                 good = true;
         }
