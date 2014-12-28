@@ -555,10 +555,5 @@ int server_open_audit(Server *s) {
         if (r < 0)
                 return log_error_errno(r, "Failed to add audit fd to event loop: %m");
 
-        /* We are listening now, try to enable audit */
-        r = enable_audit(s->audit_fd, true);
-        if (r < 0)
-                log_warning_errno(r, "Failed to issue audit enable call: %m");
-
         return 0;
 }
