@@ -426,7 +426,7 @@
         <command>systemd-journald</command> collects generated audit records, it just controls whether it
         tells the kernel to generate them. This means if another tool turns on auditing even if
         <command>systemd-journald</command> left it off, it will still collect the generated
-        messages. Defaults to on.</para></listitem>
+        messages. Defaults to off.</para></listitem>
       </varlistentry>
 
       <varlistentry>

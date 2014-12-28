@@ -2197,7 +2197,7 @@ int server_init(Server *s, const char *namespace) {
                 .compress.threshold_bytes = UINT64_MAX,
                 .seal = true,
 
-                .set_audit = true,
+                .set_audit = false,
 
                 .watchdog_usec = USEC_INFINITY,
 
