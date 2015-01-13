@@ -34,6 +34,32 @@
 #include "mount-setup.h"
 #include "exit-status.h"
 
+static bool is_mounted(const char *dev_path) {
+        _cleanup_free_ char *parent_path = NULL;
+        struct stat st, pst;
+        int r;
+
+        parent_path = strjoin(dev_path, "/..", NULL);
+
+        r = stat(dev_path, &st);
+        if (r < 0)
+                return false;
+
+        r = stat(parent_path, &pst);
+        if (r < 0)
+                return false;
+
+        /*
+         * This code to check if a given path is a mountpoint is
+         * borrowed from util-linux' mountpoint tool.
+         */
+        if ((st.st_dev != pst.st_dev) ||
+            (st.st_dev == pst.st_dev && st.st_ino == pst.st_ino))
+                return true;
+
+        return false;
+}
+
 /* Goes through /etc/fstab and remounts all API file systems, applying
  * options that are in /etc/fstab that systemd might not have
  * respected */
@@ -81,6 +107,11 @@ int main(int argc, char *argv[]) {
                 if (!mount_point_is_api(me->mnt_dir) &&
                     !path_equal(me->mnt_dir, "/") &&
                     !path_equal(me->mnt_dir, "/usr"))
+                        continue;
+
+                /* Skip /usr if it hasn't been mounted by the initrd */
+                if (path_equal(me->mnt_dir, "/usr") &&
+                    !is_mounted("/usr"))
                         continue;
 
                 log_debug("Remounting %s", me->mnt_dir);
