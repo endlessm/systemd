@@ -16,6 +16,7 @@ Documentation=man:org.freedesktop.login1(5)
 
 Wants=user.slice modprobe@drm.service
 After=nss-user-lookup.target user.slice modprobe@drm.service
+ConditionPathExists=/lib/systemd/system/dbus.service
 
 # Ask for the dbus socket.
 Wants=dbus.socket
