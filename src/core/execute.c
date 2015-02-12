@@ -1611,7 +1611,8 @@ int exec_spawn(ExecCommand *command,
                                         goto fail_child;
                                 }
 
-                        if (chdir(context->working_directory ? context->working_directory : "/") < 0) {
+                        if (chdir(context->working_directory ?: "/") < 0 &&
+                            !context->working_directory_missing_ok) {
                                 err = -errno;
                                 r = EXIT_CHDIR;
                                 goto fail_child;
@@ -1620,14 +1621,15 @@ int exec_spawn(ExecCommand *command,
                         _cleanup_free_ char *d = NULL;
 
                         if (asprintf(&d, "%s/%s",
-                                     context->root_directory ? context->root_directory : "",
-                                     context->working_directory ? context->working_directory : "") < 0) {
+                                     context->root_directory ?: "",
+                                     context->working_directory ?: "") < 0) {
                                 err = -ENOMEM;
                                 r = EXIT_MEMORY;
                                 goto fail_child;
                         }
 
-                        if (chdir(d) < 0) {
+                        if (chdir(d) < 0 &&
+                            !context->working_directory_missing_ok) {
                                 err = -errno;
                                 r = EXIT_CHDIR;
                                 goto fail_child;
