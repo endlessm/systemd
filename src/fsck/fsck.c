@@ -152,7 +152,7 @@ static void test_files(void) {
         }
 #endif
 
-        if (access("/run/systemd/show-status", F_OK) >= 0 || plymouth_running())
+        if (access("/run/systemd/show-status", F_OK) >= 0)
                 arg_show_progress = true;
 }
 

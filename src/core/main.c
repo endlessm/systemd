@@ -1567,7 +1567,7 @@ int main(int argc, char *argv[]) {
         if (arg_running_as == SYSTEMD_SYSTEM && !skip_setup) {
                 locale_setup();
 
-                if (arg_show_status || plymouth_running())
+                if (arg_show_status > 0)
                         status_welcome();
 
 #ifdef HAVE_KMOD
