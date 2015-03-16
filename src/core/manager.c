@@ -2844,10 +2844,7 @@ static bool manager_get_show_status(Manager *m) {
         if (m->show_status > 0)
                 return true;
 
-        /* If Plymouth is running make sure we show the status, so
-         * that there's something nice to see when people press Esc */
-
-        return plymouth_running();
+        return false;
 }
 
 void manager_status_printf(Manager *m, bool ephemeral, const char *status, const char *format, ...) {
