@@ -3785,10 +3785,6 @@ bool nulstr_contains(const char*nulstr, const char *needle) {
         return false;
 }
 
-bool plymouth_running(void) {
-        return access("/run/plymouth/pid", F_OK) >= 0;
-}
-
 char* strshorten(char *s, size_t l) {
         assert(s);
 
