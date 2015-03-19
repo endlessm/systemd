@@ -87,6 +87,26 @@ warn_if_interactive() {
   sleep 60
 }
 
+make_static_nodes() {
+  [ -e /lib/modules/$(uname -r)/modules.devname ] || return 0
+  [ -x /bin/kmod ] || return 0
+
+  /bin/kmod static-nodes --format=tmpfiles --output=/proc/self/fd/1 | \
+  while read type name mode uid gid age arg; do
+    [ -e $name ] && continue
+    case "$type" in
+      c|b) mknod -m $mode $name $type $(echo $arg | sed 's/:/ /') ;;
+      d) mkdir $name ;;
+      *) echo "unparseable line ($type $name $mode $uid $gid $age $arg)" >&2 ;;
+    esac
+
+    if [ -x /sbin/restorecon ]; then
+      /sbin/restorecon $name
+    fi
+  done
+}
+
+
 ##############################################################################
 
 [ -x /sbin/udevd ] || exit 0
@@ -122,11 +142,6 @@ if [ ! -d /sys/class/ ]; then
   log_end_msg 1
 fi
 
-if [ ! -e /sys/kernel/uevent_helper ]; then
-  log_failure_msg "udev requires hotplug support, not started"
-  log_end_msg 1
-fi
-
 if ! ps --no-headers --format args ax | egrep -q '^\['; then
   log_warning_msg "udev does not support containers, not started"
   exit 0
@@ -158,7 +173,9 @@ case "$1" in
 	warn_if_interactive
     fi
 
-    echo > /sys/kernel/uevent_helper
+    if [ -w /sys/kernel/uevent_helper ]; then
+	echo > /sys/kernel/uevent_helper
+    fi
 
     move_udev_database
 
@@ -168,14 +185,13 @@ case "$1" in
 	[ -d /proc/1 ] || mount -n /proc
     fi
 
+    make_static_nodes
+
     # clean up parts of the database created by the initramfs udev
     udevadm info --cleanup-db
 
     # set the SELinux context for devices created in the initramfs
     [ -x /sbin/restorecon ] && /sbin/restorecon -R /dev
-
-    # /dev/null must be created before udevd is started
-    /lib/udev/create_static_nodes || true
 
     log_daemon_msg "Starting the hotplug events dispatcher" "udevd"
     if udevd --daemon; then
