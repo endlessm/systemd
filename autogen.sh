@@ -75,5 +75,5 @@ elif [ "x$1" = "xs" ]; then
         scan-build $topdir/configure CFLAGS='-std=gnu99 -g -O0 -ftrapv' --enable-kdbus $args
         scan-build make
 else
-        ./configure $args
+        ./configure $args "$@"
 fi
