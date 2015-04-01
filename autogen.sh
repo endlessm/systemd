@@ -84,5 +84,5 @@ elif [ "$verb" = "s" ]; then
         scan-build $topdir/configure CFLAGS='-std=gnu99 -g -O0 -ftrapv' $args
         scan-build make
 else
-        ./configure $args
+        ./configure $args "$@"
 fi
