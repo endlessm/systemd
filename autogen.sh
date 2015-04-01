@@ -75,11 +75,5 @@ elif [ "x$1" = "xs" ]; then
         scan-build $topdir/configure CFLAGS='-std=gnu99 -g -O0 -ftrapv' --enable-kdbus $args
         scan-build make
 else
-        echo
-        echo "----------------------------------------------------------------"
-        echo "Initialized build system. For a common configuration please run:"
-        echo "----------------------------------------------------------------"
-        echo
-        echo "$topdir/configure CFLAGS='-g -O0 -ftrapv' --enable-compat-libs --enable-kdbus $args"
-        echo
+        ./configure $args
 fi
