@@ -84,11 +84,5 @@ elif [ "$verb" = "s" ]; then
         scan-build $topdir/configure CFLAGS='-std=gnu99 -g -O0 -ftrapv' $args
         scan-build make
 else
-        echo
-        echo "----------------------------------------------------------------"
-        echo "Initialized build system. For a common configuration please run:"
-        echo "----------------------------------------------------------------"
-        echo
-        echo "$topdir/configure CFLAGS='-g -O0 -ftrapv' $args"
-        echo
+        ./configure $args
 fi
