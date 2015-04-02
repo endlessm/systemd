@@ -541,7 +541,7 @@ nodist_systemunit_DATA = \
 	units/systemd-update-done.service
 
 if HAVE_SYSV_COMPAT
-nodist_systemunit_DATA += \
+dist_systemunit_DATA += \
 	units/x-display-manager.target \
 	units/mail-transport-agent.target
 endif
