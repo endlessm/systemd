@@ -940,6 +940,17 @@ static void handle_signal(struct udev *udev, int signo)
         }
 }
 
+static void event_queue_update(void) {
+        if (!udev_list_node_is_empty(&event_list)) {
+                int fd;
+
+                fd = open("/run/udev/queue", O_WRONLY|O_CREAT|O_CLOEXEC|O_TRUNC|O_NOFOLLOW, 0444);
+                if (fd >= 0)
+                       close(fd);
+        } else
+                unlink("/run/udev/queue");
+}
+
 static int systemd_fds(struct udev *udev, int *rctrl, int *rnetlink)
 {
         int ctrl = -1, netlink = -1;
@@ -1379,15 +1390,7 @@ int main(int argc, char *argv[])
                 }
 
                 /* tell settle that we are busy or idle */
-                if (!udev_list_node_is_empty(&event_list)) {
-                        int fd;
-
-                        fd = open("/run/udev/queue", O_WRONLY|O_CREAT|O_CLOEXEC|O_TRUNC|O_NOFOLLOW, 0444);
-                        if (fd >= 0)
-                                close(fd);
-                } else {
-                        unlink("/run/udev/queue");
-                }
+                event_queue_update();
 
                 fdcount = epoll_wait(fd_ep, ev, ELEMENTSOF(ev), timeout);
                 if (fdcount < 0)
@@ -1504,8 +1507,26 @@ int main(int argc, char *argv[])
                         continue;
 
                 /* device node watch */
-                if (is_inotify)
+                if (is_inotify) {
                         handle_inotify(udev);
+
+                        /*
+                         * settle might be waiting on us to determine the queue
+                         * state. If we just handled an inotify event, we might have
+                         * generated a "change" event, but we won't have queued up
+                         * the resultant uevent yet.
+                         *
+                         * Before we go ahead and potentially tell settle that the
+                         * queue is empty, lets loop one more time to update the
+                         * queue state again before deciding.
+                         */
+                        continue;
+                }
+
+                /* tell settle that we are busy or idle, this needs to be before the
+                 * PING handling
+                 */
+                event_queue_update();
 
                 /*
                  * This needs to be after the inotify handling, to make sure,
