@@ -89,12 +89,12 @@ systemd-machine-id-setup
 # Setup system users and groups
 addgroup --quiet --system systemd-journal
 
-adduser --quiet --system --group --no-create-home --home /run/systemd \
-    --gecos "systemd Time Synchronization" systemd-timesync
-adduser --quiet --system --group --no-create-home --home /run/systemd/netif \
-    --gecos "systemd Network Management" systemd-network
-adduser --quiet --system --group --no-create-home --home /run/systemd/resolve \
-    --gecos "systemd Resolver" systemd-resolve
+#adduser --quiet --system --group --no-create-home --home /run/systemd \
+#    --gecos "systemd Time Synchronization" systemd-timesync
+#adduser --quiet --system --group --no-create-home --home /run/systemd/netif \
+#    --gecos "systemd Network Management" systemd-network
+#adduser --quiet --system --group --no-create-home --home /run/systemd/resolve \
+#    --gecos "systemd Resolver" systemd-resolve
 adduser --quiet --system --group --no-create-home --home /run/systemd \
     --gecos "systemd Bus Proxy" systemd-bus-proxy
 
@@ -118,9 +118,9 @@ fi
 if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     _systemctl try-restart systemd-logind.service || true
-    _systemctl try-restart systemd-networkd.service || true
-    _systemctl try-restart systemd-resolved.service || true
-    _systemctl try-restart systemd-timesyncd.service || true
+    #_systemctl try-restart systemd-networkd.service || true
+    #_systemctl try-restart systemd-resolved.service || true
+    #_systemctl try-restart systemd-timesyncd.service || true
 fi
 
 # Enable getty and remote-fs.target by default on new installs, and on

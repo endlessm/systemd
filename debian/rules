@@ -24,6 +24,9 @@ CONFFLAGS = \
 	--enable-vconsole \
 	--disable-microhttpd \
 	--disable-sysusers \
+	--disable-networkd \
+	--disable-resolved \
+	--disable-timesyncd \
 	--disable-silent-rules \
 	--with-ntp-servers="0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org"  \
 	--with-system-uid-max=999 \
