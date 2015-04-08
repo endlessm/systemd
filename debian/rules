@@ -43,6 +43,9 @@ CONFFLAGS = \
 	--disable-firstboot \
 	--disable-xkbcommon \
 	--disable-libiptc \
+	--disable-networkd \
+	--disable-resolved \
+	--disable-timesyncd \
 	--disable-silent-rules \
 	--with-ntp-servers="$(DEFAULT_NTP_SERVERS)"  \
 	--with-system-uid-max=999 \
