@@ -13,6 +13,9 @@
 #include <unistd.h>
 
 #include "alloc-util.h"
+#include "sd-bus.h"
+#include "bus-util.h"
+#include "bus-error.h"
 #include "conf-parser.h"
 #include "def.h"
 #include "env-util.h"
@@ -97,6 +100,56 @@ int parse_sleep_config(const char *verb, char ***_modes, char ***_states, usec_t
         if (_delay)
                 *_delay = delay;
 
+        return 0;
+}
+
+static int parse_sleep_products_config(const char *verb, char ***_blacklist, char ***_whitelist) {
+
+        _cleanup_strv_free_ char
+                **suspend_blacklist = NULL, **suspend_whitelist = NULL,
+                **hibernate_blacklist = NULL, **hibernate_whitelist = NULL,
+                **hybrid_blacklist = NULL, **hybrid_whitelist = NULL;
+        char **blacklist, **whitelist;
+
+        const ConfigTableItem items[] = {
+                { "CanSuspend",     "BlackListProducts", config_parse_strv,  0, &suspend_blacklist  },
+                { "CanSuspend",     "WhiteListProducts", config_parse_strv,  0, &suspend_whitelist },
+                { "CanHibernate",   "BlackListProducts", config_parse_strv,  0, &hibernate_blacklist  },
+                { "CanHibernate",   "WhiteListProducts", config_parse_strv,  0, &hibernate_whitelist },
+                { "CanHybridSleep", "BlackListProducts", config_parse_strv,  0, &hybrid_blacklist  },
+                { "CanHybridSleep", "WhiteListProducts", config_parse_strv,  0, &hybrid_whitelist },
+                {}
+        };
+
+        int r;
+        _cleanup_fclose_ FILE *f;
+
+        f = fopen(PKGSYSCONFDIR "/sleep-products.conf", "re");
+        if (!f)
+                log_full(errno == ENOENT ? LOG_DEBUG: LOG_WARNING,
+                         "Failed to open configuration file " PKGSYSCONFDIR "/sleep-products.conf: %m");
+        else {
+                r = config_parse
+                        (NULL, PKGSYSCONFDIR "/sleep-products.conf", f, "CanSuspend\0CanHibernate\0CanHybridSleep\0",
+                                 config_item_table_lookup, (void*) items, 0, NULL);
+                if (r < 0)
+                        log_warning("Failed to parse configuration file: %s", strerror(-r));
+        }
+
+        if (streq(verb, "suspend")) {
+                blacklist = TAKE_PTR(suspend_blacklist);
+                whitelist = TAKE_PTR(suspend_whitelist);
+        } else if (streq(verb, "hibernate")) {
+                blacklist = TAKE_PTR(hibernate_blacklist);
+                whitelist = TAKE_PTR(hibernate_whitelist);
+        } else if (streq(verb, "hybrid-sleep")) {
+                blacklist = TAKE_PTR(hybrid_blacklist);
+                whitelist = TAKE_PTR(hybrid_whitelist);
+        } else
+                assert_not_reached("what verb");
+
+        *_blacklist = blacklist;
+        *_whitelist = whitelist;
         return 0;
 }
 
@@ -367,8 +420,81 @@ static bool can_s2h(void) {
         return true;
 }
 
+static bool is_product_listed(char **products) {
+        char **product;
+        int r;
+        _cleanup_free_ char *p = NULL;
+
+        if (strv_isempty(products))
+                return false;
+
+        if (access("/sys/class/dmi/id/product_name", R_OK) < 0)
+                return false;
+
+        r = read_one_line_file("/sys/class/dmi/id/product_name", &p);
+        if (r < 0)
+                return false;
+
+        STRV_FOREACH(product, products) {
+                size_t l, k;
+
+                l = strlen(p);
+                k = strlen(*product);
+                if (l == k && memcmp(p, *product, l) == 0)
+                        return true;
+        }
+
+        return false;
+}
+
+static bool is_laptop_chassis(void) {
+        _cleanup_(sd_bus_unrefp) sd_bus *bus = NULL;
+        _cleanup_(sd_bus_message_unrefp) sd_bus_message *reply = NULL;
+        _cleanup_(sd_bus_error_free) sd_bus_error error = SD_BUS_ERROR_NULL;
+        static int result = -1;
+        const char *s;
+        int r;
+
+        /* This answer depends on the actual hardware
+           so it won't change in subsequent calls. */
+        if (result != -1)
+                return result;
+
+        r = sd_bus_open_system(&bus);
+        if (r < 0) {
+                log_error("Failed to create bus connection: %s", strerror(-r));
+                goto finish;
+        }
+
+        r = sd_bus_get_property(
+                        bus,
+                        "org.freedesktop.hostname1",
+                        "/org/freedesktop/hostname1",
+                        "org.freedesktop.hostname1",
+                        "Chassis",
+                        &error, &reply, "s");
+        if (r < 0) {
+                log_error("Could not get property: %s", bus_error_message(&error, -r));
+                goto finish;
+        }
+
+        r = sd_bus_message_read(reply, "s", &s);
+        if (r < 0) {
+                bus_log_parse_error(r);
+                goto finish;
+        }
+
+        result = strcmp(s, "laptop") == 0;
+finish:
+        sd_bus_close(bus);
+
+        /* This can be -1 if the chassis could not be checked */
+        return result > 0;
+}
+
 int can_sleep(const char *verb) {
         _cleanup_strv_free_ char **modes = NULL, **states = NULL;
+        _cleanup_strv_free_ char **blacklist = NULL, **whitelist = NULL;
         int r;
 
         assert(STR_IN_SET(verb, "suspend", "hibernate", "hybrid-sleep", "suspend-then-hibernate"));
@@ -381,6 +507,20 @@ int can_sleep(const char *verb) {
                 return false;
 
         if (!can_sleep_state(states) || !can_sleep_disk(modes))
+                return false;
+
+        /* We keep an optional white and black list (by product) to
+         * control if we want to explicitly support sleep operations. */
+        r = parse_sleep_products_config(verb, &blacklist, &whitelist);
+        if (r < 0)
+                return false;
+
+        if (is_product_listed(blacklist))
+                return false;
+
+        /* We don't support sleep operations for non-laptop chassis
+           unless the product has been explicitly white listed. */
+        if (!is_laptop_chassis() && !is_product_listed(whitelist))
                 return false;
 
         if (streq(verb, "suspend"))
