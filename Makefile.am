@@ -1087,6 +1087,9 @@ libshared_la_LIBADD = \
 	$(LIBIDN_LIBS) \
 	$(SECCOMP_LIBS)
 
+dist_pkgsysconf_DATA += \
+	src/shared/sleep-products.conf
+
 # -----------------------------------------------------------------------------
 if HAVE_LIBIPTC
 noinst_LTLIBRARIES += \
