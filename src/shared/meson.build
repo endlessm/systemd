@@ -397,3 +397,6 @@ libshared = shared_library(
 run_target(
         'syscall-names-update',
         command : [syscall_names_update_sh, meson.current_source_dir()])
+
+install_data('sleep-products.conf',
+             install_dir : pkgsysconfdir)
