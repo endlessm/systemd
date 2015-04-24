@@ -1123,6 +1123,8 @@ libsystemd_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-release $(PACKAGE_VERSION)
 
+dist_pkgsysconf_DATA += \
+	src/shared/sleep-products.conf
 
 # -----------------------------------------------------------------------------
 if HAVE_LIBIPTC
