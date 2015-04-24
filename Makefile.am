@@ -880,6 +880,9 @@ libsystemd_shared_la_CFLAGS = \
 	$(SECCOMP_CFLAGS) \
 	-pthread
 
+dist_pkgsysconf_DATA += \
+	src/shared/sleep-products.conf
+
 # ------------------------------------------------------------------------------
 noinst_LTLIBRARIES += \
 	libsystemd-units.la
