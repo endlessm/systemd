@@ -163,3 +163,6 @@ libshared = shared_library(
         dependencies : libshared_deps,
         install : true,
         install_dir : rootlibexecdir)
+
+install_data('sleep-products.conf',
+             install_dir : pkgsysconfdir)
