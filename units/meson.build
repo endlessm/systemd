@@ -288,6 +288,8 @@ units = [
         },
         { 'file' : 'systemd-fsck-root.service.in' },
         { 'file' : 'systemd-fsck@.service.in' },
+        { 'file' : 'systemd-fsckd.socket' },
+        { 'file' : 'systemd-fsckd.service.in' },
         { 'file' : 'systemd-growfs-root.service.in' },
         { 'file' : 'systemd-growfs@.service.in' },
         { 'file' : 'systemd-halt.service' },

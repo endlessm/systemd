@@ -933,6 +933,7 @@ manpages = [
   '8',
   ['systemd-fsck', 'systemd-fsck-root.service', 'systemd-fsck-usr.service'],
   ''],
+ ['systemd-fsckd.service', '8', ['systemd-fsckd.socket', 'systemd-fsckd'], ''],
  ['systemd-fstab-generator', '8', [], ''],
  ['systemd-getty-generator', '8', [], ''],
  ['systemd-gpt-auto-generator', '8', [], 'HAVE_BLKID'],
