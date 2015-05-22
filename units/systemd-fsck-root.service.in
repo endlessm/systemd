@@ -13,6 +13,8 @@ Documentation=man:systemd-fsck-root.service(8)
 DefaultDependencies=no
 Conflicts=shutdown.target
 Before=local-fs.target shutdown.target
+Wants=systemd-fsckd.socket
+After=systemd-fsckd.socket
 ConditionPathIsReadWrite=!/
 
 [Service]
