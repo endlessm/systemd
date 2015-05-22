@@ -3207,6 +3207,15 @@ executable(
         install_dir : rootlibexecdir)
 
 executable(
+        'systemd-fsckd',
+        'src/fsckd/fsckd.c',
+        include_directories : includes,
+        link_with : [libshared],
+        install_rpath : rootpkglibdir,
+        install : true,
+        install_dir : rootlibexecdir)
+
+executable(
         'systemd-sleep',
         'src/sleep/sleep.c',
         include_directories : includes,
