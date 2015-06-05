@@ -1,0 +1,17 @@
+# Systemd unit file presets for EOS. We do not install a wildcard
+# "disable *" rule, so here we simply blacklist any units that aren't
+# desired. All others will be enabled by systemd.
+
+# Reverse systemd defaults
+disable systemd-timesyncd.service
+disable systemd-networkd.service
+disable systemd-resolved.service
+
+# Disable other unwanted units
+disable bluetooth-init.service
+disable NetworkManager-wait-online.service
+disable rtkit-daemon.service
+disable serial-getty@.service
+disable ssh*.service
+disable ssh.socket
+disable systemd-nspawn@.service

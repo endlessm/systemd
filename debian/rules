@@ -238,6 +238,8 @@ endif
 
 	# Endless specific files
 	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
+	install --mode=644 debian/50-eos.preset \
+		debian/systemd/lib/systemd/system-preset/
 
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
 	echo "Checking that executables don't link to libraries in /usr..."
