@@ -46,6 +46,3 @@ usr/lib/sysctl.d/
 usr/lib/systemd/
 usr/lib/tmpfiles.d/
 usr/share/locale/
-
-# EOS unit file presets
-debian/50-eos.preset /lib/systemd/system-preset/
