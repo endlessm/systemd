@@ -118,7 +118,7 @@ CONFFLAGS = \
 	--with-support-url=$(SUPPORT_URL) \
 	--without-kill-user-processes \
 	--with-pamconfdir=no \
-	--enable-split-usr \
+	--disable-split-usr \
 	--disable-qrencode \
 	--disable-vconsole \
 	--disable-firstboot \
