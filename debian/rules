@@ -34,7 +34,7 @@ CONFFLAGS = \
 	--with-sysvrcnd-path=/etc \
 	--with-debug-shell=/bin/bash \
 	--with-telinit=/lib/sysvinit/telinit \
-	--enable-split-usr \
+	--disable-split-usr \
 	--disable-compat-libs \
 	--disable-qrencode \
 	--disable-libidn \
