@@ -5488,7 +5488,7 @@ clean-local: $(CLEAN_LOCAL_HOOKS)
 	rm -f $(abs_srcdir)/hwdb/usb.ids $(abs_srcdir)/hwdb/pci.ids $(abs_srcdir)/hwdb/oui.txt \
 	      $(abs_srcdir)/hwdb/iab.txt
 
-DISTCHECK_CONFIGURE_FLAGS = \
+AM_DISTCHECK_CONFIGURE_FLAGS = \
 	--with-dbuspolicydir=$$dc_install_base/$(dbuspolicydir) \
 	--with-dbussessionservicedir=$$dc_install_base/$(dbussessionservicedir) \
 	--with-dbussystemservicedir=$$dc_install_base/$(dbussystemservicedir) \
@@ -5503,22 +5503,22 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-compat-libs
 
 if HAVE_SYSV_COMPAT
-DISTCHECK_CONFIGURE_FLAGS += \
+AM_DISTCHECK_CONFIGURE_FLAGS += \
 	--with-sysvinit-path=$$dc_install_base/$(sysvinitdir) \
 	--with-sysvrcnd-path=$$dc_install_base/$(sysvrcnddir)
 else
-DISTCHECK_CONFIGURE_FLAGS += \
+AM_DISTCHECK_CONFIGURE_FLAGS += \
 	--with-sysvinit-path= \
 	--with-sysvrcnd-path=
 endif
 
 if HAVE_PYTHON
-DISTCHECK_CONFIGURE_FLAGS += \
+AM_DISTCHECK_CONFIGURE_FLAGS += \
 	--with-python
 endif
 
 if ENABLE_GTK_DOC
-DISTCHECK_CONFIGURE_FLAGS += \
+AM_DISTCHECK_CONFIGURE_FLAGS += \
 	--enable-gtk-doc
 endif
 
