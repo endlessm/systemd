@@ -205,7 +205,7 @@ override_dh_install:
 	rm -f debian/install/*/lib/systemd/libsystemd-shared.so
 	find debian/install/ -name '*.busname' -delete
 	# remove files related to factory-reset feature
-	find debian/install/ \( -name 'systemd-update-done*' -o \
+	find debian/install/ \( \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-udev-hwdb-update.service -o \
 		-name ldconfig.service -o \
