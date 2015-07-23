@@ -185,7 +185,6 @@ override_dh_install:
 	find debian/tmp/ \( \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-hwdb-update.service -o \
-		-name ldconfig.service -o \
 		-name etc.conf \) -print -delete
 	rm -rf debian/tmp/usr/share/factory/
 	# replace upstream sysusers.d/basic.conf with proper users for Debian
