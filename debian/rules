@@ -182,7 +182,7 @@ override_dh_install:
 	# those files should probably be shipped in a -dev package, remove for now
 	rm -rf debian/tmp/usr/share/dbus-1/interfaces/
 	# remove files related to factory-reset feature
-	find debian/tmp/ \( -name 'systemd-update-done*' -o \
+	find debian/tmp/ \( \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-hwdb-update.service -o \
 		-name ldconfig.service -o \
