@@ -204,7 +204,6 @@ override_dh_install:
 	find debian/install/ \( \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-udev-hwdb-update.service -o \
-		-name ldconfig.service -o \
 		-name etc.conf \) -delete
 	rm -rf debian/install/*/usr/share/factory/
 	# remove symlinks enabling default-on services
