@@ -308,6 +308,16 @@ static int collect(const char *root) {
                 goto finish;
         }
 
+        /* HACK: Also add a mark on /usr, which is on a separate mount.
+         *
+         * https://github.com/endlessm/eos-shell/issues/5525 */
+        if (streq(root, "/") &&
+            fanotify_mark(fanotify_fd, FAN_MARK_ADD|FAN_MARK_MOUNT, FAN_OPEN, AT_FDCWD, "/usr") < 0) {
+                log_error("Failed to mark /usr: %m");
+                r = -errno;
+                goto finish;
+        }
+
         inotify_fd = open_inotify();
         if (inotify_fd < 0) {
                 r = inotify_fd;
