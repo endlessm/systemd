@@ -8,11 +8,11 @@
 [Unit]
 Description=Drop Read-Ahead Data
 Documentation=man:systemd-readahead-replay.service(8)
-ConditionPathExists=/.readahead
+ConditionPathExists=/var/readahead
 
 [Service]
 Type=oneshot
-ExecStart=/bin/rm -f /.readahead
+ExecStart=/bin/rm -f /var/readahead
 
 [Install]
 WantedBy=system-update.target
