@@ -31,6 +31,7 @@
 
 #define READAHEAD_PACK_FILE_VERSION ";VERSION=2\n"
 
+extern const char *arg_pack_file;
 extern unsigned arg_files_max;
 extern off_t arg_file_size_max;
 extern usec_t arg_timeout;
