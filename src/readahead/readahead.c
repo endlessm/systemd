@@ -34,6 +34,7 @@
 #include "string-util.h"
 #include "util.h"
 
+const char *arg_pack_file;
 unsigned arg_files_max = 16*1024;
 off_t arg_file_size_max = READAHEAD_FILE_SIZE_MAX;
 usec_t arg_timeout = 2*USEC_PER_MINUTE;
@@ -43,6 +44,7 @@ static void help(void) {
                "Collect read-ahead data on early boot.\n\n"
                "  -h --help                 Show this help\n"
                "     --version              Show package version\n"
+               "     --pack-file=PATH       Custom location for pack file\n"
                "     --files-max=INT        Maximum number of files to read ahead\n"
                "     --file-size-max=BYTES  Maximum size of files to read ahead\n"
                "     --timeout=USEC         Maximum time to spend collecting data\n"
@@ -51,6 +53,7 @@ static void help(void) {
                "Replay collected read-ahead data on early boot.\n\n"
                "  -h --help                 Show this help\n"
                "     --version              Show package version\n"
+               "     --pack-file=PATH       Custom location for pack file\n"
                "     --file-size-max=BYTES  Maximum size of files to read ahead\n"
                "\n\n"
                "%1$s [OPTIONS...] analyze [PACK-FILE]\n\n"
@@ -64,6 +67,7 @@ static int parse_argv(int argc, char *argv[]) {
 
         enum {
                 ARG_VERSION = 0x100,
+                ARG_PACKFILE,
                 ARG_FILES_MAX,
                 ARG_FILE_SIZE_MAX,
                 ARG_TIMEOUT
@@ -72,6 +76,7 @@ static int parse_argv(int argc, char *argv[]) {
         static const struct option options[] = {
                 { "help",          no_argument,       NULL, 'h'                },
                 { "version",       no_argument,       NULL, ARG_VERSION        },
+                { "pack-file",     required_argument, NULL, ARG_PACKFILE       },
                 { "files-max",     required_argument, NULL, ARG_FILES_MAX      },
                 { "file-size-max", required_argument, NULL, ARG_FILE_SIZE_MAX  },
                 { "timeout",       required_argument, NULL, ARG_TIMEOUT        },
@@ -95,6 +100,12 @@ static int parse_argv(int argc, char *argv[]) {
                         puts(PACKAGE_STRING);
                         puts(SYSTEMD_FEATURES);
                         return 0;
+
+                case ARG_PACKFILE:
+                        arg_pack_file = strdup(optarg);
+                        if (!arg_pack_file)
+                                return log_oom();
+                        break;
 
                 case ARG_FILES_MAX:
                         if (safe_atou(optarg, &arg_files_max) < 0 || arg_files_max <= 0) {

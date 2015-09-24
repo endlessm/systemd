@@ -139,8 +139,12 @@ static int replay(const char *root) {
 
         block_bump_request_nr(root);
 
-        if (asprintf(&pack_fn, "%s/.readahead", root) < 0)
-                return log_oom();
+        if (arg_pack_file)
+            pack_fn = strdup(arg_pack_file);
+        else
+            asprintf(&pack_fn, "%s/.readahead", root);
+        if (!pack_fn)
+            return log_oom();
 
         pack = fopen(pack_fn, "re");
         if (!pack) {
