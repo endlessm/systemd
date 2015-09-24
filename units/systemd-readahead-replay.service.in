@@ -12,12 +12,12 @@ DefaultDependencies=no
 Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
 ConditionPathExists=!/run/systemd/readahead/noreplay
-ConditionPathExists=/.readahead
+ConditionPathExists=/var/readahead
 ConditionVirtualization=no
 
 [Service]
 Type=notify
-ExecStart=@rootlibexecdir@/systemd-readahead replay
+ExecStart=@rootlibexecdir@/systemd-readahead --pack-file /var/readahead replay
 RemainAfterExit=yes
 StandardOutput=null
 OOMScoreAdjust=1000
