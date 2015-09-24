@@ -18,7 +18,7 @@ ConditionVirtualization=no
 
 [Service]
 Type=notify
-ExecStart=@rootlibexecdir@/systemd-readahead collect
+ExecStart=@rootlibexecdir@/systemd-readahead --pack-file /var/readahead collect
 RemainAfterExit=yes
 StandardOutput=null
 OOMScoreAdjust=1000
