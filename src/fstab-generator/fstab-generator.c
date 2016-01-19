@@ -242,6 +242,7 @@ static int add_mount(
                 *filtered = NULL;
         _cleanup_fclose_ FILE *f = NULL;
         int r;
+        struct stat sb;
 
         assert(what);
         assert(where);
@@ -309,9 +310,13 @@ static int add_mount(
         }
 
         if (passno != 0) {
-                r = generator_write_fsck_deps(f, arg_dest, what, where, fstype);
-                if (r < 0)
-                        return r;
+                if (streq(where, "/usr") && stat("/run/initramfs/fsck-usr", &sb) == 0)
+                        ; /* skip /usr fsck if it has already been checked in the initramfs */
+                else {
+                        r = generator_write_fsck_deps(f, arg_dest, what, where, fstype);
+                        if (r < 0)
+                                return r;
+                }
         }
 
         fprintf(f,

@@ -11,6 +11,7 @@ Documentation=man:systemd-fsck-root.service(8)
 DefaultDependencies=no
 Before=local-fs.target shutdown.target
 ConditionPathIsReadWrite=!/
+ConditionPathExists=!/run/initramfs/fsck-root
 
 [Service]
 Type=oneshot
