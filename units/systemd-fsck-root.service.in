@@ -16,6 +16,7 @@ Before=local-fs.target shutdown.target
 Wants=systemd-fsckd.socket
 After=systemd-fsckd.socket
 ConditionPathIsReadWrite=!/
+ConditionPathExists=!/run/initramfs/fsck-root
 
 [Service]
 Type=oneshot
