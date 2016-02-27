@@ -13,7 +13,7 @@
 # the core dump.
 #
 # See systemd-coredump(8) and core(5).
-kernel.core_pattern=|@rootlibexecdir@/systemd-coredump %P %u %g %s %t %c %h
+kernel.core_pattern=|@rootlibexecdir@/systemd-coredump %P %u %g %s %t 9223372036854775808 %h
 
 # Also dump processes executing a set-user-ID/set-group-ID program that is
 # owned by a user/group other than the real user/group ID of the process, or
