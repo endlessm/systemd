@@ -2411,8 +2411,6 @@ int main(int argc, char *argv[]) {
                 kernel_timestamp = DUAL_TIMESTAMP_NULL;
         }
 
-        initialize_coredump(skip_setup);
-
         r = fixup_environment();
         if (r < 0) {
                 log_emergency_errno(r, "Failed to fix up PID 1 environment: %m");
