@@ -1710,24 +1710,6 @@ static void cmdline_take_random_seed(void) {
                    "This functionality should not be used outside of testing environments.");
 }
 
-static void initialize_coredump(bool skip_setup) {
-#if ENABLE_COREDUMP
-        if (getpid_cached() != 1)
-                return;
-
-        /* Don't limit the core dump size, so that coredump handlers such as systemd-coredump (which honour
-         * the limit) will process core dumps for system services by default. */
-        if (setrlimit(RLIMIT_CORE, &RLIMIT_MAKE_CONST(RLIM_INFINITY)) < 0)
-                log_warning_errno(errno, "Failed to set RLIMIT_CORE: %m");
-
-        /* But at the same time, turn off the core_pattern logic by default, so that no coredumps are stored
-         * until the systemd-coredump tool is enabled via sysctl. However it can be changed via the kernel
-         * command line later so core dumps can still be generated during early startup and in initramfs. */
-        if (!skip_setup)
-                disable_coredumps();
-#endif
-}
-
 static void initialize_core_pattern(bool skip_setup) {
         int r;
 
@@ -2831,8 +2813,6 @@ int main(int argc, char *argv[]) {
                         /* clear the kernel timestamp, because we are in a container */
                         kernel_timestamp = DUAL_TIMESTAMP_NULL;
                 }
-
-                initialize_coredump(skip_setup);
 
                 r = fixup_environment();
                 if (r < 0) {
