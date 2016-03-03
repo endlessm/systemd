@@ -7,8 +7,7 @@
 
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/module-init-tools.service
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/kmod.service
-# Don't ship the symlink so the service files know to skip this
-#/etc/modules /etc/modules-load.d/modules.conf
+/etc/modules /etc/modules-load.d/modules.conf
 
 # X server and ICE socket directories are created by /usr/lib/tmpfiles.d/x11.conf
 /dev/null /lib/systemd/system/x11-common.service
@@ -33,7 +32,6 @@
 # systemd sets the hwclock internally
 # http://cgit.freedesktop.org/systemd/systemd/commit/?id=7948c4dfbea73ac21250b588089039aa17a90386
 /dev/null /lib/systemd/system/hwclock.service
-/dev/null /lib/systemd/system/hwclockfirst.service
 
 # We use native mount support so mask those services
 # TODO: check if any SysV init scripts depend on those facilities
@@ -64,6 +62,8 @@
 /dev/null /lib/systemd/system/sendsigs.service
 /dev/null /lib/systemd/system/halt.service
 /dev/null /lib/systemd/system/reboot.service
+/dev/null /lib/systemd/system/rc.service
+/dev/null /lib/systemd/system/rcS.service
 
 # The motd SysV init script is no longer required to create the dynamic part of
 # /etc/motd to display the uname information as pam_exec is used for that now.
@@ -78,17 +78,11 @@
 
 # Enable Debian specific units
 /lib/systemd/system/getty-static.service /lib/systemd/system/getty.target.wants/getty-static.service
+/lib/systemd/system/sigpwr-container-shutdown.service /lib/systemd/system/sigpwr.target.wants/sigpwr-container-shutdown.service
+/lib/systemd/system/systemd-networkd-resolvconf-update.path /lib/systemd/system/resolvconf.service.wants/systemd-networkd-resolvconf-update.path
 
 # Compat symlink
 /lib/systemd/systemd /bin/systemd
 
 # Create a compat symlink as systemd-sysctl no longer reads /etc/sysctl.conf
 /etc/sysctl.conf /etc/sysctl.d/99-sysctl.conf
-
-# Enable readahead
-/lib/systemd/system/systemd-readahead-collect.service /lib/systemd/system/default.target.wants/systemd-readahead-collect.service
-/lib/systemd/system/systemd-readahead-replay.service /lib/systemd/system/default.target.wants/systemd-readahead-replay.service
-/lib/systemd/system/systemd-readahead-drop.service /lib/systemd/system/system-update.target.wants/systemd-readahead-drop.service
-
-# Added by Endless. Store locale info in just 1 place, but add a compat symlink.
-/etc/locale.conf /etc/default/locale
