@@ -81,3 +81,6 @@
 
 # Create a compat symlink as systemd-sysctl no longer reads /etc/sysctl.conf
 /etc/sysctl.conf /etc/sysctl.d/99-sysctl.conf
+
+# Store locale info in just 1 place, but add a compat symlink.
+/etc/locale.conf /etc/default/locale
