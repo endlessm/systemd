@@ -219,6 +219,11 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	cp -a debian/extra/units-ubuntu/* debian/systemd/usr/lib/systemd/system/
 endif
 
+	# Endless specific files
+ifeq ($(DEB_VENDOR),Endless)
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
+endif
+
 	# Remove empty directories from /usr/lib.
 	# Those are not strictly needed and can trigger piuparts errors due to
 	# accidential directory removal by dpkg on merged-/usr systems.
