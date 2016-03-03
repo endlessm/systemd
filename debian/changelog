@@ -1,3 +1,1818 @@
+systemd (229-2) unstable; urgency=medium
+
+  * time-util: map ALARM clockids to non-ALARM clockids in now(), to work on
+    architectures which don't support CLOCK_BOOTTIME_ALARM. Fixes FTBFS on
+    many architectures.
+  * debian/systemd.postinst: Add missing newline to /etc/adjtime migration.
+    (See #699554)
+  * debian/systemd.postinst: Only try to enable tmp.mount if we actually
+    copied it to /etc. Don't try to enable a generated unit. (LP: #1545707)
+  * debian/tests/boot-and-services: Increase timeouts of test_bash_crash from
+    5 to 10 seconds, and sync the journal after every iteration.
+  * debian/extra/checkout-upstream: Try again after one minute if git checkout
+    fails, to avoid failures from transient network errors.
+  * debian/tests/systemd-fsckd: Use grub.d/50-cloudimg-settings.cfg as a
+    template for generating our custom one instead of 90-autopkgtest.cfg. The
+    latter does not exist on non-x86 architectures and is not relevant for
+    this test.
+  * debian/tests/boot-and-services: Skip journal test for test_bash_crash when
+    running against upstream, as this currently fails most of the time. To be
+    investigated.
+  * debian/tests/networkd: Skip test_coldplug_dhcp_ip6 when running against
+    upstream, as this is brittle there. To be investigated.
+  * debian/tests/bootchart: Skip test if bootchart is not available or
+    testing in upstream mode. bootchart got removed from master and will be
+    moved to a separate repository.
+  * debian/tests/boot-and-services: Show verbose journal output on failure in
+    nspawn test, and sync journal before.
+  * Move systemd-coredump socket and service into systemd-coredump binary
+    package.
+  * Revert changing the default core dump ulimit and core_pattern. This
+    completely breaks core dumps without systemd-coredump. It's also
+    contradicting core(8). (Closes: #815020)
+  * Fix addresses for type "sit" tunnels. (Closes: #816132)
+  * networkd: Go back to letting the kernel handle IPv6 router advertisements,
+    as networkd's own currently has too many regressions. Thanks to Stefan
+    Lippers-Hollmann for investigating this! (Closes: #814566,
+    #814667, #815586, #815884, #815793)
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 28 Feb 2016 22:16:12 +0100
+
+systemd (229-1) unstable; urgency=medium
+
+  * New upstream release 229.
+    - Fix systemctl behaviour in chroots. (Closes: #802780)
+    - Fix SELinux context of /run/user/$UID. (Closes: #775651)
+    - Add option to optionally turn of color output. (Closes: #783692)
+    - Don't git-ignore src/journal-remote/browse.html. (Closes: #805514)
+    - Do not warn about Wants depencencies on masked units. (LP: #1543282)
+  * debian/systemd.install: Ship the new systemd-resolve.
+  * libsystemd0.symbols: Add new symbols from this release.
+  * systemd-coredump.postinst: Create systemd-coredump system user.
+  * debian/tests/systemd-fsckd: Tame overly strict test for failed plymouth
+    unit, which is a race condition with plymouthd auto-stopping.
+    (LP: #1543144)
+  * Drop timedated-don-t-rely-on-usr-being-mounted-in-the-ini.patch.
+    initramfs-tools has mounted /usr since Jessie, and tzdata now creates
+    /etc/localtime as a symlink too (see #803144).
+  * Use-different-default-paths-for-various-binaries.patch: Drop path changes
+    for setcap (which is already a build dep and not used at all) and sulogin
+    (which is now in util-linux).
+  * Remove obsolete udev maintainer script checks:
+    - Drop check for kernel >= 2.6.32, which released in 2009.
+    - Drop restarting of some daemons due to the devtmpfs migration, which
+      happened before the above kernel even.
+    - Drop support for forcing upgrades on kernels known not to work via
+      /etc/udev/kernel-upgrade. Don't pretend that this would help, as users
+      could end up with a non-bootable system. Always fail early in preinst
+      when it's still possible to install a working kernel.
+    - Drop postinst test for "running in containers" -- it's actually possible
+      to run udev in containers if you mount /sys r/w and you know what you
+      are doing. Also, the init.d script and systemd service do that check
+      again.
+    - Keep the kernel feature and chroot checks, as these are still useful.
+      Simplify check_kernel_features() by eliminating some variables.
+    - Drop debconf templates. Two of them are obsolete, and having
+      CONFIG_SYSFS_DEPRECATED is now so implausible that this doesn't warrant
+      the overhead and translator efforts.
+  * Drop debian/tests/ifupdown-hotplug. The units moved into ifupdown, so the
+    test should go there too (see #814312).
+  * debian/tests/control: Reorder tests and add a comment which ones should
+    not be run for an upstream build.
+  * debian/tests/control: Rearrange tests and avoid removing test dependencies
+    to minimize testbed resets.
+  * Add debian/extra/checkout-upstream: Script to replace the current
+     source with a checkout of an upstream pull request, branch, or commit,
+     and remove debian/patches/. Call from debian/rules if $TEST_UPSTREAM is
+     set. This will be used for upstream CI.
+  * Enable seccomp support on powerpc, ppc64el, and s390x.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 11 Feb 2016 21:02:39 +0100
+
+systemd (228-6) unstable; urgency=medium
+
+  * Make-run-lock-tmpfs-an-API-fs.patch: Drop /run/lock from
+    tmpfiles.d/legacy.conf to avoid the latter clobbering the permissions of
+    /run/lock. Fixes fallout from cleanup in -5 that resulted /run/lock to
+    have 0755 permissions instead of 1777. (LP: #1541775)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 04 Feb 2016 11:46:54 +0100
+
+systemd (228-5) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * Drop systemd-vconsole-setup.service: It has never been installed/used in
+    Debian and is not necessary for Ubuntu any more.
+  * Drop halt-local.service. This has never been documented/used in Debian.
+    (LP: #1532553)
+  * debian/extra/initramfs-tools/scripts/init-bottom/udev: Prefer "nuke"
+    again, it comes from klibc-utils. But fall back to "rm" if it does not
+    exist.
+  * systemd-timesyncd.service.d/disable-with-time-daemon.conf: Also don't run
+    if /usr/sbin/VBoxService exists, as virtualbox-guest-utils already
+    provides time synchronization with the host. (Closes: #812522)
+  * Drop Michael Stapelberg from Uploaders:, he stopped maintenance long ago.
+    Thanks Michael for your great work in the past!
+  * Replace "sysv-rc" dependency with Conflicts: openrc, file-rc. The
+    rationale from #739679 still applies, but with the moving of
+    {invoke,update}-rc.d to init-system-helpers we don't actually need
+    anything from sysv-rc any more other than the assumption that SysV init
+    scripts are enabled in /etc/rc?.d/ for the SysV generator to work (and
+    file-rc and openrc don't do that).
+  * debian/tests/timedated: Verify /etc/localtime symlink. Skip verifying the
+    /etc/timezone file (which is Debian specific) if $TEST_UPSTREAM is set.
+  * debian/tests/localed-locale: Check /etc/locale.conf if $TEST_UPSTREAM is
+    set.
+  * debian/tests/localed-x11-keymap: Test /etc/X11/xorg.conf.d/00-keyboard.conf
+    if $TEST_UPSTREAM is set.
+  * debian/tests/boot-and-services: Check for reaching graphical.target
+    instead of default.target, as the latter is a session systemd state only.
+  * debian/tests/boot-and-services: Skip tests which are known to fail/not
+    applicable with testing upstream builds.
+  * Drop Fix-up-tmpfiles.d-permissions-properly.patch:
+    - /run/lock is already created differently by
+      Make-run-lock-tmpfs-an-API-fs.patch, and contradicts to that.
+    - /run/lock/lockdev/ isn't being used anywhere and got dropped
+      upstream; backport the patch (tmpfiles-drop-run-lock-lockdev.patch).
+    - Move dropping of "group:wheel" (which has never existed in Debian) into
+      debian/rules, to also catch occurrences in other parts of the file which
+      the static patch would overlook.
+  * Shorten persistent identifier for CCW network interfaces (on s390x only).
+    (LP: #1526808)
+  * debian/rules: If $TEST_UPSTREAM is set (when building/testing upstream
+    master instead of distro packages), don't fail on non-installed new files
+    or new library symbols.
+  * Add systemd-sysv conflict to upstart-sysv, and version the upstart
+    conflict. This works with both Debian's and Ubuntu's upstart packages.
+
+  [ Michael Biebl ]
+  * Drop support for the /etc/udev/disabled flag file. This was a workaround
+    for udev failing to install with debootstrap because it didn't use
+    invoke-rc.d and therefor was not compliant with policy-rc.d. See #520742
+    for further details. This is no longer the case, so supporting that file
+    only leads to confusion about its purpose.
+  * Retrigger cleanup of org.freedesktop.machine1.conf and
+    hwclock-save.service now that dpkg has been fixed to correctly pass the
+    old version to postinst on upgrade. (Closes: #802545)
+  * Only ship *.link files as part of the udev package. The *.network files
+    are solely used by systemd-networkd and should therefor be shipped by the
+    systemd package. (Closes: #808237)
+  * Cherry-pick a few fixes from upstream:
+    - Fix unaligned access in initialize_srand(). (Closes: #812928)
+    - Don't run kmod-static-nodes.service if module list is empty. This
+      requires kmod v23. (Closes: #810367)
+    - Fix typo in systemctl(1). (Closes: #807462)
+    - Fix systemd-nspawn --link-journal=host to not fail if the directory
+      already exists. (Closes: #808222)
+    - Fix a typo in logind-dbus.c. The polkit action is named
+      org.freedesktop.login1.power-off, not org.freedesktop.login1.poweroff.
+    - Don't log an EIO error in gpt-auto-generator if blkid finds something
+      which is not a partition table. (Closes: #765586)
+    - Apply ACLs to /var/log/journal and also set them explicitly for
+      system.journal.
+  * Only skip the filesystem check for /usr if the /run/initramfs/fsck-usr
+    flag file exists. Otherwise we break booting with dracut which uses
+    systemd inside the initramfs. (Closes: #810748)
+  * Update the instructions in README.Debian for creating /var/log/journal.
+    They are now in line with the documentation in the systemd-journald(8) man
+    page and ensure that ACLs and group permissions are properly set.
+    (Closes: #800947, #805617)
+  * Drop "systemctl daemon-reload" from lsb init-functions hook. This is no
+    longer necessary as invoke-rc.d and init-system-helpers take care of this
+    nowadays.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 03 Feb 2016 10:09:46 +0100
+
+systemd (228-4) unstable; urgency=medium
+
+  * debian/udev.README.Debian: Add alternative way of disabling ifnames.
+    (Closes: #809339)
+  * Put back /lib/udev/hotplug.functions, until the three remaining packages
+    that use it stop doing so. (Closes: #810114)
+  * debian/udev.README.Debian: Point out that any change to interface naming
+    rules requires an initrd update.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 11 Jan 2016 07:12:40 +0100
+
+systemd (228-3) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/rules: Remove temporary debug output from test failures again. All
+    Debian buildd kernels are recent enough now, but add a check for kernels
+    older than 3.13 and ignore test failures for those.
+  * debian/tests/networkd: Factor out dnsmasq specific test "router" setup, so
+    that we can test against other implementations.
+  * debian/tests/networkd: Add router setup using an (isolated) networkd
+    process for configuring the veths and DHCP server.
+  * debian/tests/networkd: On failure, only show journal for current test.
+  * systemd-networkd-resolvconf-update.service: Wait for getting a name
+    server, not just for getting online.
+  * debian/tests/boot-and-services: Wait until bash crash stack trace is in
+    the journal before asserting on it. Also relax RE to work on non-x86
+    architectures.
+  * debian/tests/networkd: If /etc/resolv.conf already has three nameservers,
+    accept that too (as then the additional test one can't be added any more).
+  * Fix FTBFS on x32. Thanks Helmut Grohne! (Closes: #805910)
+  * debian/tests/networkd: For IPv6 tests, also wait for IPv4 address to
+    arrive; s-n-wait-online already exits after getting an IPv6 address, but
+    we verify both.
+  * debian/tests/boot-and-services: Don't check for "Requesting system
+    poweroff" log message in nspawn test, current upstream master does not
+    write that any more. Instead check for "Stopped Container c1".
+  * Add "storage" autopkgtest. Initially this covers some basic use cases with
+    LUKS cryptsetup devices.
+  * Add acl build dependency (for <!nocheck>). Current upstream master now
+    needs it for some test cases.
+  * debian/extra/initramfs-tools/scripts/init-bottom/udev: Use "rm -rf"
+    instead of "nuke". The latter does not exist any more in current
+    initramfs-tools.
+  * Ignore test failures during "make check" if /etc/machine-id is missing
+    (like in ancient local schroots). (Closes: #807884)
+  * debian/extra/rules/80-debian-compat.rules: Remember which device got the
+    "cdrw", "dvd", or "dvdrw" symlink to avoid changing links on device
+    events. (Closes: #774080). Drop the rule for the "cdrom" symlink as that
+    is already created in 60-cdrom_id.rules.
+  * Eliminate "hotplug.functions" udev helper and put the logging functions
+    directly into net.agent. This simplifies the migration of the latter to
+    ifupdown.
+  * Adjust manpages to keep /usr/lib/systemd/{user*,boot,ntp-units.d,modules*}
+    paths, only keep /lib/systemd/{system*,network}. (Closes: #808997)
+  * debian/udev.README.Debian: Fix typo and slight wording improvement.
+    (Closes: #809513)
+  * Drop net.agent, 80-networking.rules, and ifup@.service. These moved to
+    ifupdown 0.8.5 now. Add Breaks: to earlier versions.
+
+  [ Michael Biebl ]
+  * Bump Build-Depends on libdw-dev to (>= 0.158) as per configure.ac.
+    (Closes: #805631)
+  * Make sure all swap units are ordered before the swap target. This avoids
+    that swap devices are being stopped prematurely during shutdown.
+    (Closes: #805133)
+  * Drop unneeded /etc/X11/xinit/xinitrc.d/50-systemd-user.sh from the package
+    and clean up the conffile on upgrades. We have the dbus-user-session
+    package in Debian to properly enable the D-Bus user-session mode which
+    also takes care of updating the systemd --user environment.
+    (Closes: #795761)
+  * Stop testing for unknown arguments in udev maintainer scripts.
+  * Drop networking.service.d/systemd.conf. The ifupdown package now ships a
+    proper service file so this drop-in file is no longer necessary.
+
+  [ Andreas Henriksson ]
+  * Fix LSB init hook to not reload masked services. (Closes: #804882)
+
+ -- Martin Pitt <mpitt@debian.org>  Sat, 02 Jan 2016 17:42:56 +0100
+
+systemd (228-2) unstable; urgency=medium
+
+  * Remove wrong endianness conversion in test-siphash24 to fix FTBFS on
+    big-endian machines.
+  * Bump libseccomp-dev build dependency to indicate required versions for
+    backporting to jessie. (Closes: #805497)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 19 Nov 2015 11:37:45 +0100
+
+systemd (228-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release:
+    - Fix journald killing by watchdog. (Closes: #805042)
+    - Drop check for /etc/mtab. (Closes: #802025)
+    - Follow unit file symlinks in /usr, but not /etc when looking for
+      [Install] data, to avoid getting confused by Aliases. (Closes: #719695)
+    - journalctl: introduce short options for --since and --until.
+      (Closes: #801390)
+    - journald: Never accept fds from file systems with mandatory locking.
+      (LP: #1514141)
+    - Put nspawn containers in correct slice. (LP: #1455828)
+  * Cherry-pick some networkd fixes from trunk to fix regressions from 228.
+  * debian/rules: Configure with --as-needed to avoid unnecessary binary
+    dependencies.
+  * systemd-networkd-resolvconf-update.service: Increase StartLimitBurst, as
+    this might be legitimately called several times in quick succession. If
+    that part of the "networkd" autopkgtest fails, show the journal log for
+    that service for easier debugging.
+  * debian/tests/boot-and-services: Add test case for systemd-coredump.
+  * Add systemd-coredump postinst/prerm to enable/disable this without a
+    reboot.
+  * debian/tests/networkd: Check for systemd-networkd-wait-online in /usr as
+    well, for usage in other distros.
+  * debian/tests/logind: Skip suspend test if the kernel does not support
+    suspend.
+  * debian/tests/logind: Split tests into functions.
+  * debian/tests/boot-and-services: Ignore failures of console-setup.service,
+    to work around LP: #1516591.
+  * debian/tests/control: Restrict boot-smoke test to isolation-machine, it
+    does not currently work well in LXC.
+  * debian/tests/networkd: Add new test cases for "DHCP=all, IPv4 only,
+    disabling RA" (which should always be fast), "DHCP=all, IPv4 only" (which
+    will require a longer timeout due to waiting 12s for a potential IPv6 RA
+    reply), and "DHCP=ipv4" (with and without RA).
+  * debian/tests/networkd: Fix UnicodeDecodeError under 'C' locale.
+  * debian/tests/networkd: Show networkctl and journal output on failure.
+  * debian/tests/networkd: Fix bytes vs. string TypeError in the IPv6 polling.
+    (LP: #1516009)
+  * debian/tests/networkd: Show contents of test .network file on failure.
+  * debian/tests/networkd: Skip if networkd is already running (safer when
+    running on real systems), and add copyright header.
+  * Bump util-linux dependencies to >= 2.27.1 to ensure that the mount monitor
+    ignores /etc/mtab.
+
+  [ Felipe Sateler ]
+  * Enable elfutils support for getting stack traces for systemd-coredump.
+  * libnss-my{machines,hostname}.postrm: do not remove entries from
+    nsswitch.conf if there are packages from other architectures remaining.
+
+  [ Michael Biebl ]
+  * Drop systemd-setup-dgram-qlen.service. This has been made obsolete by
+    upstream commit 1985486 which bumps net.unix.max_dgram_qlen to 512 early
+    during boot.
+  * Various cleanups to the udev maintainer scripts:
+    - Remove unused tempdir() function.
+    - Properly stop udev daemon on remove.
+    - Stop killing udev daemon on failed upgrades and drop the corresponding
+      starts from preinst.
+    - Stop masking systemd-udevd.service and udev.service during upgrades. We
+      restart the udev daemon in postinst, so those masks seem unnecessary.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 18 Nov 2015 16:11:59 +0100
+
+systemd (227-3) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/tests/logind: Add tests for scheduled shutdown with and without
+    wall message.
+  * Import upstream fix for not unmounting system mounts (#801361) and drop
+    our revert patch.
+  * debian/tests/boot-smoke: Apply check for failed unmounts only to user
+    systemd processes, i. e. not to pid 1.
+  * Drop Fix-usr-remount-failure-for-split-usr.patch. Jessie has a new enough
+    initramfs-tools already, and this was just an error message, not breaking
+    the boot.
+  * Drop debian-fixup.service in favor of using a tmpfiles.d clause, which is
+    faster.
+  * Drop Order-remote-fs.target-after-local-fs.target.patch. It's mostly
+    academic and only applies to the already known-broken situation that rcS
+    init.d scripts depend on $remote_fs.
+  * Replace reversion of sd_pid_notify_with_fds() msg_controllen fix with
+    proper upstream fix to never block on sending messages on NOTIFY_SOCKET
+    socket.
+  * Drop check for missing /etc/machine-id on "make check" failure; this isn't
+    happening on current buildds any more.
+  * Drop Disable-tests-which-fail-on-buildds.patch, to re-evaluate what still
+    fails and needs fixing. On failure, show kernel version and /etc/hosts
+    to be able to debug them better. The next upload will make the necessary
+    adjustments to fix package builds again.
+
+  [ Michael Biebl ]
+  * Drop dependency on udev from the systemd package. We don't need udev
+    within a container, so this allows us to trim down the footprint by not
+    installing the udev package. As the udev package has Priority: important,
+    it is still installed by default though.
+  * Include the status of the udev package when filing a bug report against
+    systemd, and vice versa.
+  * Use filter instead of findstring, since findstring also matches
+    substrings and we only want direct matches.
+  * systemd.bug-script: Fix typo. (Closes: #804512)
+  * Re-add bits which call SELinux in systemd-user pam service.
+    (Closes: #804565)
+
+  [ Felipe Sateler ]
+  * Add libnss-resolve package. (Closes: #798905)
+  * Add systemd-coredump package. This Conflicts/Replaces/Provides a new
+    "core-dump-handler" virtual package. (Closes: #744964)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 11 Nov 2015 15:04:26 +0100
+
+systemd (227-2) unstable; urgency=medium
+
+  * Revert "sd_pid_notify_with_fds: fix computing msg_controllen", it causes
+    connection errors from various services on boot. (Closes: #801354)
+  * debian/tests/boot-smoke: Check for failed unmounts. This reproduces
+    #801361 (but not in a minimal VM, just in a desktop one).
+  * Revert "core: add a "Requires=" dependency between units and the
+    slices they are located in". This causes user systemd instances to try and
+    unmount system mounts (and succeed if you login as root).
+    (Closes: #801361)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 09 Oct 2015 12:34:27 +0200
+
+systemd (227-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Bump watchdog timeout for shipped units to 3 min. (Closes: #776460)
+    - gpt-auto-generator: Check fstab for /boot entries. (Closes: #797326)
+    - Fix group of RuntimeDirectory dirs. (Closes: #798391)
+    - Support %i (and other macros) in RuntimeDirectory. (Closes: #799324)
+    - Bump util-linux/libmount-dev dependencies to >= 2.27.
+  * debian/libsystemd0.symbols: Add new symbols for this release.
+  * debian/extra/initramfs-tools/hooks/udev: Copy all
+    /etc/udev/rules.d/*.rules rules which are not merely overriding the one in
+    /lib/, not just 70-persistent-net.rules.  They might contain network names
+    or other bits which are relevant for the initramfs. (Closes: #795494)
+  * ifup@.service: Drop PartOf=network.target; we don't want to stop these
+    units during shutdown. Stopping networking.service already shuts down the
+    interfaces, but contains the safeguard for NFS or other network file
+    systems. Isolating emergency.target still keeps working as before as well,
+    as this also stops networking.service. (Closes: #761909, LP: #1492546)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 08 Oct 2015 11:34:35 +0200
+
+systemd (226-4) unstable; urgency=medium
+
+  * debian/tests/logind: Be more verbose on failures.
+  * Revert networkd calling if-{up,post-down}.d/ scripts. About half of the
+    existing hooks are not relevant or even actively detrimental when running
+    with networkd. For the relevant ones, a lot of them should be fixed in the
+    projects themselves (using IP_FREEBIND etc.). (Closes: #798625)
+  * Add systemd-networkd-resolvconf-update.{path,service} units to send DNS
+    server updates from networkd to resolvconf, if installed and enabled.
+  * Don't restart logind on upgrades any more. This kills X.org (#798097)
+    while logind doesn't save/restore its open fds (issue #1163), and also
+    gets confused about being idle in between (LP: #1473800)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 02 Oct 2015 13:44:28 +0200
+
+systemd (226-3) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * README.Debian: Fix "other" typo. Thanks Salvatore Bonaccorso.
+    (Closes: #798737)
+
+  [ Michael Biebl ]
+  * Stop building the compat library packages and drop them for good.
+  * Update debian/copyright.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 19 Sep 2015 19:06:51 +0200
+
+systemd (226-2) unstable; urgency=medium
+
+  * debian/udev.init: Mount /dev file system with nosuid. (LP: #1450960)
+  * udev.postinst: udev 226 introduced predictable interface names for virtio.
+    Create /etc/systemd/network/50-virtio-kernel-names.link on upgrade to
+    disable this, to avoid changing e. g. "eth0" to "ens3" in QEMU instances
+    and similar environments. (Closes: #799034)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 15 Sep 2015 15:21:09 +0200
+
+systemd (226-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release:
+    - Fix scheduled shutdown to not shut down immediately. (Closes: #797763)
+    - Fix description of CPE_NAME in os-release(5). (Closes: #797768)
+  * debian/libsystemd0.symbols: Add new symbols from this release.
+  * Enable libseccomp support for mips64, mips64el, and x32. (Closes: #797403)
+  * debian/tests/networkd: Add hotplug tests.
+  * Make networkd call if-up.d/ scripts when it brings up interfaces, to
+    become compatible with ifupdown and NetworkManager for packages shipping
+    hooks. (LP: #1492129)
+    - Add debian/extra/systemd-networkd-dispatcher.c: suid root wrapper for
+      calling if-up.d/ or if-post-down.d/ hook scripts. Install it as
+      root:systemd-networkd 4754 so that only networkd can run it.
+    - Add networkd-call-systemd-networkd-dispatcher-when-links.patch: Call the
+      above wrapper when links go up/down.
+    - debian/tests/networkd: Verify that if-up.d/ and if-post-down.d/ scripts
+      get run for a networkd managed interface.
+    - Note that if-pre-up.d/ and if-down.d/ scripts are *not* being called, as
+      they are often not applicable for networkd (if-pre-up.d) and unreliable
+      (if-down.d).
+  * Drop udev-finish. We needed this for the autogenerated CD and network
+    interface names, but both are gone now.
+  * Drop debian/udev.udev-fallback-graphics.upstart. The vesafb module has
+    been compiled into the kernel in both Debian and Ubuntu for a fair while,
+    this never had a systemd equivalent, and Debian never shipped the
+    accompanying rules for determining $PRIMARY_DEVICE_FOR_DISPLAY.
+  * debian/control: Remove some boilerplate from the long descriptions, to
+    more easily get to the point what a specific package actually does.
+  * debian/README.Debian: As systemd is the default init now, replace the
+    documentation how to switch to systemd with how to switch back
+    (temporarily or permanently) to SysV init. Also move that paragraph to the
+    bottom as it's now less important.
+  * debian/README.Debian: Add a hint why you may want to enable persistent
+    journal, and suggest to uninstall system-log-daemon to avoid duplicate
+    logging.
+  * debian/README.Debian: Add documentation about networkd integration.
+  * Rename 01-mac-for-usb.link to 90-mac-for-usb.link so that it becomes
+    easier to override.
+  * debian-fixup.service just has one purpose now (make /etc/mtab a symlink),
+    so drop the debian/extra/debian-fixup shell script and put the ln command
+    directly into debian-fixup.service. Update the description.
+  * debian/tests/networkd: Check that /etc/resolv.conf gets the DHCP's
+    nameserver in case it is a symlink (i. e. dynamically managed by
+    systemd-resolved or resolvconf).
+  * systemd-networkd-dispatcher: Also pass on the DNS server list to if-up.d/
+    as $IF_DNS_NAMESERVERS, so that resolvconf or similar programs work as
+    expected.
+  * Drop debian/systemd-journal-remote.postrm: Removing system users is
+    potentially dangerous (there might be a leftover process after purging).
+
+  [ Michael Biebl ]
+  * Drop libsystemd-login-dev. All reverse dependencies have been updated to
+    use libsystemd-dev directly.
+  * Update build instructions to use "gbp clone" instead of "gbp-clone" as all
+    gbp-* commands have been removed from git-buildpackage.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 10 Sep 2015 16:53:53 +0200
+
+systemd (225-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release.
+    - Fixes FTBFS on alpha. (Closes: #792551)
+    - Fixes machined state tracking logic. (Closes: #788269)
+  * Add better fix for "systemctl link/enable" breakage with full paths.
+    (LP: #1480310)
+  * debian/rules: Add missing $(dh_options) in overridden debhelper targets.
+
+  [ Felipe Sateler ]
+  * Move conffile from systemd to systemd-container package (Closes: #797048)
+
+  [ Michael Biebl ]
+  * Drop unnecessary Conflicts/Replaces from systemd-journal-remote.
+    None of the files in this package were previously shipped by systemd.
+  * Create system users for systemd-journal-{gateway,remote,upload} when
+    installing the systemd-journal-remote package.
+  * Explicitly turn off the features we don't want in a stage1 build.
+    Otherwise ./configure might enable them automatically if the build
+    dependencies are installed and "dh_install --fail-missing" will then fail
+    due to uninstalled files.
+  * Enable GnuTLS support as systemd-journal-remote makes sense mostly with
+    encryption enabled.
+  * Rely on build profiles to determine which packages should be skipped
+    during build and no longer specify that manually.
+  * Drop our patch which removes rc-local-generator.
+    rc-local.service acts as an ordering barrier even if its condition is
+    false, because conditions are evaluated when the service is about to be
+    started, not when it is enqueued. We don't want this ordering barrier on
+    systems that don't need/use /etc/rc.local.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 30 Aug 2015 21:18:59 +0200
+
+systemd (224-2) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * Skip systemd-fsckd autopkgtest if /run/initramfs/fsck-root exists, i. e.
+    the initramfs already ran fsck.
+  * Fix broken ACL in tmpfiles.d/systemd.conf. (Closes: #794645, LP: #1480552)
+  * Add debian/tests/unit-config: Test "systemctl link"; reproduces LP#1480310.
+  * Add a hack to unbreak "systemctl link". (LP: #1480310)
+  * debian/extra/rules-ubuntu/40-hyperv-hotadd.rules: Also apply to Xen, and
+    rename to 40-vm-hotadd.rules.
+  * Fix networkd crash. (Closes: #796358)
+  * debian/rules: Remove all files/empty dirs in systemd which are already
+    shipped by systemd-* or udev, instead of an explicit list.
+  * Bump "mount" dependency to >= 2.26, to ensure "swapon -o" availability.
+    (Closes: #796389)
+  * Install /lib/systemd/network/* into udev instead of systemd, as it's
+    really udev which is evaluating these.
+  * Split out "systemd-container" package with machined and nspawn and enable
+    importd. Add new libbz2-dev, zlib1g-dev, and libcurl-dev build deps.
+    (LP: #1448900)
+  * Move transitional libgcrypt11-dev build dep to libgcrypt20-dev.
+  * debian/rules: Limit check for libraries in /usr to systemd and udev
+    packages, as other packages like systemd-containers can (and do) link to
+    /usr.
+  * Build-depend on dpkg-dev (>= 1.17.14) and bump debhelper version for build
+    profiles support.
+  * Drop "display-managers" autopkgtest, obsolete with dropped
+    default-display-manager-generator.
+  * boot-and-services autopkgtest: Add systemd-container test dependency for
+    the nspawn tests.
+  * Don't enable audit support when building with "stage1" profile, to avoid
+    circular build dep.
+
+  [ Helmut Grohne ]
+  * Improve support for cross-building and bootstrapping.
+
+  [ Michael Biebl ]
+  * Drop default-display-manager-generator. All major desktops now use a
+    display manager which support the new scheme and setup the
+    /etc/systemd/system/display-manager.service symlink correctly.
+  * Add new binary package "systemd-journal-remote" with tools for
+    sending/receiving remote journal logs:
+    systemd-journal-{remote,upload,gatewayd}. (Closes: #742802, LP: #1480952)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 25 Aug 2015 12:40:35 +0200
+
+systemd (224-1) unstable; urgency=medium
+
+  * New upstream release.
+  * boot-and-services autopkgtest: Ignore thermald. Since 1.4.3-2 it starts by
+    default, but fails in most virtual envs.
+
+ -- Martin Pitt <mpitt@debian.org>  Sat, 01 Aug 2015 13:38:57 +0200
+
+systemd (223-2) unstable; urgency=medium
+
+  * Don't enable gnu-efi on ARM. It FTBFSes and cannot really be tested now as
+    there is no available hardware.
+  * debian/extra/initramfs-tools/hooks/udev: Don't fail if
+    /etc/systemd/network/ does not exist. (Closes: #794050)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 30 Jul 2015 08:25:51 +0200
+
+systemd (223-1) unstable; urgency=medium
+
+  * New upstream release:
+    - Fix systemd-bootchart crash. (Closes: #792403)
+    - Trim list of files in /usr/share/doc/systemd/. (Closes: #791839)
+    - Fix "Invalid argument" failure with some  journal files.
+      (Closes: #792090)
+    - tmpfiles: Don't recursively descend into journal directories in /var.
+      (Closes: #791897)
+    - Don't frequently wake up on disabled TimeoutIdleSec=, in particular in
+      automount timers. (LP: #1470845)
+    - tmpfiles: Don't delete lost+found/. (Closes: #788193)
+
+  [ Michael Biebl ]
+  * udev: Remove obsolete rm_conffile/mv_conffile functions from udev.preinst.
+    The udev package is using dpkg-maintscripts-helper now to remove obsolete
+    conffiles.
+  * systemd: Remove obsolete conffile clean up from pre-wheezy.
+  * udev-udeb: Remove scsi_wait_scan hack from the start-udev script as well.
+
+  [ Martin Pitt ]
+  * Enable GNU EFI support and add gnu-efi build dep. This enables/ships the
+    systemd EFI boot loader. (Closes: #787720, LP: #1472283)
+  * networkd autopkgtest: More robust/forceful killing of dnsmasq.
+  * ifup@.service: Drop "oneshot" to run ifup in the background during boot.
+    This avoids blocking network.target on boot with unavailable hotplug
+    interfaces in /etc/network/interfaces. (Closes: #790669, LP: #1425376)
+  * systemd.postinst: Avoid confusing error message about
+    /run/systemd/was-enabled not existing on reconfiguring.
+  * debian/extra/initramfs-tools/hooks/udev: Drop some redundant code.
+  * Fix networkd-wait-online -i to properly wait for the given interfaces
+    only.
+  * Drop debian/extra/base-installer.d/05udev: We use net.ifnames by default
+    now, thus we don't need to copy 70-persistent-*.rules any more.
+  * debian/extra/start-udev: Run d-i's udevd with "notice" log level, just
+    like we did in the initramfs in 219-10.
+  * Fix size explosion of networkd (post-223 patch from trunk).
+
+  [ Julian Wollrath ]
+  * Copy all .link interface naming definitions to initramfs. (Closes: #793374)
+
+  [ Felipe Sateler ]
+  * nss-my*.postinst: configure at the end of the hosts line, not before
+    files. (Closes: #789006)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 30 Jul 2015 00:02:26 +0200
+
+systemd (222-2) unstable; urgency=medium
+
+  [ Adam Conrad ]
+  * debian/udev-udeb.install: Install new bits for net.ifnames (LP: #1473542)
+  * debian/extra/initramfs-tools/hooks/udev: Do the same for initramfs-tools.
+
+  [ Martin Pitt ]
+  * emergency.service: Wait for plymouth to shut down. Fixes invisible
+    emergency shell with plymouth running endlessly. (LP: #1471258)
+  * Add "networkd" autopkgtest. Covers basic DHCP on IPv4 and IPv4+6 on a veth
+    device.
+
+  [ Michael Biebl ]
+  * Bump package priorities of systemd and systemd-sysv to important to match
+    what has been used in the Debian archive since Jessie.
+  * Drop scsi_wait_scan hack from the udev initramfs-tools script. This Linux
+    kernel module has been broken since 2.6.30 and as a result was removed in
+    3.5. The Debian Jessie kernel no longer ships this module.
+    (Closes: #752775)
+  * Drop libsystemd-journald-dev and libsystemd-id128-dev. There are no
+    reverse dependencies left and we want to avoid new packages picking up
+    a build dependency on those obsolete transitional packages.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 15 Jul 2015 23:51:15 +0200
+
+systemd (222-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release:
+    - Fix reload killing BusName= units. (Closes: #746151)
+    - sysv-generator: detect invalid names and escape them. (Closes: #677075)
+    - Document removal of PIDFile on daemon shutdown. (Closes: #734006)
+    - Drop Revert-rules-fix-tests-for-removable-state.patch, the auto-suspend
+      rules now got dropped entirely.
+  * Add Revert-VT-reuse-patches.patch: Revert a couple of logind VT reuse
+    patches which alternately broke lightdm and gdm.
+  * debian/libsystemd0.symbols: Add new symbols from this release.
+  * Disable test-netlink during package build, fails on some buildds.
+  * udev.postinst: Don't call addgroup with --quiet, so that if the "input"
+    group already exists as a non-system group you get a sensible error
+    message. Some broken tutorials forget the --system option.
+    (Closes: #769948, LP: #1455956)
+  * systemd.postinst: Drop the --quiet from the addgroup calls as well, same
+    reason as above. (Closes: #762275)
+  * udev: Drop doc dir symlinking. It has caused too much trouble and only
+    marginally helps to avoid duplication. Such duplication should be dealt
+    with at the distro, not package level.
+  * debian/rules: Entirely ignore $LD_PRELOAD instead of just libfakeroot in
+    the link check, to also avoid libeatmydata. (Closes: #790546)
+  * boot-and-services, display-managers autopkgtests: Install and configure
+    dummy X.org driver, so that these work in headless machines/VMs.
+  * systemd-fsckd autopkgtest: Stop using/asserting on lightdm, just check
+    that default.target is active. lightdm is prone to fail in test
+    environments, and fiddling with it in two other autopkgtests is
+    sufficient.
+  * debian/watch: Adjust to new upstream release model of only providing the
+    github tag tarballs.
+  * Drop dsl-modem.agent. It hasn't been maintained/tested for many years, few
+    if any people actually use this, and this doesn't belong into udev.
+
+  [ Michael Biebl ]
+  * Stop building the Python 3 bindings. They were split into a separate
+    source package upstream and are now built from src:python-systemd. See
+    http://lists.freedesktop.org/archives/systemd-devel/2015-July/033443.html
+  * Remove obsolete --disable-chkconfig configure option.
+  * Move the man pages for libnss-myhostname, libnss-mymachines and udev.conf
+    from systemd into the correct package. Move the zsh completion file for
+    udevadm into the udev package as well. Add Breaks/Replaces accordingly.
+    (Closes: #790879)
+  * Drop rules which remove pre-generated files before build. The upstream
+    tarball no longer ships any pre-generated files so this is no longer
+    necessary.
+  * Fix cleanup rule for Python byte code files.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 08 Jul 2015 18:56:07 +0200
+
+systemd (221-1) unstable; urgency=medium
+
+  * New upstream release 221:
+    - Fix persistent storage links for Xen devices. (LP: #1467151)
+    - Drop all backported patches and port the others to new upstream release.
+    - debian/rules: Drop workarounds for broken 220 tarball, 221 is fine.
+
+  [ Michael Biebl ]
+  * initramfs hook: Stop installing 55-dm.rules, 64-md-raid.rules,
+    60-persistent-storage-lvm.rules and 60-persistent-storage-dm.rules.
+    The mdadm, lvm2 and dmsetup package provide their own udev hooks nowadays
+    to make sure their udev rules files are installed into the initramfs.
+    Having the copy rules at two places is confusing and makes debugging
+    harder.
+  * Make it possible to skip building udeb packages via
+    DEB_BUILD_OPTIONS="noudeb". This allows quicker builds for local testing
+    and is benefical for derivatives that don't use d-i.
+  * Install API documentation for libudev and libsystemd in their respective
+    packages. Both libraries use man pages now, so we need to be explicit
+    about what is installed where.
+
+  [ Martin Pitt ]
+  * ifupdown-hotplug autopkgtest: Different cloud/desktop environments have
+    different ways of including /etc/network/interfaces.d/, try to get along
+    wit either and skip the test if interfaces.d/ does not get included at
+    all.
+  * Drop obsolete gtk-doc-tools build dependency, gtkdocize autoreconfig, and
+    ./configure options.
+  * libudev-dev.install: Drop gtk-doc files, not built by upstream any more
+    and replaced with manpages.
+  * libsystemd0.symbols: Add new symbols for this release.
+  * debian/rules: Fix paths in manpages as we don't currently have a merged
+    /usr in Debian but have most systemd things in /lib. This replaces the
+    previous huge and maintenance-intense patch.
+  * Drop Accept-mountall-specific-fstab-options.patch. Replaced with
+    systemd.postinst migration code in Ubuntu.
+  * Revert overly aggressive USB autosuspend udev rules change which broke
+    various USB keyboards. (Closes: #789723)
+  * Have rc-local.service output also go to the console. /etc/rc.local often
+    contains status messages which users expect to see during boot.
+    (LP: #1468102)
+  * debian/rules: Install udev.NEWS into libudev1, to get along with Debian's
+    udev -> libudev1 doc dir symlinking. (Closes: #790042)
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 28 Jun 2015 12:05:36 +0200
+
+systemd (220-7) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Enable seccomp support on arm64 as well.
+  * Replace the remainder of Fix-paths-in-man-pages.patch with an upstream
+    provided patch.
+
+  [ Martin Pitt ]
+  * Switch to net.ifnames persistent network interfaces (on new
+    installations/for new hardware), and deprecate the old
+    75-persistent-net-generator.rules. See the ML discussion for details:
+        https://lists.debian.org/debian-devel/2015/05/msg00170.html
+        https://lists.debian.org/debian-devel/2015/06/msg00018.html
+    - Drop Make-net.ifnames-opt-in-instead-of-opt-out.patch, to use
+      net.ifnames by default.
+    - Revert-udev-network-device-renaming-immediately-give.patch: Adjust
+      patch comment.
+    - Drop 75-persistent-net-generator.rules, write_net_rules helper and
+      rule_generator.functions.
+    - Adjust udev's README.Debian accordingly, and describe the migration.
+      This needs to happen manually as there is no robust way of doing this
+      automatically.
+    - Add udev NEWS file for announcing this change and pointing to udev's
+      README.
+    - udev.postinst: Drop write_interfaces_rules().
+    - udev.postinst: Disable net.ifnames on systems which did not support
+      75-persistent-net-generator.rules (most importantly, virtualized guests)
+      to avoid changing network interface names on upgrade.
+    - LP: #1454254
+  * fsckd-daemon-for-inter-fsckd-communication.patch: Add fsckd.c to
+    POTFILES.in.
+  * ifupdown-hotplug autopkgtest: Fix config name in interfaces.d/, it must
+    not have a suffix in Debian. Also clean up the file after the test.
+  * net.agent: When running under systemd, run everything in the foreground.
+    This avoids killing the forked child in the middle of its operation under
+    systemd when the parent exits.
+  * Check during build that systemd and systemd-journald don't link against
+    anything in /usr, to prevent bugs like #771652 and #788913 in the future.
+  * Drop Skip-99-systemd.rules-when-not-running-systemd-as-in.patch. The rules
+    mostly just attach tags systemd specific properties which are harmless
+    under other init systems, and systemd-sysctl also works there.
+  * 80-networking.rules: Only call agents for add|remove, as they don't handle
+    other events.
+  * Restore udev watches on block device changes. (Closes: #789060,
+    LP: #1466081)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 17 Jun 2015 22:48:53 +0200
+
+systemd (220-6) unstable; urgency=medium
+
+  * Enable seccomp support on the architectures that provide libseccomp.
+    (Closes: #760299)
+  * boot-and-services autopkgtest: Add SeccompTest for the above.
+  * boot-and-services autopkgtest: Check that we don't get an unwanted
+    tmp.mount unless /etc/fstab explicitly specifies it.
+  * Bump libcap-dev build dep to the version that provides libcap2-udeb.
+    (Closes: #787542)
+  * Stop installing tmp.mount by default; there are still situations where it
+    becomes active through dependencies from other units, which is surprising,
+    hides existing data in /tmp during runtime, and it isn't safe to have a
+    tmpfs /tmp on every install scenario. (Closes: #783509)
+    - d/rules: Ship tmp.mount in /usr/share/systemd/ instead of
+      /lib/systemd/systemd.
+    - systemd.postinst: When tmp.mount already was enabled, install tmp.mount
+      into /etc and keep it enabled.
+    - systemd.postinst: When enabling tmp.mount because of RAMTMP=yes, copy it
+      from /usr/share.
+    - Drop Don-t-mount-tmp-as-tmpfs-by-default.patch and
+      PrivateTmp-shouldn-t-require-tmpfs.patch, not necessary any more.
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 11 Jun 2015 09:25:49 +0200
+
+systemd (220-5) unstable; urgency=medium
+
+  * debian/README.source: Upstream repository moved to github, adjust
+    cherry-picking instructions accordingly.
+  * debian/control: Replace obsolete Python2 version header with
+    X-Python3-Version.
+  * dracut: Fix path to systemd-fsck. (Closes: #787553)
+  * Ignore test failures during build if /etc/machine-id is missing (which is
+    the case in a few buildd chroots still). (Closes: #787258)
+  * debian/udev.README.Debian: Move network interface hotplug documentation
+    into separate section. Point out that "lo" does not need to be configured
+    in ifupdown under systemd.
+  * debian/udev.README.Debian: Document net.ifnames, and how to write udev
+    rules for custom network names.
+  * Add debian/extra/01-mac-for-usb.link: Use MAC based names for network
+    interfaces which are (directly or indirectly) on USB. Path based names
+    are inadequate for dynamic buses like USB.
+  * Fix another escape parsing regression in Exec*= lines. (Closes: #787256)
+  * Disable EFI support for udeb build.
+  * Refine detection of touch screen devices.
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 07 Jun 2015 16:52:33 +0200
+
+systemd (220-4) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/extra/initramfs-tools/scripts/init-top/udev: Drop $ROOTDELAY wait.
+    This does not concern udev in particular, but is handled by
+    initramfs-tools itself (scripts/local). The intention of this parameter is
+    not to statically wait for the given time, but wait *up to* that time for
+    the root device to appear.
+  * Add debian/extra/units/rc-local.service.d/wait-online.conf: Make
+    rc-local.service wait for network-online.target (if it gets started). This
+    not specified by LSB, but has been behaving that way in Debian under SysV
+    init and upstart. (LP: #1451797)
+  * Fix parsing of escape characters in Exec*= lines. (Closes: #787256)
+  * Drop path_is_mount_point-handle-false-positive-on-some-fs.patch (it was
+    already not applied in 220-1). This needs to be re-thought and re-done
+    against the current code, and overlayfs in general. On overlayfs this
+    still reports false positives for files that changed in the upperdir, but
+    this does not break systemd-machine-id-commit any more.
+  * Add debian/extra/rules/80-debian-compat.rules, replacing three of our
+    patches. These are independent udev rules to change device permissions and
+    add CD/DVD symlinks for compatibility with earlier Debian releases.
+
+  [ Michael Biebl ]
+  * Bump Depends on util-linux to make sure we have a sulogin implementation
+    which properly cleans up its children when emergency.service is restarted.
+    (Closes: #784238)
+  * Stop using /sbin/udevd and drop the compat symlink.
+  * Remove any vestiges of /dev/.udev/. This directory has been replaced by
+    /run/udev/ since wheezy.
+  * Drop udev migration code from pre-wheezy.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 02 Jun 2015 08:16:36 +0200
+
+systemd (220-3) unstable; urgency=medium
+
+  * Fix ProtectSystem=yes to actually protect /usr, not /home.
+    (Closes: #787343)
+  * sd-device: fix device_get_properties_strv(). Fixes environment for
+    processes spawned by udev, in particular "allow-hoplug" ifupdown
+    interfaces via ifup@.service. (Closes: #787263)
+  * Ignore test failures on mipsel; the three failures are not reproducible on
+    the porter box (different kernel?). (See #787258)
+  * Add ifupdown-hotplug autopkgtest. Reproduces #787263.
+  * udev: Bring back persistent storage symlinks for bcache. Thanks David
+    Mohr! (Closes: #787367)
+  * sd-device: Fix invalid property strv pointers. This unbreaks the
+    environment of udev callouts.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 01 Jun 2015 12:58:20 +0200
+
+systemd (220-2) unstable; urgency=low
+
+  * 220-1 was meant to go to experimental, but was accidentally uploaded to
+    unstable. This was planned for next week anyway, just not on a Friday;
+    we don't revert, but keep an RC bug open for a few days to get broader
+    testing. Reupload 220-1 with its changelog actually pointing to unstable
+    and with all versions in the .changes.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 29 May 2015 18:54:09 +0200
+
+systemd (220-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release:
+    - Ship sdio.ids and ids-update.pl in upstream tarball. (Closes: #780650)
+    - Drop non-working "journalctl /dev/sda" example from manpage
+      (Closes: #781604)
+    - man systemd.network: Explain UseDomains a bit more (not used by
+      default). (Closes: #766413)
+    - Ignore comments in /etc/hostname (LP: #1053048)
+    - Drop all backported patches and port the others to new upstream release.
+  * Cherry-pick patch to fix udevd --daemon assertion regression.
+  * Cherry-pick patch to fix udevd worker hang.
+  * systemd.install: systemd.pc moved back into /usr/share/pkgconfig/.
+  * libsystemd0.symbols: Add new symbols from this release.
+  * Drop debian/extra/60-keyboard.hwdb for now. Upstream has a newer version,
+    and it's not nearly as often updated any more as it used to be.
+  * debian/rules: Remove shipped audit_type-to-name.h and
+    keyboard-keys-from-name.gperf and regenerate them during build (bug in
+    upstream 220 tarball).
+  * autopkgtest: Ship/use mock fsck from debian/tests, as it's missing in the
+    220 tarball.
+  * Add libnss-mymachines binary package. (Closes: #784858)
+  * Add libnss-myhostname binary package, taking over from the very old and
+    unmaintained standalone source package as per its maintainer's request.
+    (Closes: #760514)
+  * Drop buildsys-Don-t-default-to-gold-as-the-linker.patch and set LD in
+    debian/rules on sparc only. This can be dropped entirely once we build
+    GUdev from a separate source.
+  * bootchart autopkgtest: Skip test if /proc/schedstat does not exist, i. e.
+    the kernel is missing CONFIG_SCHEDSTAT. Bootchart requires this.
+  * systemd-fsckd autopkgtest: On Debian plymouth-start stays running, adjust
+    was_running() for that.
+  * systemd-fsckd autopkgtest: In test_systemd_fsck_with_plymouth_failure(),
+    fix plymouthd status check to work under both Debian and Ubuntu.
+  * Replace almost all of Fix-paths-in-man-pages.patch with upstreamed
+    patches. (The remainder is planned to get fixed upstream as well.)
+  * Remove our update-rc.d patches, replace them with upstream patches for
+    /lib/systemd/systemd-sysv-install abstraction, and provide one for
+    update-rc.d. Also implement "is-enabled" command by directly checking for
+    the presence of rcS or rc5 symlinks. (Closes: #760616)
+  * Fix path_is_mount_point for files (regression in 220).
+  * debian/control: Drop obsolete XS-Testsuite:, dpkg adds it automatically.
+  * Use Ubuntu's default NTP server for timesyncd when building on Ubuntu.
+
+  [ Michael Biebl ]
+  * Remove /var/run and /var/lock migration code from debian-fixup. The /run
+    migration was completed in wheezy so this is no longer necessary.
+  * Drop our versioned Depends on initscripts. This was initially added for
+    the /run migration and later to ensure we have a mountnfs hook which
+    doesn't cause a deadlock under systemd. The /run migration was completed
+    in wheezy and jessie ships a fixed mountnfs hook. In addition we now use
+    the ignore-dependencies job mode in our lsb init-functions hook, so it's
+    safe to drop this dependency.
+  * Stop building gudev packages. Upstream has moved the gudev code into a
+    separate repository which is now managed on gnome.org. The gudev packages
+    will be built from src:libgudev from now on. See also
+    http://lists.freedesktop.org/archives/systemd-devel/2015-May/032070.html
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 29 May 2015 10:37:40 +0200
+
+systemd (219-10) experimental; urgency=medium
+
+  * Fix assertion crash with empty Exec*= paths. (LP: #1454173)
+  * Drop Avoid-reload-and-re-start-requests-during-early-boot.patch
+    and Avoid-reloading-services-when-shutting-down.patch: This was fixed more
+    robustly in invoke-rc.d and service now, see #777113.
+  * debian/tests/boot-smoke: Allow 10 seconds for systemd jobs to settle down.
+  * Fix "tentative" state of devices which are not in /dev (mostly in
+    containers), and avoid overzealous cleanup unmounting of mounts from them.
+    (LP: #1444402)
+  * debian/extra/udev-helpers/net.agent: Eliminate cat and most grep calls.
+  * Drop Set-default-polling-interval-on-removable-devices-as.patch; it's long
+    obsolete, CD ejection with the hardware button works properly without it.
+  * Re-enable-journal-forwarding-to-syslog.patch: Update patch description,
+    journal.conf.d/ exists now.
+  * journal: Gracefully handle failure to bind to audit socket, which is known
+    to fail in namespaces (containers) with current kernels. Also
+    conditionalize systemd-journald-audit.socket on CAP_AUDIT_READ.
+    (LP: #1457054)
+  * Put back *.agent scripts and use net.agent in Ubuntu. This fixes escaping
+    of unit names, reduces the delta, and will make it easier to get a common
+    solution for integrating ifup.d/ scripts with networkd.
+  * When booting with "quiet", run the initramfs' udevd with "notice" log
+    level. (LP: #1432171)
+  * Add sigpwr-container-shutdown.service: Power off when receiving SIGPWR in
+    a container. This makes lxc-stop work for systemd containers.
+    (LP: #1457321)
+  * write_net_rules: Escape '{' and '}' characters as well, to make this work
+    with busybox grep. Thanks Faidon Liambotis! (Closes: #765577)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 21 May 2015 09:43:52 +0200
+
+systemd (219-9) experimental; urgency=medium
+
+  * 75-persistent-net-generator.rules: Fix rules for ibmveth (it's a driver,
+    not a subsystem). (LP: #1437375)
+  * debian/tests/unit-config: Add tests for systemctl enable/disable on a
+    SysV-only unit. Reproduces LP #1447807.
+  * Fix systemctl enable for SysV scripts without a native unit. We must not
+    try and enable the nonexisting unit then. (LP: #1447807)
+  * Drop Add-env-variable-for-machine-ID-path.patch. systemd should always
+    be installed via the essential "init" in buildd schroots now.
+  * debian/README.source: Update git-buildpackage commands for the renames in
+    0.6.24.
+  * Make apparmor run before networking, to ensure that profiles apply to
+    e. g. dhclient (LP: #1438249):
+    - Rename networking.service.d/network-pre.conf to systemd.conf, and add
+      After=apparmor.service.
+    - ifup@.service: Add After=apparmor.service.
+    - Add Breaks: on apparmor << 2.9.2-1, which dropped its dependency to
+      $remote_fs.
+  * Drop login-don-t-overmount-run-user-UID-on-upgrades.patch and
+    login-don-t-overmount-run-user-UID-on-upgrades.patch, these were only
+    needed for upgrades from wheezy to jessie.
+  * systemd.{pre,post}inst: Clean up obsolete (pre-wheezy/jessie) upgrade
+    fixes.
+  * systemd-fsckd autopkgtest: Stop assuming that
+    /etc/default/grub.d/90-autopkgtest.cfg exists.
+  * systemd-fsckd autopkgtest: Add missing plymouth test dependency.
+  * Drop core-mount-ensure-that-we-parse-proc-self-mountinfo.patch, and bump
+    util-linux dependency to the version which enables
+    --enable-libmount-force-mountinfo.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 13 May 2015 12:27:21 +0200
+
+systemd (219-8) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * Skip filesystem check if already done by the initramfs. (Closes: #782522)
+  * Drop hard-coded versioned dependency on libapparmor1. Bump the
+    Build-Depends on libapparmor-dev instead. This ensures a proper versioned
+    dependency via Build-Depends-Package.
+  * Revert "Make apparmor run before networking". This causes dependency
+    cycles while apparmor still depends on $remote_fs.
+  * Cleanup hwclock-save.service symlinks when upgrading from the jessie
+    version.
+
+  [ Martin Pitt ]
+  * cryptsetup: Implement offset and skip options. (Closes: #751707,
+    LP: #953875)
+  * logind autopkgtest: Add test for suspending on lid switch close.
+    This reproduces LP #1444166 (lid switch not working in the first few
+    minutes after boot).
+  * Reduce the initial suspend supression time from 3 minutes to 30 seconds,
+    and make it configurable. (LP: #1444166)
+  * Fix double free crash in "systemctl enable" when calling update-rc.d and
+    the latter fails. (Closes: #764613, LP: #1426588)
+  * hwdb: Fix wireless switch on Dell Latitude (LP: #1441849)
+  * Fix assertion crash when reading a service file with missing ' and
+    trailing space. (LP: #1447243)
+  * ifup@.service: Set IgnoreOnIsolate, so that "systemctl default" does not
+    shut down network interfaces. (Closes: #762953, LP: #1449380).
+    Add PartOf=network.target, so that stopping network.target also stops
+    network interfaces (so that isolating emergency.target and similar work as
+    before).
+  * Revert upstream commit 743970d which immediately SIGKILLs units during
+    shutdown. This leads to problems like bash not being able to write its
+    history, mosh not saving its state, and similar failed cleanup actions.
+    (Closes: #784720, LP: #1448259)
+  * Drop the reversion of "journald: allow restarting journald without losing
+    stream connections", and replace with proper upstream fix for
+    sd_pid_notify_with_fds(). (See Debian #778970, LP #1423811; LP: #1437896)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 29 Apr 2015 17:13:41 +0200
+
+systemd (219-7) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * Make systemd-sysv's dependency to systemd unversioned. The package just
+    contains 6 symlinks and thus isn't sensitive at all against version
+    mismatches. This avoids running into circular dependencies when testing
+    local debs.
+  * Revert "udev: Drop hwdb-update dependency" and replace with upstream patch
+    which moves it to systemd-udev-trigger.service.
+  * display-managers autopkgtest: Properly wait until all jobs are finished.
+  * display-managers autopkgtest: Reset failed units between tests, to avoid
+    running into restart limits and for better test isolation.
+  * Enable timesyncd in virtual machines. (Closes: #762343)
+
+  [ Adam Conrad ]
+  * debian/systemd.{triggers,postinst}: Trigger a systemctl daemon-reload
+    when init scripts are installed or removed (Closes: #766429)
+
+  [ Didier Roche ]
+  * Squash all fsckd patches in one (as fsckd and such will be removed
+    soon upstream), containing various fixes from upstream git and refactor
+    the connection flow to upstream's suggestion. Modify the man pages to match
+    those modifications as well. Amongst others, this suppresses "Couldn't
+    connect to plymouth" errors if plymouth is not running.
+    (Closes: #782265, LP: #1429171)
+  * Keep plymouth localized messages in a separate patch for easier updates in
+    the future and refresh to latest upstream.
+  * display-managers autopkgtest: Use ExecStart=sleep instead of the actual
+    lightdm binary, to avoid errors from lightdm startup. Drop the now
+    unnecessary "needs-recommends" to speed up the test.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 10 Apr 2015 11:08:33 +0200
+
+systemd (219-6) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * Import patches from v219-stable branch (up to 85a6fab).
+  * boot-and-services autopkgtest: Add missing python3 test dependency.
+  * Make apparmor run before networking, to ensure that profiles apply to
+    e. g. dhclient (LP: #1438249):
+    - Rename networking.service.d/network-pre.conf to systemd.conf, and add
+      After=apparmor.service.
+    - ifup@.service: Add After=apparmor.service.
+  * udev: Drop hwdb-update dependency, which got introduced by the above
+    v219-stable branch. This causes udev and plymouth to start too late and
+    isn't really needed in Debian yet as we don't support stateless systems
+    yet and handle hwdb.bin updates through dpkg triggers. (LP: #1439301)
+
+  [ Didier Roche ]
+  * Fix mount point detection on overlayfs and similar file systems without
+    name_to_handle_at() and st_dev support. (LP: #1411140)
+
+  [ Christian Seiler ]
+  * Make the journald to syslog forwarding more robust by increasing the
+    maximum datagram queue length from 10 to 512. (Closes: #762700)
+
+  [ Marco d'Itri ]
+  * Avoid writing duplicate entries in 70-persistent-net.rules by double
+    checking if the new udev rule has already been written for the given
+    interface. This happens if multiple add events are generated before the
+    write_net_rules script returns and udevd renames the interface.
+    (Closes: #765577)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 02 Apr 2015 09:14:48 +0200
+
+systemd (219-5) experimental; urgency=medium
+
+  [ Didier Roche ]
+  * Add "systemd-fsckd" autopkgtest. (LP: #1427312)
+  * cmdline-upstart-boot autopkgtest: Update to Ubuntu's upstart-sysv split
+    (test gets skipped on Debian while upstart-sysv does not yet exist there).
+  * Cherry-pick a couple of upstream commits for adding transient state,
+    fixing a race where mounts become available before the device being
+    available.
+  * Ensure PrivateTmp doesn't require tmpfs through tmp.mount, but rather adds
+    an After relationship. (Closes: #779902)
+
+  [ Martin Pitt ]
+  * journald: Suppress expected cases of "Failed to set file attributes"
+    errors. (LP: #1427899)
+  * Add systemd-sysv.postinst: Update grub on first installation, so that the
+    alternative init system boot entries get updated.
+  * debian/tests: Call /tmp/autopkgtest-reboot, to work with autopkgtest >=
+    3.11.1.
+  * Check for correct architecture identifiers for SuperH. (Closes: #779710)
+  * Fix tmpfiles.d to only apply the first match again (regression in 219).
+    (LP: #1428540)
+  * /lib/lsb/init-functions.d/40-systemd: Don't ignore systemd unit
+    dependencies in "degraded" mode. (LP: #1429734)
+
+  [ Michael Biebl ]
+  * debian/udev.init: Recognize '!' flag with static device lists, to work
+    with kmod 20. (Closes: #780263)
+
+  [ Craig Magina ]
+  * rules-ubuntu/71-power-switch-proliant.rules: Add support for HP ProLiant
+    m400 Server Cartridge soft powerdown on Linux 3.16. (LP: #1428811)
+
+  [ Scott Wakeling ]
+  * Rework package description to be more accurate. (Closes: #740372)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 26 Mar 2015 16:31:04 +0100
+
+systemd (219-4) experimental; urgency=medium
+
+  * tmpfiles: Avoid creating duplicate ACL entries. Add postinst code to clean
+    them up on upgrade. (Closes: #778656)
+  * bootchart: Fix path to default init. (LP: #1423867)
+  * Add "bootchart" autopkgtest, to spot regressions like the above.
+  * autopkgtests: Factorize out "assert.sh" utility functions, and use them in
+    the tests for useful failure messages.
+  * Downgrade requirement for timedated, hostnamed, localed-locale, and
+    logind autopkgtests from machine to container isolation.
+  * boot-and-services and display-manager autopkgtest: Add systemd-sysv as
+    proper test dependency instead of apt-get installing it. This works now
+    also under Ubuntu 15.04.
+  * boot-and-services autopkgtest: Check cleanup of temporary files during
+    boot. Reproduces #779169.
+  * Clean up /tmp/ directory again. (Closes: #779169, LP: #1424992)
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 27 Feb 2015 07:02:09 +0100
+
+systemd (219-3) experimental; urgency=medium
+
+  * sysv-generator: fix wrong "Overwriting existing symlink" warnings.
+    (Closes: #778700)
+  * Add systemd-fsckd multiplexer and feed its output to plymouth. This
+    provides an aggregate progress report of running file system checks and
+    also allows cancelling them with ^C, in both text mode and Plymouth.
+    (Closes: #775093, #758902; LP: #1316796)
+  * Revert "journald: allow restarting journald without losing stream
+    connections". This was a new feature in 219, but currently causes boot
+    failures due to logind and other services not starting up properly.
+    (Closes: #778970; LP: #1423811)
+  * Add "boot-smoke" autopkgtest: Test 20 successful reboots in a row, and
+    that there are no connection timeouts or stalled jobs. This reproduces the
+    above regression.
+  * debian/tests/localed-locale: Set up locale and keyboard default files on a
+    minimal unconfigured testbed.
+  * Add missing python3 test dependency to cmdline-upstart-boot and
+    display-managers autopkgtests.
+  * debian/tests/boot-and-services: Skip AppArmor test if AppArmor is not
+    enabled.
+  * debian/tests/boot-and-services: Reboot also if lightdm was just installed
+    but isn't running yet.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 23 Feb 2015 09:52:12 +0100
+
+systemd (219-2) experimental; urgency=medium
+
+  * Fix UTF-16 to UTF-8 conversion on big-endian machines. (Closes: #778654)
+  * Disable new new test-sigbus, it fails on some buildds due to too old
+    kernels. (part of #778654)
+  * debian/README.Debian, debian/systemd.postinst: Drop setfacl call for
+    /var/log/journal, this is now done automatically by tmpfiles.d/systemd.conf.
+  * Drop "acl" dependency, not necessary any more with the above.
+  * debian/tests/boot-and-services: Move to using /var/lib/machines/,
+    /var/lib/containers is deprecated.
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 18 Feb 2015 15:29:42 +0100
+
+systemd (219-1) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release:
+    - Fix spelling mistake in systemd.unit(5). (Closes: #773302)
+    - Fix timeouts with D-Bus, leading to SIGFPE. (Closes: #774012)
+    - Fix load/save of multiple rfkill states. (Closes: #759489)
+    - Non-persistent journal (/run/log/journal) is now readable by group adm.
+      (Closes: #771980)
+    - Read netdev user mount option to correctly order network mounts after
+      network.target. (Closes: #769186)
+    - Fix 60-keyboard.hwdb documentation and whitespace handling.
+      (Closes: #757367)
+    - Fix ThinkPad X1 Carbon 20BT trackpad buttons (LP: #1414930)
+    - Drop all backported patches and port the others to new upstream release.
+  * Bump libblkid-dev build dependency as per upstream configure.ac.
+  * debian/systemd.install: Add new language-fallback-map file.
+  * debian/udev.install: Add new systemd-hwdb tool.
+  * debian/libsystemd0.symbols: Add new symbols from this release.
+  * tmpfiles.d/systemd.conf: Drop "wheel" ACL (that group does not exist in
+    Debian) to make the ACL for "adm" actually work.
+  * debian/rules: Explicitly disable importd for now; it should still mature a
+    bit. Explicitly enable hwdb support.
+  * /lib/lsb/init-functions.d/40-systemd: Call systemctl is-system-running
+    with --quiet. (LP: #1421058)
+  * debian/systemd.postrm: Clean getty@tty1.service and remote-fs.target
+    enablement symlinks on purge. (Closes: #778499)
+  * Move all Debian specific units in the systemd package into
+    debian/extra/units/ and simplify debian/systemd.install.
+  * Enable timesyncd by default. Add a config drop-in to not start if ntp,
+    openntpd, or chrony is installed. (Closes: #755722)
+  * debian/systemd.links: Drop obsolete hwclockfirst.service mask link, this
+    was dropped in wheezy's util-linux already.
+  * debian/udev.postinst: Call systemd-hwdb instead of udevadm hwdb.
+
+  [ Michael Biebl ]
+  * Stop removing firstboot man pages. They are now installed conditionally.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 17 Feb 2015 15:51:38 +0100
+
+systemd (218-10) experimental; urgency=medium
+
+  * Pull latest keymaps from upstream git. (LP: #1334968, #1409721)
+  * rules: Fix by-path of mmc RPMB partitions and don't blkid them. Avoids
+    kernel buffer I/O errors and timeouts. (LP: #1333140)
+  * Clean up stale mounts when ejecting CD drives with the hardware eject
+    button. (LP: #1168742)
+  * Document systemctl --failed option. (Closes: #767267)
+  * Quiesce confusing and irrelevant "failed to reset devices.list" warning.
+    (LP: #1413193)
+  * When booting with systemd-bootchart, default to run systemd rather than
+    /sbin/init (which might not be systemd). (LP: #1417059)
+  * boot-and-services autopkgtest: Add CgroupsTest to check cgroup
+    creation/cleanup behaviour. This reproduces #777601 and verifies the fix
+    for it.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 13 Feb 2015 12:25:06 +0100
+
+systemd (218-9) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/tests/logind: With dropped systemd-logind-launch we don't have a
+    visible /sys/fs/cgroup/systemd/ any more under cgmanager. So adjust the
+    test to check /proc/self/cgroup instead.
+  * Add unit-config autopkgtest to check systemd unit/sysv init enabling and
+    disabling via systemctl. This also reproduces #777613.
+  * systemctl: Always install/enable/disable native units, even if there is a
+    corresponding SysV script and we call update-rc.d; while the latter
+    handles WantedBy=, it does not handle Alias=. (Closes: #777613)
+  * cgroup: Don't trim cgroup trees created by someone else, just the ones
+    that systemd itself created. This avoids cleaning up empty cgroups from
+    e.g. LXC. (Closes: #777601)
+  * Don't parse /etc/mtab for current mounts, but /proc/self/mountinfo. If the
+    former is a file, it's most likely outdated on boot, leading to race
+    conditions and unmounts during boot. (LP: #1419623)
+
+  [ Michael Biebl ]
+  * Explicitly disable the features we don't want to build for those with
+    autodetection. This ensures reliable build results in dirty build
+    environments.
+  * Disable AppArmor support in the udeb build.
+  * core: Don't fail to run services in --user instances if $HOME is missing.
+    (Closes: #759320)
+
+  [ Didier Roche ]
+  * default-display-manager-generator: Avoid unnecessary /dev/null symlink and
+    warning if there is no display-manager.service unit.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 12 Feb 2015 18:45:12 +0100
+
+systemd (218-8) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * boot-and-services autopkgtest: Ensure that there are no failed units,
+    except possibly systemd-modules-load.service (as that notoriously fails
+    with cruft in /etc/modules).
+  * Revert "input" system group creation in systemd.postinst from 218-7. It's
+    already done in udev.postinst.
+  * ifup@.service: Revert checking for existance of ifupdown config for that
+    interface, net.agent already does that.
+  * Drop Also-redirect-to-update-rc.d-when-not-using-.service.patch; not
+    necessary any more with the current version (mangle_names() already takes
+    care of this).
+  * Merge into Add-support-for-rcS.d-init-scripts-to-the-sysv-gener.patch:
+    - Do-not-order-rcS.d-services-after-local-fs.target-if.patch, as it
+      partially reverts the above, and is just fixing it.
+    - Map-rcS.d-init-script-dependencies-to-their-systemd-.patch as it's just
+      adding some missing functionality for the same purpose.
+  * Merge Run-update-rc.d-defaults-before-update-rc.d-enable-d.patch into
+    Make-systemctl-enable-disable-call-update-rc.d-for-s.patch as the former
+    is fixing the latter and is not an independent change.
+  * Drop Launch-logind-via-a-shell-wrapper.patch and systemd-logind-launch
+    wrapper. The only remaining thing that we need from it is to create
+    /run/systemd/, move that into the D-BUS service file directly.
+  * /lib/lsb/init-functions.d/40-systemd: Avoid deadlocks during bootup and
+    shutdown. DHCP/ifupdown and similar hooks which call "/etc/init.d/foo
+    reload" can easily cause deadlocks, since the synchronous wait plus
+    systemd's normal behaviour of transactionally processing all dependencies
+    first easily causes dependency loops. Thus during boot/shutdown operate
+    only on the unit and not on its dependencies, just like SysV behaves.
+    (Closes: #777115, LP: #1417010)
+  * Only start logind if dbus is installed. This fixes the noisy startup
+    failure in environments without dbus, such as LXC containers or servers.
+    (part of #772700)
+  * Add getty-static.service unit which starts getty@.service on tty 2 to 6 if
+    dbus is not installed, and hence logind cannot auto-start them on demand.
+    (Closes: #772700)
+
+  [ Michael Biebl ]
+  * Update insserv-generator and map $x-display-manager to
+    display-manager.service, following the recent change in sysv-generator.
+    This avoids creating references to a no longer existing
+    x-display-manager.target unit.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 09 Feb 2015 18:07:22 +0100
+
+systemd (218-7) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * Don't attempt to mount the same swap partition twice through different
+    device node aliases. (Closes: #772182, LP: #1399595)
+  * logind: handle closing sessions over daemon restarts. (Closes: #759515,
+    LP: #1415104)
+  * logind: Fix sd_eviocrevoke ioctl call, to make forced input device release
+    after log out actually work.
+  * debian/rules: Drop obsolete --disable-multi-seat-x and
+    --with-firmware-path configure options.
+  * debian/udev.README.Debian: Trim the parts which are obsolete, wrong, or
+    described in manpages. Only keep the Debian specific bits.
+    (Part of #776546)
+  * Actually install udev's README.Debian when building for Debian.
+    (Closes: #776546)
+  * Create system group "input" which was introduced in 215. (LP: #1414409)
+  * ifup@.service: Don't fail if the interface is not configured in
+    /etc/network/interfaces at all. (LP: #1414426)
+
+  [ Michael Biebl ]
+  * Update Vcs-Browser URL to use cgit and https.
+  * Map $x-display-manager LSB facility to display-manager.service instead of
+    making it a target. Using a target had the downside that multiple display
+    managers could hook into it at the same time which could lead to several
+    failed start attempts for the non-default display manager.
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 01 Feb 2015 20:48:49 +0100
+
+systemd (218-6) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * initramfs hook: Install 61-persistent-storage-android.rules if it exists.
+  * Generate POT file during package build, for translators.
+  * Pull latest keymaps from upstream git.
+  * Order ifup@.service and networking.service after network-pre.target.
+    (Closes: #766938)
+  * Tone down "Network interface NamePolicy= disabled on kernel commandline,
+    ignoring" info message to debug, as we expect this while we disable
+    net.ifnames by default. (Closes: #762101, LP: #1411992)
+
+  [ Michael Biebl ]
+  * Ship bash-completion for udevadm. (Closes: #776166)
+  * Drop rc-local generator in favor of statically enabling rc-local.service,
+    and drop halt-local.service which is unnecessary on Debian.
+    (Closes: #776170)
+  * Drop the obsolete libsystemd-* libraries, there are no reverse
+    dependencies left.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 26 Jan 2015 15:45:45 +0100
+
+systemd (218-5) experimental; urgency=medium
+
+  * Drop logger.agent. It hasn't been called from any udev rule for a long
+    time, and looks obsolete.
+  * debian/rules: Configure with --disable-firstboot to replace some manual
+    file removals.
+  * debian/rules: Remove manual file installation, move them to
+    debian/*.install. Move all Debian specific installed files to
+    debian/extra/.
+  * Merge some changes from the Ubuntu package to reduce the delta; these only
+    apply when building on/for Ubuntu:
+    - Add 40-hyperv-hotadd.rules: Workaround for LP: #1233466.
+    - Add 61-persistent-storage-android.rules to create persistent symlinks
+      for partitions with PARTNAME. By Ricardo Salveti.
+    - Add 71-power-switch-proliant.rules for supporting the power switches of
+      ProLiant Server Cartridges. By Dann Frazier.
+    - Add 78-graphics-card.rules: Mark KMS capable graphics devices as
+      PRIMARY_DEVICE_FOR_DISPLAY so that we can wait for those in plymouth.
+      By Scott James Remnant.
+    - Don't install the Debian *.agent scripts. Instead, have Ubuntu's
+      80-networking.rules directly pull in ifup@.service, which is much easier
+      and more efficient.
+  * Make EPERM/EACCESS when applying OOM adjustment for forked processes
+    non-fatal. This happens in user namespaces like unprivileged LXC
+    containers.
+  * Fix assertion failure due to /dev/urandom being unmounted when shutting
+    down unprivileged containers. Thanks Stéphane Graber.
+  * Enable EFI support. This mostly auto-mounts /sys/firmware/efi/efivars, but
+    also provides a generator for auto-detecting the root and the /boot/efi
+    partition if they aren't in /etc/fstab. (Closes: #773533)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 22 Jan 2015 16:13:46 +0100
+
+systemd (218-4) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * sysv-generator: handle Provides: for non-virtual facility names.
+    (Closes: #774335)
+  * Fix systemd-remount-fs.service to not fail on remounting /usr if /usr
+    isn't mounted yet. This happens with initramfs-tools < 0.118 which we
+    might not get into Jessie any more. (Closes: #742048)
+
+  [ Martin Pitt ]
+  * fstab-generator: Handle mountall's non-standard "nobootwait" and
+    "optional" options. ("bootwait" is already the systemd default behaviour,
+    and "showthrough" is irrelevant here, so both can be ignored).
+  * Add autopkgtest for one-time boot with upstart when systemd-sysv is
+    installed. This test only works under Ubuntu which has a split out
+    upstart-bin package, and will be skipped under Debian.
+  * debian/ifup@.service: Check if ifup succeeds by calling ifquery, to
+    work around ifup not failing on invalid interfaces (see #773539)
+  * debian/ifup@.service: Set proper service type (oneshot).
+  * sysv-generator: Handle .sh suffixes when translating Provides:.
+    (Closes: #775889)
+  * sysv-generator: Make real units overwrite symlinks generated by Provides:
+    from other units. Fixes failures due to presence of backup or old init.d
+    scripts. (Closes: #775404)
+  * Fix journal forwarding to syslog in containers without CAP_SYS_ADMIN.
+    (Closes: #775067)
+  * Re-enable AppArmor support, now that libapparmor1 moved to /lib. Add
+    versioned dependency as long as this is still only in experimental.
+    (Closes: #775331)
+  * Add some missing dpkg and ucf temp files to the "hidden file" filter, to
+    e. g. avoid creating units for them through the sysv-generator.
+    (Closes: #775903)
+  * Silence useless warning about /etc/localtime not being a symlink. This is
+    deliberate in Debian with /usr (possibly) being on a separate partition.
+    (LP: #1409594)
+
+  [ Christian Kastner ]
+  * Use common-session-noninteractive in systemd-user's PAM config, instead of
+    common-session. The latter can include PAM modules like libpam-mount which
+    expect to be called just once and/or interactively, which already happens
+    for login, ssh, or the display-manager. Add pam_systemd.so explicitly, as
+    it's not included in -noninteractive, but is always required (and
+    idempotent). There is no net change on systemd which don't use manually
+    installed PAM modules. (Closes: #739676)
+
+  [ Michael Biebl ]
+  * Make sure we run debian-fixup.service after /var has been mounted if /var
+    is on a separate partition. Otherwise we might end up creating the
+    /var/lock and /var/run symlink in the underlying root filesystem.
+    (Closes: #768644)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 21 Jan 2015 15:57:50 +0100
+
+systemd (218-3) experimental; urgency=medium
+
+  * build-logind autopkgtest: Re-enforce that sd_login_monitor_new() succeeds,
+    and restrict this test to isolation-container. (Reproduces LP #1400203)
+  * Bring back patch to make sd_login_monitor_new() work under other init
+    systems where /sys/fs/cgroup/systemd/machine does not exist.
+    (LP: #1400203)
+  * build-login autopkgtest: Build against libsystemd, not libsystemd-login
+    any more.
+  * Add debian/extra/systemd-vconsole-setup.service dependency shim for
+    the console-setup init script, to avoid breaking dependencies of
+    third-party packages. Install it for Ubuntu only for now, as in Debian
+    plymouth's unit got adjusted. (LP: #1392970, Debian #755194)
+  * Mark systemd{,-sysv} as M-A: foreign (thanks lintian).
+  * Quiesce maintainer-script-calls-systemctl lintian warning.
+  * Quiesce possibly-insecure-handling-of-tmp-files lintian warning, it's
+    wrong there (we are handling tmpfiles.d/ files which are not in a temp
+    dir).
+  * Use dh_installinit's --noscript instead of --no-start for the upstart
+    jobs without sysvinit scripts (thanks lintian).
+  * Put systemd.pc into arch specific pkgconfig dir, as it contains the arch
+    specific libdir value.
+  * Don't enable audit by default. It causes flooding of dmesg and syslog,
+    suppressing actually important messages. (Closes: #773528)
+  * Cherrypick various bug fixes in loopback device setup and netlink socket
+    communication. Fixes massive CPU usage due to tight retry loops in user
+    LXC containers.
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 29 Dec 2014 14:55:35 +0100
+
+systemd (218-2) experimental; urgency=medium
+
+  * boot-and-services AppArmor autopkgtest: Stop checking the dmesg log; it is
+    racy as sometimes message bursts are suppressed.
+  * Fix crash in timedatectl with Etc/UTC.
+  * Prefer-etc-X11-default-display-manager-if-present.patch: Drop wrong
+    copy&paste'd comment, fix log strings. Thanks Adam D. Barratt.
+  * boot-and-services: Robustify Nspawn tests, and show systemd-nspawn output
+    on failure.
+  * Disable tests which fail on buildds, presumably due to too old kernels,
+    misconfigured /etc/hosts, and similar problems. Make failures of the test
+    suite fatal now.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 16 Dec 2014 08:24:38 +0100
+
+systemd (218-1) experimental; urgency=medium
+
+  * New upstream release. Drop all cherry-picked patches and port the Debian
+    specific ones.
+    - Create /etc/machine-id on boot if missing. (LP: #1387090)
+  * Add new libmount-dev build dependency.
+  * Configure with --enable-split-usr.
+  * Merge some permanent Ubuntu changes, using dpkg-vendor:
+    - Don't symlink udev doc directories.
+    - Add epoch to gudev packages; Ubuntu packaged the standalone gudev before
+      it got merged into udev.
+    - Add Apport hooks for udev and systemd.
+  * udev-fallback-graphics upstart job: Guard the modprobe with || true to
+    avoid a failure when vesafb is compiled in. (LP: #1367241)
+
+ -- Martin Pitt <mpitt@debian.org>  Sun, 14 Dec 2014 13:58:39 +0100
+
+systemd (217-4) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * Reinstate a debian/extra/rules/50-firmware.rules which immediately tells
+    the kernel that userspace firmware loading failed. Otherwise it tries for a
+    minute to call the userspace helper (if CONFIG_FW_LOADER_USER_HELPER is
+    enabled) in vain, which causes long delays with devices which have a range
+    of possible firmware versions. (LP: #1398458)
+  * debian/systemd.postinst: Don't always restart journald, as this currently
+    can't be done without losing the current journal and breaking attached
+    processes. So only restart it from upgrades < 215-3 (where the socket
+    location got moved) as an one-time upgrade path from wheezy.
+    (Closes: #771122)
+  * Revert "Modify insserv generator to mask sysvinit-only display managers".
+    This is still under dispute, a bit risky, and might get a different
+    implementation. Also, nodm really needs to be fixed properly, working
+    around it is both too risky and also too hard to get right.
+
+  [ Didier Roche ]
+  * Add display managers autopkgtests.
+  * Reset display-manager symlink to match /e/X/d-d-m even if
+    display-manager.service was removed. Adapt the autopkgtests for it.
+    (LP: #1400680)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 11 Dec 2014 18:06:54 +0200
+
+systemd (217-3) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * systemd.bug-script: Really capture stderr of systemd-delta.
+    (Closes: #771498)
+  * boot-and-services autopkgtest: Give test apparmor job some time to
+    actually finish.
+
+  [ Didier Roche ]
+  * updated debian/patches/insserv.conf-generator.patch:
+    - if /etc/X11/default-display-manager doesn't match a systemd unit
+      (or doesn't exist), be less agressive about what to mask: we let
+      all sysvinit-only display-manager units enabled to fallback to previous
+      behavior and let them starting. (Closes: #771739)
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 02 Dec 2014 16:53:36 +0100
+
+systemd (217-2) experimental; urgency=medium
+
+  * Re-enable journal forwarding to syslog, until Debian's sysloggers
+    can/do all read from the journal directly.
+  * Fix hostnamectl exit code on success.
+  * Fix "diff failed with error code 1" spew with systemd-delta.
+    (Closes: #771397)
+  * Re-enable systemd-resolved. This wasn't meant to break the entire
+    networkd, just disable the new NSS module. Remove that one manually
+    instead. (Closes: #771423, LP: #1397361)
+  * Import v217-stable patches (up to commit bfb4c47 from 2014-11-07).
+  * Disable AppArmor again. This first requires moving libapparmor to /lib
+    (see #771667). (Closes: #771652)
+  * systemd.bug-script: Capture stderr of systemd-{delta,analyze}.
+    (Closes: #771498)
+
+ -- Martin Pitt <mpitt@debian.org>  Mon, 01 Dec 2014 15:09:09 +0100
+
+systemd (217-1) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release. Drop all cherry-picked patches and port the Debian
+    specific ones.
+  * Disable systemd-resolved for now. It still needs to mature, and
+    integration into Debian should be discussed first.
+  * Bump util-linux dependency to >= 2.25 as per NEWS.
+  * Drop installation of 50-firmware.rules, not shipped upstream any more.
+    Firmware loading is now exclusively done by the kernel.
+  * Drop installation of readahead related services and code, readahead got
+    dropped in this version.
+  * Ship new networkctl CLI tool.
+  * debian/libsystemd0.symbols: Add new symbols from this release.
+  * debian/rules: Call dpkg-gensymbols with -c4 to immediately spot
+    changed/missing symbols during build.
+  * boot-and-services autopkgtest: Test AppArmor confined units (LP #1396270)
+  * Create new "systemd-journal-remote" system group, for
+    systemd-tmpfiles-setup.service.
+
+  [ Marc Deslauriers ]
+  * Build-depend on libapparmor-dev to enable AppArmor support. (LP: #1396270)
+
+  [ Didier Roche ]
+  * Handle display-manager transitions: (Closes: #748668)
+    - Add a generator to ensure /etc/X11/default-display-manager is controlling
+      which display-manager is started.
+    - Modify insserv generator to mask of sysvinit-only dms with insserv
+      $x-display-manager tag if they don't match
+      /etc/X11/default-display-manager. This avoids starting multiple dms at
+      boot.
+  * Cherry-pick Shared-add-readlink_value.patch as using that function in the
+    generator.
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 28 Nov 2014 10:53:58 +0100
+
+systemd (215-18) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * manager: Pass correct errno to strerror(), have_ask_password contains
+    negative error values which have to be negated when being passed to
+    strerror().
+
+  [ Martin Pitt ]
+  * Revert upstream commit 743970d which immediately SIGKILLs units during
+    shutdown. This leads to problems like bash not being able to write its
+    history, mosh not saving its state, and similar failed cleanup actions.
+    (Closes: #784720, LP: #1448259)
+  * write_net_rules: Escape '{' and '}' characters as well, to make this work
+    with busybox grep. Thanks Faidon Liambotis! (Closes: #765577)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 21 May 2015 15:49:30 +0200
+
+systemd (215-17) unstable; urgency=high
+
+  * cryptsetup: Implement offset and skip options. (Closes: #751707,
+    LP: #953875)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 16 Apr 2015 10:26:46 -0500
+
+systemd (215-16) unstable; urgency=medium
+
+  [ Christian Seiler ]
+  * Don't run hwclock-save.service in containers. (Closes: #782377)
+
+  [ Michael Biebl ]
+  * Do not print anything while passwords are being queried. This should make
+    password prompts without plymouth more usable. (Closes: #765013)
+  * Skip filesystem check if already done by the initramfs. (Closes: #782522)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Apr 2015 19:42:32 +0200
+
+systemd (215-15) unstable; urgency=medium
+
+  [ Adam Conrad ]
+  * debian/systemd.{triggers,postinst}: Trigger a systemctl daemon-reload
+    when init scripts are installed or removed (Closes: #766429)
+
+  [ Martin Pitt ]
+  * Fix getty restart loop when PTS device is gone. (Closes: #780711)
+  * Run timesyncd in virtual machines. (Closes: #762343)
+  * Make logind work in environments without CAP_SYS_ADMIN (mostly
+    containers). Thanks Christian Seiler for the backporting!
+    (Closes: #778608)
+  * Check for correct signatures when setting properties. Fixes systemd
+    getting stuck on trying to set invalid property types. (Closes: #781602)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 09 Apr 2015 10:12:37 +0200
+
+systemd (215-14) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Map $x-display-manager LSB facility to display-manager.service instead of
+    making it a target. Using a target had the downside that multiple display
+    managers could hook into it at the same time which could lead to several
+    failed start attempts for the non-default display manager.
+  * Update insserv-generator and map $x-display-manager to
+    display-manager.service, following the recent change in sysv-generator.
+    This avoids creating references to a no longer existing
+    x-display-manager.target unit.
+  * Cherry-pick upstream fix to increase the SendBuffer of /dev/log to 8M.
+
+  [ Martin Pitt ]
+  * scope: Make attachment of initial PIDs more robust. Fixes crash with
+    processes that get started by an init.d script with a different (aliased)
+    name when the cgroup becomes empty. (Closes: #781210)
+  * boot-and-services, display-managers autopkgtests: Add missing python3 test
+    dependency.
+  * Don't attempt to mount the same swap partition twice through different
+    device node aliases. (Closes: #772182, LP: #1399595)
+
+  [ Christian Seiler ]
+  * Make the journald to syslog forwarding more robust by increasing the
+    maximum datagram queue length from 10 to 512. (Closes: #762700)
+
+  [ Marco d'Itri ]
+  * Avoid writing duplicate entries in 70-persistent-net.rules by double
+    checking if the new udev rule has already been written for the given
+    interface. This happens if multiple add events are generated before the
+    write_net_rules script returns and udevd renames the interface.
+    (Closes: #765577)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 30 Mar 2015 13:26:52 +0200
+
+systemd (215-13) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * Add hwclock-save.service to sync the system clock to the hardware clock on
+    shutdown, to provide monotonic time for reboots. (Note: this is a hack for
+    jessie; the next Debian release will enable timesyncd by default).
+    (Closes: #755722)
+  * Check for correct architecture identifiers for SuperH. (Closes: #779710)
+  * networkd: Fix stopping v4 dhcpclient when the carrier is lost. Thanks
+    Christos Trochalakis! (Closes: #779571)
+  * Fix segfault with units that depend on themselves. (Closes: #780675)
+  * tmpfiles-setup-dev: Call tmpfiles with --boot to allow unsafe device
+    creation. Fixes creation of static device nodes with kmod 20.
+    (Closes: #780263)
+
+  [ Christian Seiler ]
+  * core: Don't migrate PIDs for units that may contain subcgroups.
+    This stops messing up lxc/libvirt/other custom cgroup layouts after
+    daemon-reload. (Closes: #777164)
+  * sysv-generator: add support for /etc/insserv/overrides. (Closes: #759001)
+
+  [ Michael Biebl ]
+  * debian/udev.init: Recognize '!' flag with static device lists, to work
+    with kmod 20. (Closes: #780263)
+
+  [ Didier Roche ]
+  * Ensure PrivateTmp doesn't require tmpfs through tmp.mount, but rather adds
+    an After relationship. (Closes: #779902)
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 26 Mar 2015 14:23:35 +0100
+
 systemd (215-12) unstable; urgency=medium
 
   [ Martin Pitt ]
@@ -156,7 +1971,7 @@ systemd (215-7) unstable; urgency=medium
   * Make systemd-nspawn@.service work out of the box: (Closes: #770275)
     - Pre-create /var/lib/container with a secure mode (0700) via tmpfiles.d.
     - Add new try-{guest,host} modes for --link-journal to silently skip
-      setting up the guest journal if the host has no persistant journal.
+      setting up the guest journal if the host has no persistent journal.
     - Extend boot-and-services autopkgtest to cover systemd-nspawn@.service.
   * Cherry-pick upstream patch to fix SELinux unit access check (regression
     in 215).
@@ -277,7 +2092,7 @@ systemd (215-3) experimental; urgency=medium
 systemd (215-2) experimental; urgency=medium
 
   * debian/patches/always-check-for-__BYTE_ORDER-__BIG_ENDIAN-when-chec.patch
-    + Added. Fix checking of system endianess. Fixes FTBFS on powerpc
+    + Added. Fix checking of system endianness. Fixes FTBFS on powerpc
   * debian/patches/timesyncd-when-we-don-t-know-anything-about-the-netw.patch:
     + Let timesyncd go online even if networkd isn't running (from upstream
       git) (Closes: #760087)
@@ -430,7 +2245,7 @@ systemd (208-7) unstable; urgency=medium
   * Install zsh completions to the correct place. (Closes: #717540)
 
   [ Jon Severinsson ]
-  * Cherry-pick upstream fix for journal file permissions.
+  * Cherry-pick upstream fix for journal file permissions. (Closes: #755062)
   * Map some rcS.d init script dependencies to their systemd equivalent.
   * Update Depends on initscripts to the version with a systemd-compatible
     mountnfs ifup hook. (Closes: #746358)

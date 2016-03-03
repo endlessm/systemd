@@ -7,6 +7,7 @@ import unittest
 import subprocess
 import os
 import sys
+import tempfile
 from glob import glob
 
 
@@ -265,6 +266,39 @@ echo hello
         self.assertEqual(l, [])
 
         self.assertEnabled(False)
+
+    def test_sysv_enable(self):
+        '''only sysv: enable'''
+
+        self.create_sysv()
+        subprocess.check_call(['systemctl', 'enable', 'test_enable'])
+
+        # enabled the sysv script
+        l = glob('/etc/rc2.d/S??test_enable')
+        self.assertEqual(len(l), 1, 'expect one symlink in %s' % repr(l))
+        self.assertEqual(os.readlink(l[0]), '../init.d/test_enable')
+
+    def test_sysv_disable(self):
+        '''only sysv: disable'''
+
+        self.create_sysv(enable=True)
+        subprocess.check_call(['systemctl', 'disable', 'test_enable'])
+
+        # disabled the sysv script
+        l = glob('/etc/rc2.d/S??test_enable')
+        self.assertEqual(l, [])
+
+    def test_unit_link(self):
+        '''systemctl link'''
+
+        with tempfile.NamedTemporaryFile(suffix='.service') as f:
+            f.write(b'[Unit]\n')
+            f.flush()
+            subprocess.check_call(['systemctl', 'link', f.name])
+
+            l = os.path.join('/etc/systemd/system', os.path.basename(f.name))
+            self.assertEqual(os.readlink(l), f.name)
+            os.unlink(l)
 
 
 if __name__ == '__main__':

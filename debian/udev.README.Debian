@@ -1,35 +1,111 @@
 This documents udev integration Debian specifics. Please see man udev(7) and
 its referenced manpages for general documentation.
 
-Network Interfaces
-~~~~~~~~~~~~~~~~~~
-After receiving events about network interfaces, net.agent will call
-ifupdown using the --allow=hotplug option. This makes the program act
-only on interfaces marked with the "allow-hotplug" statement.
-E.g: "allow-hotplug eth0" instead of the usual "auto eth0".
-The loopback interface must always be configured with "auto lo".
+Network interface naming
+~~~~~~~~~~~~~~~~~~~~~~~~
+Since version 197 udev has a builtin persistent name generator which checks
+firmware/BIOS provided index numbers or slot names (similar to biosdevname),
+falls back to slot names (PCI numbers, etc., in the spirit of
+/dev/disks/by-path/), and then optionally falls back to MAC address, and
+generates names based on these properties. This provides "location oriented"
+names for PCI cards such as "enp0s1" for ethernet, or wlp1s0" for a WIFI card
+so that replacing a broken network card does not change the name. As location
+based naming does not work well for USB devices, these use a MAC based naming
+schema (see /lib/systemd/network/01-mac-for-usb.link).
 
-The persistent names of network interfaces by default are automatically
-written to /etc/udev/rules.d/70-persistent-net.rules .
-Users can add their own rules there or at any other place before 70.
-MAC addresses matching is literal, so they must be written in lower case.
-To disable persistent naming of network interfaces, create an empty
-/etc/udev/rules.d/75-persistent-net-generator.rules file to override
-the one in /lib/udev/rules.d/ and delete
-/etc/udev/rules.d/70-persistent-net.rules.
+This has been enabled by default since udev 220-7, which affects new
+installations/hardware. Existing installations/hardware which already got
+covered by the old 75-persistent-net-generator.rules will keep their interface
+names, see below.
 
-Beware: programs which rename network interfaces like ifrename and nameif
-will let udev relay events for the old names and should not be used.
+You can disable these stable names and go back to the kernel-provided ones
+(which don't have a stable order) in one of two ways:
 
-Usually network interfaces are renamed after the root file system has
-been mounted, so if the root file system is mounted over the network
-then the 70-persistent-net.rules file must be copied to the initramfs.
-In most cases this is done automatically, but some setups may require
-explicitly setting "export NEED_PERSISTENT_NET=yes" in a file in
-/etc/initramfs-tools/conf.d/ .
-If 70-persistent-net.rules is copied to the initramfs then it must be
-updated every time a new interface is added.
+  - Put "net.ifnames=0" into the kernel command line (e. g. in
+    /etc/default/grub's GRUB_CMDLINE_LINUX_DEFAULT, then run "update-grub").
 
+  - Disable the default *.link rules with
+    "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules"
+    and rebuild the initrd with "update-initramfs -u".
+
+See this page for more information:
+http://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
+
+Legacy persistent network interface naming
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Debian releases up to 8 ("Jessie") and Ubuntu up to 15.04 had an udev rule
+/lib/udev/rules.d/75-persistent-net-generator.rules which fixed the name of a
+network interface that it got when its MAC address first appeared in a
+dynamically created /etc/udev/rules.d/70-persistent-net.rules file.
+
+This had inherent race conditions (which sometimes caused collisions and
+interface names like "rename1"), required having to write state into /etc
+(which isn't possible for read-only root), and did not work in virtualized
+environments.
+
+This old schema is deprecated in Debian 9 ("Stretch"), and will not
+be supported any more in Debian 10.
+
+Migration to the current network interface naming
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+On package upgrade systems will keep their current names, but they will need to
+be manually migrated by Debian 10 / Ubuntu 18.04 LTS.  If you rely on the old
+names in custom ifupdown stanzas, firewall scripts or other networking
+configuration, these need to be updated to the new names.
+
+First, determine all relevant network interface names: those in
+/etc/udev/rules.d/70-persistent-net.rules, or if that does not exist (in
+virtual machines), in "ip link" or /sys/class/net/.
+
+Then for every interface name use a command like
+
+  grep -r eth0 /etc
+
+to find out where it is being used.
+
+Then on "real hardware" machines, rename the file to
+70-persistent-net.rules.old; on VMs remove the file
+/etc/udev/rules.d/80-net-setup-link.rules instead.
+
+Reboot, adjust configuration files, and test your system.
+
+Custom net interface naming
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In some cases it is convenient to define your own specific names for network
+interfaces. These can be customized in two different ways:
+
+ * You can create your own names via udev rules, based on arbitrary attribute
+   and property matches. See man udev(7) for documentation how to write udev
+   rules. For example, you can create /etc/udev/rules.d/76-netnames.rules with
+
+   ------------ snip ----------
+   # identify device by MAC address
+   SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="11:22:aa:bb:cc:33", NAME="eth-dmz"
+
+   # identify by vendor/model ID
+   SUBSYSTEM=="net", ACTION=="add", ENV{ID_VENDOR_ID}=="0x8086", \
+       ENV{ID_MODEL_ID}=="0x1502", NAME="eth-intel-gb"
+
+   # USB device by path
+   # get ID_PATH if not present yet
+   ENV{ID_PATH}=="", IMPORT{builtin}="path_id"
+   SUBSYSTEM=="net", ACTION=="add", ENV{ID_PATH}=="*-usb-0:3:1*", NAME="eth-blue-hub"
+   ------------ snip ----------
+
+   The name of the rules file needs to have a prefix smaller than "80" so that
+   it runs before /lib/udev/rules.d/80-net-setup-link.rules, and should have a
+   prefix bigger than "75" so that it runs after 75-net-description.rules and
+   thus you can use matches on ID_VENDOR and similar properties.
+
+ * Unless you disabled net.ifnames, you can change the policy
+   (kernel/bios/path/MAC based naming) in an /etc/systemd/network/*.link file,
+   for individual devices or entire device classes. See man systemd.link(5) for
+   details about this. /lib/systemd/network/99-default.link is the default
+   policy, and /lib/systemd/network/01-mac-for-usb.link makes it use MAC based
+   names for USB devices.
+
+Any of the above changes require an initrd update with "update-initramfs -u" to
+get effective.
 
 Using udev with LDAP or NIS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
