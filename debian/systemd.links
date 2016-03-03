@@ -88,3 +88,8 @@
 
 # Store locale info in just 1 place, but add a compat symlink.
 /etc/locale.conf /etc/default/locale
+
+# Enable readahead
+/lib/systemd/system/systemd-readahead-collect.service /lib/systemd/system/default.target.wants/systemd-readahead-collect.service
+/lib/systemd/system/systemd-readahead-replay.service /lib/systemd/system/default.target.wants/systemd-readahead-replay.service
+/lib/systemd/system/systemd-readahead-drop.service /lib/systemd/system/system-update.target.wants/systemd-readahead-drop.service
