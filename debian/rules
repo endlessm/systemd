@@ -238,6 +238,11 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	cp -a debian/extra/units-ubuntu/* debian/systemd/lib/systemd/system/
 endif
 
+	# Endless specific files
+ifeq ($(DEB_VENDOR),Endless)
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
+endif
+
 execute_after_dh_installman:
 	# remove duplicate files shipped by systemd-*/udev
 	# run after dh_installman, which runs after dh_install, to include manpages
