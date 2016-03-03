@@ -276,6 +276,11 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	cp -a debian/extra/units-ubuntu/* debian/systemd/lib/systemd/system/
 endif
 
+	# Endless specific files
+ifeq ($(DEB_VENDOR),Endless)
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
+endif
+
 override_dh_missing:
 	dh_missing --sourcedir debian/install/deb $(DH_MISSING)
 
