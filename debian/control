@@ -114,7 +114,7 @@ Description: system and service manager
 Package: systemd-sysv
 Architecture: linux-any
 Multi-Arch: foreign
-Priority: important
+Priority: required
 Conflicts: sysvinit-core,
            file-rc,
            systemd-shim,
