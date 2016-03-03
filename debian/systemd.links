@@ -7,7 +7,8 @@
 
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/module-init-tools.service
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/kmod.service
-/etc/modules /etc/modules-load.d/modules.conf
+# Don't ship the symlink so the service files know to skip this
+#/etc/modules /etc/modules-load.d/modules.conf
 
 # X server and ICE socket directories are created by /usr/lib/tmpfiles.d/x11.conf
 /dev/null /lib/systemd/system/x11-common.service
