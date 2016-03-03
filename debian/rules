@@ -38,7 +38,7 @@ CONFFLAGS = \
 	--disable-compat-libs \
 	--disable-qrencode \
 	--disable-libidn \
-	--disable-vconsole \
+	--enable-vconsole \
 	--disable-sysusers \
 	--disable-firstboot \
 	--disable-xkbcommon \
