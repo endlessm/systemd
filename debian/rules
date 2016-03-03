@@ -254,6 +254,11 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	install --mode=755 debian/extra/set-cpufreq debian/systemd/lib/systemd/
 endif
 
+	# Endless specific files
+ifeq ($(DEB_VENDOR),Endless)
+	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
+endif
+
 override_dh_missing:
 	dh_missing --sourcedir debian/install/deb $(DH_MISSING)
 
