@@ -127,6 +127,7 @@ CONFFLAGS = \
 	--disable-wheel-group \
 	--disable-networkd \
 	--disable-timesyncd \
+	--disable-resolved \
 	--with-ntp-servers="$(DEFAULT_NTP_SERVERS)"  \
 	--with-system-uid-max=999 \
 	--with-system-gid-max=999 \
@@ -196,7 +197,6 @@ CONFFLAGS_udeb = \
 	--disable-timedated \
 	--disable-localed \
 	--disable-myhostname \
-	--disable-resolved \
 	--disable-polkit \
 	--disable-acl \
 	--disable-gcrypt \
