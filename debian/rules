@@ -60,6 +60,7 @@ CONFFLAGS = \
 	-Dfirstboot=false \
 	-Dxkbcommon=false \
 	-Dwheel-group=false \
+	-Dnetworkd=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Dlink-udev-shared=false \
 	-Dsystem-uid-max=999 \
