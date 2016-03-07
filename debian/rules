@@ -78,6 +78,7 @@ CONFFLAGS = \
 	-Dlink-systemctl-shared=false \
 	-Dbump-proc-sys-fs-nr-open=false \
 	-Dnetworkd=false \
+	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Ddns-servers='' \
 	-Dsystem-uid-max=999 \
@@ -100,9 +101,7 @@ CONFFLAGS = \
 	-Dtranslations=true \
 	-Dnss-myhostname=true \
 	-Dnss-mymachines=true \
-	-Dnss-resolve=true \
 	-Dnss-systemd=true \
-	-Dresolve=true \
 	-Dstandalone-binaries=true
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
