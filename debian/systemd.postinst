@@ -104,8 +104,6 @@ fi
 
 adduser --quiet --system --group --no-create-home --home /run/systemd \
     --gecos "systemd Time Synchronization" systemd-timesync
-adduser --quiet --system --group --no-create-home --home /run/systemd \
-    --gecos "systemd Resolver" systemd-resolve
 
 # Initial update of the Message Catalogs database
 _update_catalog
@@ -114,7 +112,6 @@ if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
-    _systemctl try-restart systemd-resolved.service || true
     _systemctl try-restart systemd-journald.service || true
 fi
 

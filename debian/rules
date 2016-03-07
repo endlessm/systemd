@@ -64,6 +64,7 @@ CONFFLAGS = \
 	-Dwheel-group=false \
 	-Dnetworkd=false \
 	-Dtimesyncd=false \
+	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Dlink-udev-shared=false \
 	-Dsystem-uid-max=999 \
@@ -81,8 +82,7 @@ CONFFLAGS_deb = \
 	-Dsysusers=true \
 	-Dinstall-tests=true \
 	-Defi=true \
-	-Dnss-systemd=true \
-	-Dresolve=true
+	-Dnss-systemd=true
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
 CONFFLAGS_deb += \
@@ -138,7 +138,6 @@ CONFFLAGS_udeb = \
 	-Dlocaled=false \
 	-Dmyhostname=false \
 	-Dnss-systemd=false \
-	-Dresolve=false \
 	-Dpolkit=false \
 	-Dacl=false \
 	-Dgcrypt=false \

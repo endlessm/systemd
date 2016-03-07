@@ -258,24 +258,6 @@ Description: nss module to resolve hostnames for local container instances
  .
  Installing this package automatically adds mymachines to /etc/nsswitch.conf.
 
-Package: libnss-resolve
-Architecture: linux-any
-Multi-Arch: same
-Section: admin
-Priority: optional
-Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         systemd (= ${binary:Version}),
-Breaks: systemd (<< 227-3)
-Replaces: systemd (<< 227-3)
-Description: nss module to resolve names via systemd-resolved
- nss-resolve is a plugin for the GNU Name Service Switch (NSS) functionality
- of the GNU C Library (glibc) providing DNS and LLMNR resolution to programs via
- the systemd-resolved daemon (provided in the systemd package).
- .
- Installing this package automatically adds resolve to /etc/nsswitch.conf.
-
 Package: libnss-systemd
 Architecture: linux-any
 Multi-Arch: same
