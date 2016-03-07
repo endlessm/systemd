@@ -81,9 +81,6 @@ systemd-machine-id-setup
 # Setup system users and groups
 addgroup --quiet --system systemd-journal
 
-adduser --quiet --system --group --no-create-home --home /run/systemd \
-    --gecos "systemd Resolver" systemd-resolve
-
 # Enable persistent journal, in auto-mode, by default on new installs and upgrades
 if dpkg --compare-versions "$2" lt "244.1-2~"; then
     mkdir -p /var/log/journal
@@ -104,7 +101,6 @@ if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
-    _systemctl try-restart systemd-resolved.service || true
     _systemctl try-restart systemd-journald.service || true
 fi
 

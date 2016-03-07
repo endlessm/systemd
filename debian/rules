@@ -80,6 +80,7 @@ CONFFLAGS = \
 	-Doomd=false \
 	-Dapparmor=false \
 	-Dnetworkd=false \
+	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Ddns-servers='' \
 	-Dlink-udev-shared=false \
@@ -100,9 +101,7 @@ CONFFLAGS_deb = \
 	-Dman=true \
 	-Dnss-myhostname=true \
 	-Dnss-mymachines=true \
-	-Dnss-resolve=true \
 	-Dnss-systemd=true \
-	-Dresolve=true \
 	-Dlink-systemctl-shared=false
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -164,7 +163,6 @@ CONFFLAGS_udeb = \
 	-Dnss-mymachines=false \
 	-Dnss-resolve=false \
 	-Dnss-systemd=false \
-	-Dresolve=false \
 	-Dportabled=false \
 	-Dpolkit=false \
 	-Dacl=false \
