@@ -1,5 +1,3 @@
-#  SPDX-License-Identifier: LGPL-2.1+
-#
 #  This file is part of systemd.
 #
 #  systemd is free software; you can redistribute it and/or modify it
@@ -8,17 +6,21 @@
 #  (at your option) any later version.
 
 [Unit]
-Description=Update is Completed
-Documentation=man:systemd-update-done.service(8)
+Description=Replay Read-Ahead Data
+Documentation=man:systemd-readahead-replay.service(8)
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=systemd-readahead-collect.service systemd-readahead-replay.service
-After=local-fs.target
 Before=sysinit.target shutdown.target
-ConditionNeedsUpdate=|/etc
-ConditionNeedsUpdate=|/var
+ConditionPathExists=!/run/systemd/readahead/noreplay
+ConditionPathExists=/.readahead
+ConditionVirtualization=no
 
 [Service]
-Type=oneshot
+Type=notify
+ExecStart=@rootlibexecdir@/systemd-readahead replay
 RemainAfterExit=yes
-ExecStart=@rootlibexecdir@/systemd-update-done
+StandardOutput=null
+OOMScoreAdjust=1000
+
+[Install]
+WantedBy=default.target

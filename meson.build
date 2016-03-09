@@ -33,6 +33,8 @@ if want_ossfuzz and want_libfuzzer
 endif
 fuzzer_build = want_ossfuzz or want_libfuzzer
 
+conf.set_quoted('CANONICAL_HOST',  host_machine.cpu_family() + '-pc-' + host_machine.system() + '-gnu')
+
 #####################################################################
 
 # Try to install the git pre-commit hook
@@ -267,6 +269,7 @@ substs.set('systemsleepdir',                                  systemsleepdir)
 substs.set('VARLOGDIR',                                       varlogdir)
 substs.set('CERTIFICATEROOT',                                 get_option('certificate-root'))
 substs.set('SYSTEMCTL',                                       join_paths(rootbindir, 'systemctl'))
+substs.set('SYSTEMD_NOTIFY',                                  join_paths(rootbindir, 'systemd-notify'))
 substs.set('RANDOM_SEED',                                     join_paths(randomseeddir, 'random-seed'))
 substs.set('SYSTEM_SYSVINIT_PATH',                            sysvinit_path)
 substs.set('SYSTEM_SYSVRCND_PATH',                            sysvrcnd_path)
@@ -533,6 +536,13 @@ endforeach
 foreach ident : ['secure_getenv', '__secure_getenv']
         conf.set10('HAVE_' + ident.to_upper(), cc.has_function(ident))
 endforeach
+
+readahead_enabled = get_option('readahead')
+if readahead_enabled != 'false'
+        foreach ident : ['fanotify_mark', 'fanotify_init']
+                conf.set10('HAVE_' + ident.to_upper(), cc.has_function(ident))
+        endforeach
+endif
 
 foreach ident : [
         ['memfd_create',      '''#include <sys/mman.h>'''],
@@ -1344,6 +1354,7 @@ foreach term : ['utmp',
                 'tmpfiles',
                 'hwdb',
                 'rfkill',
+                'readahead',
                 'ldconfig',
                 'efi',
                 'tpm',
@@ -1542,6 +1553,7 @@ subdir('src/locale')
 subdir('src/machine')
 subdir('src/portable')
 subdir('src/nspawn')
+subdir('src/readahead')
 subdir('src/resolve')
 subdir('src/timedate')
 subdir('src/timesync')
@@ -1993,6 +2005,18 @@ if conf.get('ENABLE_RFKILL') == 1
                    'src/rfkill/rfkill.c',
                    include_directories : includes,
                    link_with : [libshared],
+                   install_rpath : rootlibexecdir,
+                   install : true,
+                   install_dir : rootlibexecdir)
+endif
+
+if conf.get('ENABLE_READAHEAD') == 1
+        executable('systemd-readahead',
+                   systemd_readahead_sources,
+                   include_directories : includes,
+                   link_with : [libsystemd_static,
+                                libudev_static,
+                                libshared],
                    install_rpath : rootlibexecdir,
                    install : true,
                    install_dir : rootlibexecdir)
@@ -2453,13 +2477,24 @@ exe = executable('systemd-escape',
                  install_dir : rootbindir)
 public_programs += exe
 
-exe = executable('systemd-notify',
-                 'src/notify/notify.c',
-                 include_directories : includes,
-                 link_with : [libshared],
-                 install_rpath : rootlibexecdir,
-                 install : true,
-                 install_dir : rootbindir)
+if conf.get('ENABLE_READAHEAD') == 1
+        exe = executable('systemd-notify',
+                         'src/notify/notify.c',
+                         'src/readahead/sd-readahead.c',
+                         include_directories : includes,
+                         link_with : [libshared],
+                         install_rpath : rootlibexecdir,
+                         install : true,
+                         install_dir : rootbindir)
+else
+        exe = executable('systemd-notify',
+                         'src/notify/notify.c',
+                         include_directories : includes,
+                         link_with : [libshared],
+                         install_rpath : rootlibexecdir,
+                         install : true,
+                         install_dir : rootbindir)
+endif
 public_programs += exe
 
 executable('systemd-volatile-root',
@@ -3191,6 +3226,7 @@ foreach tuple : [
         ['randomseed'],
         ['backlight'],
         ['rfkill'],
+        ['readahead'],
         ['logind'],
         ['machined'],
         ['portabled'],

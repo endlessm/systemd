@@ -1,5 +1,3 @@
-#  SPDX-License-Identifier: LGPL-2.1+
-#
 #  This file is part of systemd.
 #
 #  systemd is free software; you can redistribute it and/or modify it
@@ -8,16 +6,17 @@
 #  (at your option) any later version.
 
 [Unit]
-Description=Cleanup of Temporary Directories
-Documentation=man:tmpfiles.d(5) man:systemd-tmpfiles(8)
+Description=Stop Read-Ahead Data Collection
+Documentation=man:systemd-readahead-replay.service(8)
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=systemd-readahead-collect.service systemd-readahead-replay.service
-After=local-fs.target time-sync.target
+After=default.target
 Before=shutdown.target
+ConditionVirtualization=no
 
 [Service]
 Type=oneshot
-ExecStart=@rootbindir@/systemd-tmpfiles --clean
-SuccessExitStatus=65
-IOSchedulingClass=idle
+ExecStart=@SYSTEMD_NOTIFY@ --readahead=done
+
+[Install]
+Also=systemd-readahead-collect.service
