@@ -971,6 +971,7 @@ libshared_la_SOURCES = \
 	src/shared/udev-util.h \
 	src/shared/linux/auto_dev-ioctl.h \
 	src/shared/linux-3.13/dm-ioctl.h \
+	src/shared/linux/fanotify.h \
 	src/shared/initreq.h \
 	src/shared/dns-domain.c \
 	src/shared/dns-domain.h \
@@ -3053,7 +3054,8 @@ systemctl_LDADD = \
 
 # ------------------------------------------------------------------------------
 systemd_notify_SOURCES = \
-	src/notify/notify.c
+	src/notify/notify.c \
+	src/readahead/sd-readahead.c
 
 systemd_notify_LDADD = \
 	libsystemd-shared.la
@@ -4679,6 +4681,57 @@ endif
 EXTRA_DIST += \
 	src/vconsole/90-vconsole.rules.in \
 	units/systemd-vconsole-setup.service.in
+
+# ------------------------------------------------------------------------------
+if ENABLE_READAHEAD
+systemd_readahead_SOURCES = \
+	src/readahead/readahead.c \
+	src/readahead/readahead-collect.c \
+	src/readahead/readahead-replay.c \
+	src/readahead/readahead-analyze.c \
+	src/readahead/readahead-common.c \
+	src/readahead/readahead-common.h
+
+systemd_readahead_LDADD = \
+	libsystemd-internal.la \
+	libudev-internal.la \
+	libshared.la
+
+dist_doc_DATA += \
+	src/readahead/sd-readahead.c \
+	src/systemd/sd-readahead.h
+
+rootlibexec_PROGRAMS += \
+	systemd-readahead
+
+dist_systemunit_DATA += \
+	units/systemd-readahead-drop.service \
+	units/systemd-readahead-done.timer
+
+nodist_systemunit_DATA += \
+	units/systemd-readahead-collect.service \
+	units/systemd-readahead-replay.service \
+	units/systemd-readahead-done.service
+
+manual_tests += \
+	test-ssd
+
+test_ssd_SOURCES = \
+	src/readahead/test-ssd.c \
+	src/readahead/readahead-common.c \
+	src/readahead/readahead-common.h
+
+test_ssd_LDADD = \
+	libsystemd-internal.la \
+	libudev-internal.la \
+	libshared.la
+
+endif
+
+EXTRA_DIST += \
+	units/systemd-readahead-collect.service.in \
+	units/systemd-readahead-replay.service.in \
+	units/systemd-readahead-done.service.in
 
 # ------------------------------------------------------------------------------
 if ENABLE_QUOTACHECK

@@ -299,6 +299,7 @@ CAP_LIBS="$LIBS"
 LIBS="$save_LIBS"
 AC_SUBST(CAP_LIBS)
 
+AC_CHECK_FUNCS([fanotify_init fanotify_mark])
 AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 AC_CHECK_DECLS([
         memfd_create,
@@ -990,6 +991,14 @@ fi
 AM_CONDITIONAL(ENABLE_VCONSOLE, [test "$have_vconsole" = "yes"])
 
 # ------------------------------------------------------------------------------
+have_readahead=no
+AC_ARG_ENABLE(readahead, AS_HELP_STRING([--disable-readahead], [disable readahead tools]))
+if test "x$enable_readahead" != "xno"; then
+        have_readahead=yes
+fi
+AM_CONDITIONAL(ENABLE_READAHEAD, [test "$have_readahead" = "yes"])
+
+# ------------------------------------------------------------------------------
 have_quotacheck=no
 AC_ARG_ENABLE(quotacheck, AS_HELP_STRING([--disable-quotacheck], [disable quotacheck tools]))
 if test "x$enable_quotacheck" != "xno"; then
@@ -1618,6 +1627,7 @@ AC_MSG_RESULT([
         ELFUTILS:                          ${have_elfutils}
         binfmt:                            ${have_binfmt}
         vconsole:                          ${have_vconsole}
+        readahead:                         ${have_readahead}
         quotacheck:                        ${have_quotacheck}
         tmpfiles:                          ${have_tmpfiles}
         sysusers:                          ${have_sysusers}

@@ -6,12 +6,14 @@
 #  (at your option) any later version.
 
 [Unit]
-Description=Setup Virtual Console
-Documentation=man:systemd-vconsole-setup.service(8) man:vconsole.conf(5)
-DefaultDependencies=no
-After=systemd-readahead-collect.service systemd-readahead-replay.service
-ConditionPathExists=/dev/tty0
+Description=Drop Read-Ahead Data
+Documentation=man:systemd-readahead-replay.service(8)
+ConditionPathExists=/.readahead
 
 [Service]
 Type=oneshot
-ExecStart=@rootlibexecdir@/systemd-vconsole-setup
+ExecStart=/bin/rm -f /.readahead
+
+[Install]
+WantedBy=system-update.target
+Also=systemd-readahead-collect.service
