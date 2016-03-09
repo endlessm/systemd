@@ -16,5 +16,6 @@ src/core/org.freedesktop.systemd1.policy
 src/hostname/hostnamed.c
 src/locale/localed.c
 src/timedate/timedated.c
+units/systemd-readahead-done.service.in
 units/user@.service.in
 units/debug-shell.service.in

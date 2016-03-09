@@ -13,6 +13,7 @@ Documentation=man:systemd-fsck@.service(8)
 DefaultDependencies=no
 BindsTo=%i.device
 Wants=systemd-fsckd.socket
+After=systemd-readahead-collect.service systemd-readahead-replay.service
 After=%i.device systemd-fsck-root.service local-fs-pre.target systemd-fsckd.socket
 Before=systemd-quotacheck.service shutdown.target
 
