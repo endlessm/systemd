@@ -12,6 +12,7 @@ Description=Setup Virtual Console
 Documentation=man:systemd-vconsole-setup.service(8) man:vconsole.conf(5)
 DefaultDependencies=no
 Before=initrd-switch-root.target shutdown.target
+After=systemd-readahead-collect.service systemd-readahead-replay.service
 ConditionPathExists=/dev/tty0
 
 [Service]

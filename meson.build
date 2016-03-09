@@ -47,6 +47,8 @@ endif
 skip_deps = want_ossfuzz or want_libfuzzer
 fuzzer_build = want_ossfuzz or want_libfuzzer
 
+conf.set_quoted('CANONICAL_HOST',  host_machine.cpu_family() + '-pc-' + host_machine.system() + '-gnu')
+
 #####################################################################
 
 # Try to install the git pre-commit hook
@@ -486,6 +488,13 @@ conf.set10('WANT_LINUX_STAT_H', want_linux_stat_h)
 foreach ident : ['secure_getenv', '__secure_getenv']
         conf.set10('HAVE_' + ident.to_upper(), cc.has_function(ident))
 endforeach
+
+readahead_enabled = get_option('readahead')
+if readahead_enabled != 'false'
+        foreach ident : ['fanotify_mark', 'fanotify_init']
+                conf.set10('HAVE_' + ident.to_upper(), cc.has_function(ident))
+        endforeach
+endif
 
 foreach ident : [
         ['memfd_create',      '''#include <sys/mman.h>'''],
@@ -1447,6 +1456,7 @@ foreach term : ['analyze',
                 'timedated',
                 'timesyncd',
                 'tmpfiles',
+                'readahead',
                 'tpm',
                 'userdb',
                 'utmp',
@@ -1655,6 +1665,7 @@ subdir('src/portable')
 subdir('src/userdb')
 subdir('src/home')
 subdir('src/nspawn')
+subdir('src/readahead')
 subdir('src/resolve')
 subdir('src/timedate')
 subdir('src/timesync')
@@ -2260,6 +2271,18 @@ executable(
         install : true,
         install_dir : systemgeneratordir)
 
+if conf.get('ENABLE_READAHEAD') == 1
+        executable('systemd-readahead',
+                   systemd_readahead_sources,
+                   include_directories : includes,
+                   link_with : [libsystemd_static,
+                                libudev_static,
+                                libshared],
+                   install_rpath : rootlibexecdir,
+                   install : true,
+                   install_dir : rootlibexecdir)
+endif
+
 if conf.get('HAVE_LIBCRYPTSETUP') == 1
         systemd_cryptsetup_sources = files('''
                 src/cryptsetup/cryptsetup-pkcs11.h
@@ -2823,14 +2846,26 @@ public_programs += executable(
         install : true,
         install_dir : rootbindir)
 
-public_programs += executable(
-        'systemd-notify',
-        'src/notify/notify.c',
-        include_directories : includes,
-        link_with : [libshared],
-        install_rpath : rootlibexecdir,
-        install : true,
-        install_dir : rootbindir)
+if conf.get('ENABLE_READAHEAD') == 1
+        public_programs += executable(
+                'systemd-notify',
+                'src/notify/notify.c',
+                'src/readahead/sd-readahead.c',
+                include_directories : includes,
+                link_with : [libshared],
+                install_rpath : rootlibexecdir,
+                install : true,
+                install_dir : rootbindir)
+else
+        public_programs += executable(
+                'systemd-notify',
+                'src/notify/notify.c',
+                include_directories : includes,
+                link_with : [libshared],
+                install_rpath : rootlibexecdir,
+                install : true,
+                install_dir : rootbindir)
+endif
 
 executable(
         'systemd-volatile-root',
@@ -3640,6 +3675,7 @@ foreach tuple : [
         ['backlight'],
         ['rfkill'],
         ['xdg-autostart'],
+        ['readahead'],
         ['logind'],
         ['machined'],
         ['portabled'],

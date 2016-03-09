@@ -31,6 +31,7 @@ LICENSE:
         - except src/journal/lookup3.c which is Public Domain
         - except src/udev/* which is (currently still) GPLv2, GPLv2+
         - except tools/chromiumos/* which is BSD-style
+        - except sd-readahead.[ch] which is MIT
 
 REQUIREMENTS:
         Linux kernel >= 3.13

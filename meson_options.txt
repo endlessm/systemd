@@ -146,6 +146,8 @@ option('rfkill', type : 'boolean',
        description : 'support for the rfkill tools')
 option('xdg-autostart', type : 'boolean',
        description : 'install the xdg-autostart-generator and unit')
+option('readahead', type : 'boolean', value : 'false',
+       description : 'support for the readahead tools')
 option('man', type : 'combo', choices : ['auto', 'true', 'false'],
        value : 'false',
        description : 'build and install man pages')

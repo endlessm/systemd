@@ -564,6 +564,7 @@ int generator_write_cryptsetup_unit_section(
                 "DefaultDependencies=no\n"
                 "IgnoreOnIsolate=true\n"
                 "After=cryptsetup-pre.target\n"
+                "After=systemd-readahead-collect.service systemd-readahead-replay.service\n"
                 "Before=blockdev@dev-mapper-%%i.target\n"
                 "Wants=blockdev@dev-mapper-%%i.target\n");
 
