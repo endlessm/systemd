@@ -6,16 +6,17 @@
 #  (at your option) any later version.
 
 [Unit]
-Description=Create System Users
-Documentation=man:sysusers.d(5) man:systemd-sysusers.service(8)
+Description=Stop Read-Ahead Data Collection
+Documentation=man:systemd-readahead-replay.service(8)
 DefaultDependencies=no
 Conflicts=shutdown.target
-After=systemd-readahead-collect.service systemd-readahead-replay.service systemd-remount-fs.service
-Before=sysinit.target shutdown.target systemd-update-done.service
-ConditionNeedsUpdate=/etc
+After=default.target
+Before=shutdown.target
+ConditionVirtualization=no
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
-ExecStart=@rootbindir@/systemd-sysusers
-TimeoutSec=90s
+ExecStart=@SYSTEMD_NOTIFY@ --readahead=done
+
+[Install]
+Also=systemd-readahead-collect.service
