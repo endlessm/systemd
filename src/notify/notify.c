@@ -20,6 +20,9 @@
 #include "terminal-util.h"
 #include "user-util.h"
 #include "util.h"
+#if ENABLE_READAHEAD
+#include "sd-readahead.h"
+#endif
 
 static bool arg_ready = false;
 static pid_t arg_pid = 0;
@@ -27,6 +30,9 @@ static const char *arg_status = NULL;
 static bool arg_booted = false;
 static uid_t arg_uid = UID_INVALID;
 static gid_t arg_gid = GID_INVALID;
+#if ENABLE_READAHEAD
+static const char *arg_readahead = NULL;
+#endif
 
 static int help(void) {
         _cleanup_free_ char *link = NULL;
@@ -44,6 +50,9 @@ static int help(void) {
                "     --pid[=PID]       Set main PID of daemon\n"
                "     --uid=USER        Set user to send from\n"
                "     --status=TEXT     Set status text\n"
+#if ENABLE_READAHEAD
+               "     --readahead=ACTION Controls read-ahead operations\n"
+#endif
                "     --booted          Check if the system was booted up with systemd\n"
                "\nSee the %s for details.\n"
                , program_invocation_short_name
@@ -63,6 +72,9 @@ static int parse_argv(int argc, char *argv[]) {
                 ARG_STATUS,
                 ARG_BOOTED,
                 ARG_UID,
+#if ENABLE_READAHEAD
+                ARG_READAHEAD,
+#endif
         };
 
         static const struct option options[] = {
@@ -73,6 +85,9 @@ static int parse_argv(int argc, char *argv[]) {
                 { "status",    required_argument, NULL, ARG_STATUS    },
                 { "booted",    no_argument,       NULL, ARG_BOOTED    },
                 { "uid",       required_argument, NULL, ARG_UID       },
+#if ENABLE_READAHEAD
+                { "readahead", required_argument, NULL, ARG_READAHEAD },
+#endif
                 {}
         };
 
@@ -126,6 +141,12 @@ static int parse_argv(int argc, char *argv[]) {
                         break;
                 }
 
+#if ENABLE_READAHEAD
+                case ARG_READAHEAD:
+                        arg_readahead = optarg;
+                        break;
+#endif
+
                 case '?':
                         return -EINVAL;
 
@@ -138,6 +159,9 @@ static int parse_argv(int argc, char *argv[]) {
             !arg_ready &&
             !arg_status &&
             !arg_pid &&
+#if ENABLE_READAHEAD
+            !arg_readahead &&
+#endif
             !arg_booted) {
                 help();
                 return -EINVAL;
@@ -163,6 +187,16 @@ static int run(int argc, char* argv[]) {
 
         if (arg_booted)
                 return sd_booted() <= 0;
+
+#if ENABLE_READAHEAD
+        if (arg_readahead) {
+                r = sd_readahead(arg_readahead);
+                if (r < 0) {
+                        log_error("Failed to issue read-ahead control command: %s", strerror(-r));
+                        return r;
+                }
+        }
+#endif
 
         if (arg_ready)
                 our_env[i++] = (char*) "READY=1";

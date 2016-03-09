@@ -15,3 +15,4 @@ Requires=sysinit.target
 After=sysinit.target system-update-pre.target
 AllowIsolate=yes
 Wants=system-update-cleanup.service
+Conflicts=systemd-readahead-collect.service systemd-readahead-replay.service
