@@ -106,6 +106,7 @@ static int create_disk(
                 "DefaultDependencies=no\n"
                 "Conflicts=umount.target\n"
                 "IgnoreOnIsolate=true\n"
+                "After=systemd-readahead-collect.service systemd-readahead-replay.service\n"
                 "After=%s\n",
                 netdev ? "remote-fs-pre.target" : "cryptsetup-pre.target");
 

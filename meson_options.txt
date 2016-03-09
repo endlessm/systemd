@@ -111,6 +111,8 @@ option('hwdb', type : 'boolean',
        description : 'support for the hardware database')
 option('rfkill', type : 'boolean',
        description : 'support for the rfkill tools')
+option('readahead', type : 'boolean', value : 'false',
+       description : 'support for the readahead tools')
 option('man', type : 'combo', choices : ['auto', 'true', 'false'],
        description : 'build and install man pages')
 option('html', type : 'combo', choices : ['auto', 'true', 'false'],

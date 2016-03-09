@@ -99,6 +99,8 @@ units = [
         ['systemd-networkd.socket',             'ENABLE_NETWORKD',
          join_paths(pkgsysconfdir, 'system/sockets.target.wants/')],
         ['systemd-rfkill.socket',               'ENABLE_RFKILL'],
+        ['systemd-readahead-drop.service',      'ENABLE_READAHEAD'],
+        ['systemd-readahead-done.timer',        'ENABLE_READAHEAD'],
         ['systemd-tmpfiles-clean.timer',        '',
          'timers.target.wants/'],
         ['systemd-udevd-control.socket',        '',
@@ -191,6 +193,9 @@ in_units = [
          join_paths(pkgsysconfdir, 'system/dbus-org.freedesktop.resolve1.service') + ' ' +
          join_paths(pkgsysconfdir, 'system/multi-user.target.wants/')],
         ['systemd-rfkill.service',               'ENABLE_RFKILL'],
+        ['systemd-readahead-collect.service',    'ENABLE_READAHEAD'],
+        ['systemd-readahead-replay.service',     'ENABLE_READAHEAD'],
+        ['systemd-readahead-done.service',       'ENABLE_READAHEAD'],
         ['systemd-suspend.service',              ''],
         ['systemd-sysctl.service',               '',
          'sysinit.target.wants/'],

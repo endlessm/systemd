@@ -11,6 +11,7 @@
 Description=Enable File System Quotas
 Documentation=man:quotaon(8)
 DefaultDependencies=no
+After=systemd-readahead-collect.service systemd-readahead-replay.service
 After=systemd-quotacheck.service
 Before=remote-fs.target shutdown.target
 ConditionPathExists=@QUOTAON@

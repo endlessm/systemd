@@ -83,6 +83,7 @@ static int add_cryptsetup(const char *id, const char *what, bool rw, bool requir
                 "Conflicts=umount.target\n"
                 "BindsTo=dev-mapper-%%i.device %s\n"
                 "Before=umount.target cryptsetup.target\n"
+                "After=systemd-readahead-collect.service systemd-readahead-replay.service\n"
                 "After=%s\n"
                 "IgnoreOnIsolate=true\n"
                 "[Service]\n"
