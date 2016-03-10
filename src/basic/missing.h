@@ -187,6 +187,10 @@
 #define BTRFS_QGROUP_LEVEL_SHIFT 48
 #endif
 
+#ifndef BTRFS_IOC_QUOTA_RESCAN_WAIT
+#define BTRFS_IOC_QUOTA_RESCAN_WAIT 46
+#endif
+
 #ifndef HAVE_LINUX_BTRFS_H
 struct btrfs_ioctl_vol_args {
         int64_t fd;
