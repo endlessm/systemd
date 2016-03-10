@@ -239,6 +239,7 @@ endif
 		debian/systemd/lib/systemd/system-preset/
 
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
+ifneq (, $(filter --enable-split-usr, $(CONFFLAGS)))
 	echo "Checking that executables don't link to libraries in /usr..."
 	set -e; for e in debian/systemd/lib/systemd/systemd* debian/udev/lib/systemd/systemd*; do \
 	    echo " $$e"; \
@@ -246,6 +247,7 @@ ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
 	        echo "ERROR: $$e links to /usr"; echo "$$OUT"; exit 1; \
 	    fi; \
 	done
+endif
 endif
 
 override_dh_installinit:
