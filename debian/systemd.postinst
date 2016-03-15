@@ -153,4 +153,7 @@ if dpkg --compare-versions "$2" lt-nl "215-3"; then
     _systemctl try-restart systemd-journald.service || true
 fi
 
+# Disable coredump generation by default
+echo "kernel.core_pattern = |/bin/false" > /etc/sysctl.d/50-coredump.conf
+
 #DEBHELPER#
