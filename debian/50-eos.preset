@@ -15,3 +15,42 @@ disable serial-getty@.service
 disable ssh*.service
 disable ssh.socket
 disable systemd-nspawn@.service
+
+# Disable units masked by Debian, as systemctl preset-all fails to handle them.
+#
+# This need to be kept in sync with the /dev/null links in debian/systemd.links,
+# otherwise `systemd preset-all` in the OSTree builder fails with:
+#
+# Operation failed: Cannot send after transport endpoint shutdown
+disable x11-common.service
+disable hostname.service
+disable rmnologin.service
+disable bootmisc.service
+disable fuse.service
+disable bootlogd.service
+disable stop-bootlogd-single.service
+disable stop-bootlogd.service
+disable hwclock.service
+disable mountkernfs.service
+disable mountdevsubfs.service
+disable mountall.service
+disable mountall-bootclean.service
+disable mountnfs.service
+disable mountnfs-bootclean.service
+disable umountfs.service
+disable umountnfs.service
+disable umountroot.service
+disable checkfs.service
+disable checkroot.service
+disable checkroot-bootclean.service
+disable cryptdisks.service
+disable cryptdisks-early.service
+disable single.service
+disable killprocs.service
+disable sendsigs.service
+disable halt.service
+disable reboot.service
+disable rc.service
+disable rcS.service
+disable motd.service
+disable bootlogs.service
