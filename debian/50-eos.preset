@@ -16,12 +16,12 @@ disable ssh*.service
 disable ssh.socket
 disable systemd-nspawn@.service
 
-# Disable units masked by Debian, as systemctl preset-all fails to handle them.
-#
-# This need to be kept in sync with the /dev/null links in debian/systemd.links,
-# otherwise `systemd preset-all` in the OSTree builder fails with:
+# Disable units masked by Debian, as systemctl preset-all fails to
+# handle them. Without this, `systemctl preset-all` will fail with:
 #
 # Operation failed: Cannot send after transport endpoint shutdown
+#
+# Units masked in systemd. See debian/systemd.links.
 disable x11-common.service
 disable hostname.service
 disable rmnologin.service
@@ -54,3 +54,8 @@ disable rc.service
 disable rcS.service
 disable motd.service
 disable bootlogs.service
+#
+# Units masked by other packages. Run the following to find them:
+#
+# find /usr/lib/systemd/system -lname /dev/null -printf 'disable %f\n' | sort
+disable screen-cleanup.service
