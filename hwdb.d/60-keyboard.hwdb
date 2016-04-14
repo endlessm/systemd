@@ -869,6 +869,10 @@ evdev:atkbd:dmi:bvn*:bvr*:svnLENOVO*:pn*20378*:*
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO*:pn*Lenovo*V480*:*
  KEYBOARD_KEY_f1=f21
 
+# Yoga 900
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn80MK:pvr*
+ KEYBOARD_KEY_bf=f21                                    # touchpad toggle
+
 # Lenovo ThinkCentre M800z/M820z/M920z AIO machines
 # key_scancode 00 is KEY_MICMUTE
 evdev:name:Microphone Mute Button:dmi:bvn*:bvr*:bd*:svnLENOVO*:pn*:*
