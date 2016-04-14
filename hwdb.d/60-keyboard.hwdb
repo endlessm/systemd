@@ -869,6 +869,10 @@ evdev:atkbd:dmi:bvn*:bvr*:svnLENOVO*:pn*20378*:*
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO*:pn*Lenovo*V480*:*
  KEYBOARD_KEY_f1=f21
 
+# Yoga 3 Pro 2
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn80HE:pvr*
+ KEYBOARD_KEY_be=f21                                    # touchpad toggle
+
 # Yoga 900
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn80MK:pvr*
  KEYBOARD_KEY_bf=f21                                    # touchpad toggle
