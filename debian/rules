@@ -119,6 +119,7 @@ CONFFLAGS = \
 	--without-kill-user-processes \
 	--with-pamconfdir=no \
 	--disable-split-usr \
+	--disable-apparmor \
 	--disable-qrencode \
 	--disable-vconsole \
 	--disable-firstboot \
@@ -147,7 +148,6 @@ CONFFLAGS_deb += \
 	--enable-libcryptsetup \
 	--enable-coredump \
 	--enable-elfutils \
-	--enable-apparmor \
 	--enable-libidn \
 	--enable-libiptc \
 	--enable-libcurl \
@@ -160,7 +160,6 @@ CONFFLAGS_deb += \
 	--disable-libcryptsetup \
 	--disable-coredump \
 	--disable-elfutils \
-	--disable-apparmor \
 	--disable-libidn \
 	--disable-libiptc \
 	--disable-libcurl \
@@ -176,7 +175,6 @@ CONFFLAGS_udeb = \
 	--disable-pam \
 	--disable-audit \
 	--disable-selinux \
-	--disable-apparmor \
 	--disable-libidn \
 	--disable-libiptc \
 	--disable-smack \
