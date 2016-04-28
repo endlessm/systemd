@@ -64,7 +64,7 @@ CONFFLAGS_deb += \
 	--enable-libcryptsetup \
 	--enable-coredump \
 	--enable-elfutils \
-	--enable-apparmor \
+	--disable-apparmor \
 	--enable-libcurl \
 	--enable-importd \
 	--enable-gnutls
