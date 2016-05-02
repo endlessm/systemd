@@ -299,16 +299,16 @@ Priority: optional
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          libsystemd0 (= ${binary:Version})
-Breaks: systemd (<< 204-8),
-        libsystemd-login-dev (<< 209),
-        libsystemd-daemon-dev (<< 209),
-        libsystemd-journal-dev (<< 209),
-        libsystemd-id128-dev (<< 209),
-Replaces: systemd (<< 204-8),
-          libsystemd-login-dev (<< 209),
-          libsystemd-daemon-dev (<< 209),
-          libsystemd-journal-dev (<< 209),
-          libsystemd-id128-dev (<< 209),
+Breaks: systemd (<< 216),
+        libsystemd-login-dev (<< 216),
+        libsystemd-daemon-dev (<< 216),
+        libsystemd-journal-dev (<< 216),
+        libsystemd-id128-dev (<< 216),
+Replaces: systemd (<< 216),
+          libsystemd-login-dev (<< 216),
+          libsystemd-daemon-dev (<< 216),
+          libsystemd-journal-dev (<< 216),
+          libsystemd-id128-dev (<< 216),
 Description: systemd utility library - development files
  The libsystemd0 library provides interfaces to various systemd components.
  .
