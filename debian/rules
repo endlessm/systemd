@@ -51,7 +51,6 @@ CONFFLAGS = \
 	--disable-resolved \
 	--disable-timesyncd \
 	--disable-microhttpd \
-	--disable-silent-rules \
 	--with-ntp-servers="$(DEFAULT_NTP_SERVERS)"  \
 	--with-system-uid-max=999 \
 	--with-system-gid-max=999
