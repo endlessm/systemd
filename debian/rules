@@ -39,6 +39,7 @@ CONFFLAGS = \
 	--with-kbd-setfont=/bin/setfont \
 	--with-telinit=/lib/sysvinit/telinit \
 	--disable-split-usr \
+	--without-kill-user-processes \
 	--disable-compat-libs \
 	--disable-qrencode \
 	--disable-libidn \
