@@ -40,7 +40,7 @@ CONFFLAGS = \
 	--with-telinit=/lib/sysvinit/telinit \
 	--disable-split-usr \
 	--without-kill-user-processes \
-	--with-default-dnssec=no \
+	--enable-split-usr \
 	--disable-qrencode \
 	--disable-libidn \
 	--enable-vconsole \
