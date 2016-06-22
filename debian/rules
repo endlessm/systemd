@@ -42,7 +42,6 @@ CONFFLAGS = \
 	--without-kill-user-processes \
 	--enable-split-usr \
 	--disable-qrencode \
-	--disable-libidn \
 	--enable-vconsole \
 	--disable-firstboot \
 	--disable-xkbcommon \
@@ -69,6 +68,7 @@ CONFFLAGS_deb += \
 	--enable-coredump \
 	--enable-elfutils \
 	--disable-apparmor \
+	--enable-libidn \
 	--enable-libcurl \
 	--enable-importd \
 	--enable-gnutls
@@ -79,6 +79,7 @@ CONFFLAGS_deb += \
 	--disable-coredump \
 	--disable-elfutils \
 	--disable-apparmor \
+	--disable-libidn \
 	--disable-libcurl \
 	--disable-importd \
 	--disable-gnutls
@@ -92,6 +93,7 @@ CONFFLAGS_udeb = \
 	--disable-audit \
 	--disable-selinux \
 	--disable-apparmor \
+	--disable-libidn \
 	--disable-smack \
 	--disable-ima \
 	--disable-binfmt \
