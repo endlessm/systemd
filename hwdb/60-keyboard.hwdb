@@ -492,11 +492,15 @@ evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHP440G2:pvr*
 # several HP ProBooks 4xx
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHP*ProBook4*:pvr*
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHP*:pnHP*ProBook*4*:pvr*
-# HP ProBook 11 G1
-evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHPProBook11G1:pvr*
 # HP ZBook
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHPZBook*:pvr*
  KEYBOARD_KEY_81=f20                                    # Fn+F8; Microphone mute button, should be micmute
+
+# HP ProBook 11 G1
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHPProBook11G1:pvr*
+ KEYBOARD_KEY_81=f20                                    # Fn+F8; Microphone mute button, should be micmute
+ KEYBOARD_KEY_d8=f21
+ KEYBOARD_KEY_d9=f21
 
 # HP Folio 1040g2
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHewlett-Packard*:pnHPEliteBookFolio1040G2:pvr*
