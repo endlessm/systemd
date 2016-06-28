@@ -876,6 +876,7 @@ evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn80HE:pvr*
 # Yoga 900
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnLENOVO:pn80MK:pvr*
  KEYBOARD_KEY_bf=f21                                    # touchpad toggle
+ KEYBOARD_KEY_be=f21                                    # touchpad toggle
 
 # Lenovo ThinkCentre M800z/M820z/M920z AIO machines
 # key_scancode 00 is KEY_MICMUTE
