@@ -98,7 +98,7 @@ Priority: required
 Conflicts: sysvinit-core,
            upstart (<< 1.13.2-0ubuntu10~),
            upstart-sysv,
-           openrc,
+           openrc (<< 0.20.4-2.1),
            file-rc,
 Replaces: sysvinit (<< 2.88dsf-44~),
           sysvinit-core,
