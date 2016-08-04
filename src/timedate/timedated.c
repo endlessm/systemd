@@ -205,7 +205,7 @@ static int context_read_ntp(Context *c, sd_bus *bus) {
                         &error,
                         &reply,
                         "s",
-                        "systemd-timesyncd.service");
+                        "ntp.service");
 
         if (r < 0) {
                 if (sd_bus_error_has_name(&error, SD_BUS_ERROR_FILE_NOT_FOUND) ||
@@ -241,7 +241,7 @@ static int context_start_ntp(sd_bus *bus, sd_bus_error *error, bool enabled) {
                 error,
                 NULL,
                 "ss",
-                "systemd-timesyncd.service",
+                "ntp.service",
                 "replace");
         if (r < 0) {
                 if (sd_bus_error_has_name(error, SD_BUS_ERROR_FILE_NOT_FOUND) ||
@@ -271,7 +271,7 @@ static int context_enable_ntp(sd_bus *bus, sd_bus_error *error, bool enabled) {
                                 error,
                                 NULL,
                                 "asbb", 1,
-                                "systemd-timesyncd.service",
+                                "ntp.service",
                                 false, true);
         else
                 r = sd_bus_call_method(
@@ -283,7 +283,7 @@ static int context_enable_ntp(sd_bus *bus, sd_bus_error *error, bool enabled) {
                                 error,
                                 NULL,
                                 "asb", 1,
-                                "systemd-timesyncd.service",
+                                "ntp.service",
                                 false);
 
         if (r < 0) {
