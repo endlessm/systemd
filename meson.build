@@ -1587,6 +1587,16 @@ if conf.get('HAVE_BLKID') == 1
                    install : true,
                    install_dir : systemgeneratordir)
 
+        executable('systemd-swap-auto-generator',
+                   'src/swap-auto-generator/swap-auto-generator.c',
+                   'src/basic/blkid-util.h',
+                   include_directories : includes,
+                   link_with : [libshared],
+                   dependencies : libblkid,
+                   install_rpath : rootlibexecdir,
+                   install : true,
+                   install_dir : systemgeneratordir)
+
         exe = executable('systemd-dissect',
                          'src/dissect/dissect.c',
                          include_directories : includes,
