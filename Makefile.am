@@ -3002,6 +3002,22 @@ systemd_gpt_auto_generator_LDADD = \
 systemd_gpt_auto_generator_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(BLKID_CFLAGS)
+
+# ------------------------------------------------------------------------------
+systemgenerator_PROGRAMS += \
+	systemd-swap-auto-generator
+
+systemd_swap_auto_generator_SOURCES = \
+	src/swap-auto-generator/swap-auto-generator.c \
+	src/basic/blkid-util.h
+
+systemd_swap_auto_generator_LDADD = \
+	libshared.la \
+	$(BLKID_LIBS)
+
+systemd_swap_auto_generator_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(BLKID_CFLAGS)
 endif
 
 # ------------------------------------------------------------------------------
