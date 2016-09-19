@@ -66,7 +66,6 @@ Depends: ${shlibs:Depends},
          util-linux (>= 2.27.1),
          mount (>= 2.26),
          adduser,
-         libcap2-bin,
          kbd
 Breaks: lvm2 (<< 2.02.104-1),
         lsb-base (<< 4.1+Debian4),
