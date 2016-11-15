@@ -41,12 +41,12 @@ Build-Depends: debhelper (>= 9.20160114),
                libkmod-dev (>= 15),
                libblkid-dev (>= 2.24),
                libmount-dev (>= 2.27.1),
-               libseccomp-dev (>= 1.0.0) [amd64 arm64 armel armhf i386 mips mipsel mips64 mips64el x32 powerpc ppc64el s390x],
-               libdw-dev (>= 0.158),
-               linux-base,
-               acl,
-               python3,
-               python3-lxml
+               libseccomp-dev (>= 2.3.1) [amd64 arm64 armel armhf i386 mips mipsel mips64 mips64el x32 powerpc ppc64el s390x],
+               libdw-dev (>= 0.158) <!stage1>,
+               linux-base <!nocheck>,
+               acl <!nocheck>,
+               python3:native,
+               python3-lxml:native
 
 Package: systemd
 Architecture: linux-any
