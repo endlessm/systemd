@@ -518,7 +518,8 @@ void unit_free(Unit *u) {
         Iterator i;
         char *t;
 
-        assert(u);
+        if (!u)
+                return;
 
         if (u->transient_file)
                 fclose(u->transient_file);
