@@ -2558,7 +2558,7 @@ int config_parse_unit_requires_mounts_for(
 
         FOREACH_WORD_QUOTED(word, l, rvalue, state) {
                 int r;
-                _cleanup_free_ char *n;
+                _cleanup_free_ char *n, *resolved = NULL;
 
                 n = strndup(word, l);
                 if (!n)
@@ -2569,9 +2569,15 @@ int config_parse_unit_requires_mounts_for(
                         continue;
                 }
 
-                r = unit_require_mounts_for(u, n);
+                r = unit_full_printf(u, n, &resolved);
                 if (r < 0) {
-                        log_syntax(unit, LOG_ERR, filename, line, r, "Failed to add required mount for, ignoring: %s", rvalue);
+                        log_syntax(unit, LOG_ERR, filename, line, r, "Failed to resolve unit name \"%s\", ignoring: %m", n);
+                        continue;
+                }
+
+                r = unit_require_mounts_for(u, resolved);
+                if (r < 0) {
+                        log_syntax(unit, LOG_ERR, filename, line, r, "Failed to add required mount \"%s\", ignoring: %m", resolved);
                         continue;
                 }
         }
