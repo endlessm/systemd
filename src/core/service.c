@@ -49,7 +49,6 @@
 #include "string-util.h"
 #include "strv.h"
 #include "unit-name.h"
-#include "unit-printf.h"
 #include "unit.h"
 #include "utf8.h"
 #include "util.h"
@@ -1186,7 +1185,7 @@ static int service_spawn(
                 ExecFlags flags,
                 pid_t *_pid) {
 
-        _cleanup_strv_free_ char **argv = NULL, **final_env = NULL, **our_env = NULL, **fd_names = NULL;
+        _cleanup_strv_free_ char **final_env = NULL, **our_env = NULL, **fd_names = NULL;
         _cleanup_free_ int *fds = NULL;
         unsigned n_fds = 0, n_env = 0;
         const char *path;
@@ -1241,10 +1240,6 @@ static int service_spawn(
         }
 
         r = service_arm_timer(s, usec_add(now(CLOCK_MONOTONIC), timeout));
-        if (r < 0)
-                return r;
-
-        r = unit_full_printf_strv(UNIT(s), c->argv, &argv);
         if (r < 0)
                 return r;
 
@@ -1330,7 +1325,7 @@ static int service_spawn(
         } else
                 path = UNIT(s)->cgroup_path;
 
-        exec_params.argv = argv;
+        exec_params.argv = c->argv;
         exec_params.environment = final_env;
         exec_params.fds = fds;
         exec_params.fd_names = fd_names;

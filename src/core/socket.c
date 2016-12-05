@@ -54,7 +54,6 @@
 #include "string-util.h"
 #include "strv.h"
 #include "unit-name.h"
-#include "unit-printf.h"
 #include "unit.h"
 #include "user-util.h"
 #include "in-addr-util.h"
@@ -1740,7 +1739,6 @@ static int socket_coldplug(Unit *u) {
 }
 
 static int socket_spawn(Socket *s, ExecCommand *c, pid_t *_pid) {
-        _cleanup_free_ char **argv = NULL;
         pid_t pid;
         int r;
         ExecParameters exec_params = {
@@ -1772,11 +1770,7 @@ static int socket_spawn(Socket *s, ExecCommand *c, pid_t *_pid) {
         if (r < 0)
                 return r;
 
-        r = unit_full_printf_strv(UNIT(s), c->argv, &argv);
-        if (r < 0)
-                return r;
-
-        exec_params.argv = argv;
+        exec_params.argv = c->argv;
         exec_params.environment = UNIT(s)->manager->environment;
         exec_params.flags |= UNIT(s)->manager->confirm_spawn ? EXEC_CONFIRM_SPAWN : 0;
         exec_params.cgroup_supported = UNIT(s)->manager->cgroup_supported;
