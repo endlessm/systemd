@@ -86,4 +86,7 @@ ENV{ID_MODEL_FROM_DATABASE}=="*[Hh]andset*", ENV{SOUND_FORM_FACTOR}="handset", G
 ENV{ID_MODEL}=="*[Mm]icrophone*", ENV{SOUND_FORM_FACTOR}="microphone", GOTO="sound_end"
 ENV{ID_MODEL_FROM_DATABASE}=="*[Mm]icrophone*", ENV{SOUND_FORM_FACTOR}="microphone", GOTO="sound_end"
 
+# Quirk for the Polywell Z83C Mini PC
+DEVPATH=="/devices/platform/hdmi-audio/sound/card0", ENV{ID_BUS}="pci"
+
 LABEL="sound_end"
