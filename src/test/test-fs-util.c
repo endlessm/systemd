@@ -111,7 +111,7 @@ static void test_chase_symlinks(void) {
         assert_se(r == -EINVAL);
 
         result = mfree(result);
-        r = chase_symlinks("/etc/machine-id/foo", NULL, &result);
+        r = chase_symlinks("/etc/issue/foo", NULL, &result);
         assert_se(r == -ENOTDIR);
 
         result = mfree(result);

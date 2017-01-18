@@ -101,7 +101,7 @@ _public_ int sd_id128_get_machine(sd_id128_t *ret) {
         assert_return(ret, -EINVAL);
 
         if (sd_id128_is_null(saved_machine_id)) {
-                r = id128_read("/etc/machine-id", ID128_PLAIN, &saved_machine_id);
+                r = id128_read(getenv("SYSTEMD_MACHINE_ID_PATH") ?: "/etc/machine-id", ID128_PLAIN, &saved_machine_id);
                 if (r < 0)
                         return r;
 
