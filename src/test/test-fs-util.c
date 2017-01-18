@@ -192,7 +192,7 @@ static void test_chase_symlinks(void) {
         assert_se(streq(result, "/test-chase.fsldajfl"));
         result = mfree(result);
 
-        r = chase_symlinks("/etc/machine-id/foo", NULL, 0, &result);
+        r = chase_symlinks("/etc/issue/foo", NULL, 0, &result);
         assert_se(r == -ENOTDIR);
         result = mfree(result);
 
@@ -265,8 +265,8 @@ static void test_chase_symlinks(void) {
                 assert_se(chase_symlinks(q, NULL, CHASE_SAFE, NULL) >= 0);
         }
 
-        p = strjoina(temp, "/machine-id-test");
-        assert_se(symlink("/usr/../etc/./machine-id", p) >= 0);
+        p = strjoina(temp, "/issue-test");
+        assert_se(symlink("/usr/../etc/./issue", p) >= 0);
 
         pfd = chase_symlinks(p, NULL, CHASE_OPEN, NULL);
         if (pfd != -ENOENT) {
@@ -282,10 +282,11 @@ static void test_chase_symlinks(void) {
                 assert_se(fd >= 0);
 
                 safe_close(pfd);
-
+/*
                 assert_se(id128_read_fd(fd, ID128_PLAIN, &a) >= 0);
                 assert_se(sd_id128_get_machine(&b) >= 0);
                 assert_se(sd_id128_equal(a, b));
+*/
         }
 
         assert_se(rm_rf(temp, REMOVE_ROOT|REMOVE_PHYSICAL) >= 0);
