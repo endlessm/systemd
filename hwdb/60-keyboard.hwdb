@@ -135,7 +135,6 @@ evdev:atkbd:dmi:bvn*:bvr*:bd*:svnAcer*:pnAspire*:pvr*
  KEYBOARD_KEY_84=bluetooth                              # sent when bluetooth module missing, and key pressed
  KEYBOARD_KEY_d9=bluetooth                              # Bluetooth off
  KEYBOARD_KEY_92=media                                  # Acer arcade
- KEYBOARD_KEY_86=wlan					# Fn+F3 or Fn+Q for comunication key
 
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnAcer*:pnAspire*5720*:pvr*
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnAcer*:pnZG8*:pvr*
