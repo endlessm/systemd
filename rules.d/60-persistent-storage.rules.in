@@ -125,7 +125,7 @@ ENV{UDEV_DISABLE_PERSISTENT_STORAGE_BLKID_FLAG}=="1", GOTO="persistent_storage_b
 KERNEL=="sr*", ENV{DISK_EJECT_REQUEST}!="?*", ENV{ID_CDROM_MEDIA_TRACK_COUNT_DATA}=="?*", ENV{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}=="?*", \
   IMPORT{builtin}="blkid --hint=session_offset=$env{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}"
 # single-session CDs do not have ID_CDROM_MEDIA_SESSION_LAST_OFFSET
-KERNEL=="sr*", ENV{DISK_EJECT_REQUEST}!="?*", ENV{ID_CDROM_MEDIA_TRACK_COUNT_DATA}=="?*", ENV{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}=="", \
+KERNEL=="sr*", ENV{DISK_EJECT_REQUEST}!="?*", ENV{ID_CDROM_MEDIA_SESSION_LAST_OFFSET}=="", \
   IMPORT{builtin}="blkid --noraid"
 
 # probe filesystem metadata of disks
