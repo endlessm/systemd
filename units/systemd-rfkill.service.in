@@ -12,7 +12,7 @@ DefaultDependencies=no
 RequiresMountsFor=/var/lib/systemd/rfkill
 BindsTo=sys-devices-virtual-misc-rfkill.device
 Conflicts=shutdown.target
-After=sys-devices-virtual-misc-rfkill.device systemd-remount-fs.service
+After=sys-devices-virtual-misc-rfkill.device systemd-remount-fs.service bluetooth-uart.service
 Before=shutdown.target
 
 [Service]
