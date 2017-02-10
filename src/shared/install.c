@@ -1828,6 +1828,8 @@ int unit_file_mask(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         STRV_FOREACH(i, files) {
                 _cleanup_free_ char *path = NULL;
@@ -1876,6 +1878,9 @@ int unit_file_unmask(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
+
         dry_run = !!(flags & UNIT_FILE_DRY_RUN);
 
         STRV_FOREACH(i, files) {
@@ -1961,6 +1966,8 @@ int unit_file_link(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         STRV_FOREACH(i, files) {
                 _cleanup_free_ char *full = NULL;
@@ -2224,6 +2231,8 @@ int unit_file_add_dependency(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         r = install_info_discover(scope, &c, &paths, target, SEARCH_FOLLOW_CONFIG_SYMLINKS,
                                   &target_info, changes, n_changes);
@@ -2289,6 +2298,8 @@ int unit_file_enable(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         STRV_FOREACH(f, files) {
                 r = install_info_discover(scope, &c, &paths, *f, SEARCH_LOAD|SEARCH_FOLLOW_CONFIG_SYMLINKS,
@@ -2333,6 +2344,8 @@ int unit_file_disable(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         STRV_FOREACH(i, files) {
                 if (!unit_name_is_valid(*i, UNIT_NAME_ANY))
@@ -2827,6 +2840,8 @@ int unit_file_preset(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         r = read_presets(scope, root_dir, &presets);
         if (r < 0)
@@ -2865,6 +2880,8 @@ int unit_file_preset_all(
                 return r;
 
         config_path = (flags & UNIT_FILE_RUNTIME) ? paths.runtime_config : paths.persistent_config;
+        if (!config_path)
+                return -ENXIO;
 
         r = read_presets(scope, root_dir, &presets);
         if (r < 0)
