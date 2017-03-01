@@ -9,6 +9,7 @@ disable systemd-resolved.service
 
 # Disable other unwanted units
 disable bluetooth-init.service
+disable eos-firewall-localonly.service
 disable NetworkManager-wait-online.service
 disable rtkit-daemon.service
 disable serial-getty@.service
