@@ -242,23 +242,18 @@ static int list_machines(int argc, char *argv[], void *userdata) {
                 if (name[0] == '.' && !arg_all)
                         continue;
 
-                if (!GREEDY_REALLOC(machines, n_allocated, n_machines + 1)) {
+                if (!GREEDY_REALLOC0(machines, n_allocated, n_machines + 1)) {
                         r = log_oom();
                         goto out;
                 }
 
-                machines[n_machines].os = NULL;
-                machines[n_machines].version_id = NULL;
+                machines[n_machines].name = name;
+                machines[n_machines].class = class;
+                machines[n_machines].service = service;
                 r = get_os_release_property(bus, name,
                                 "ID\0" "VERSION_ID\0",
                                 &machines[n_machines].os,
                                 &machines[n_machines].version_id);
-                if (r < 0)
-                        goto out;
-
-                machines[n_machines].name = name;
-                machines[n_machines].class = class;
-                machines[n_machines].service = service;
 
                 l = strlen(name);
                 if (l > max_name)
