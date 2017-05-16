@@ -707,57 +707,11 @@ static bool is_product_listed(char **products) {
         return false;
 }
 
-static bool is_laptop_chassis(void) {
-        _cleanup_(sd_bus_unrefp) sd_bus *bus = NULL;
-        _cleanup_(sd_bus_message_unrefp) sd_bus_message *reply = NULL;
-        _cleanup_(sd_bus_error_free) sd_bus_error error = SD_BUS_ERROR_NULL;
-        static int result = -1;
-        const char *s;
-        int r;
-
-        /* This answer depends on the actual hardware
-           so it won't change in subsequent calls. */
-        if (result != -1)
-                return result;
-
-        r = sd_bus_open_system(&bus);
-        if (r < 0) {
-                log_error("Failed to create bus connection: %s", strerror(-r));
-                goto finish;
-        }
-
-        r = sd_bus_get_property(
-                        bus,
-                        "org.freedesktop.hostname1",
-                        "/org/freedesktop/hostname1",
-                        "org.freedesktop.hostname1",
-                        "Chassis",
-                        &error, &reply, "s");
-        if (r < 0) {
-                log_error("Could not get property: %s", bus_error_message(&error, -r));
-                goto finish;
-        }
-
-        r = sd_bus_message_read(reply, "s", &s);
-        if (r < 0) {
-                bus_log_parse_error(r);
-                goto finish;
-        }
-
-        result = strcmp(s, "laptop") == 0;
-finish:
-        sd_bus_close(bus);
-
-        /* This can be -1 if the chassis could not be checked */
-        return result > 0;
-}
-
 static int can_sleep_internal(
                 const SleepConfig *sleep_config,
                 SleepOperation operation,
                 bool check_allowed) {
         _cleanup_strv_free_ char **blacklist = NULL, **whitelist = NULL;
-        bool whitelisted;
 
         assert(operation >= 0);
         assert(operation < _SLEEP_OPERATION_MAX);
@@ -782,13 +736,6 @@ static int can_sleep_internal(
         if (is_product_listed(blacklist))
                 return false;
 
-        whitelisted = is_product_listed(whitelist);
-
-        /* We don't support sleep operations for non-laptop chassis
-           unless the product has been explicitly white listed. */
-        if (!is_laptop_chassis() && !whitelisted)
-                return false;
-
         if (operation == SLEEP_SUSPEND)
                 return true;
 
@@ -798,7 +745,7 @@ static int can_sleep_internal(
         /* Endless does not support hibernate or hybrid-sleep by default,
          * so allow it only if whitelisted.
          * https://phabricator.endlessm.com/T13184#266832 */
-        return whitelisted;
+        return is_product_listed(whitelist);
 }
 
 int can_sleep(SleepOperation operation) {
