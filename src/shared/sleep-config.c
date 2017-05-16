@@ -384,7 +384,6 @@ int can_sleep(const char *verb) {
         _cleanup_strv_free_ char **modes = NULL, **states = NULL;
         _cleanup_strv_free_ char **blacklist = NULL, **whitelist = NULL;
         int r;
-        bool whitelisted;
 
         assert(streq(verb, "suspend") ||
                streq(verb, "hibernate") ||
@@ -406,17 +405,10 @@ int can_sleep(const char *verb) {
         if (is_product_listed(blacklist))
                 return false;
 
-        whitelisted = is_product_listed(whitelist);
-
-        /* We don't support sleep operations for non-laptop chassis
-           unless the product has been explicitly white listed. */
-        if (!is_laptop_chassis() && !whitelisted)
-                return false;
-
         if (streq(verb, "suspend"))
                 return true;
 
         /* Endless does not support hibernate or hybrid-sleep, see
            T13184. So allow it only if whitelisted. */
-        return whitelisted && enough_memory_for_hibernation();
+        return is_product_listed(whitelist) && enough_memory_for_hibernation();
 }
