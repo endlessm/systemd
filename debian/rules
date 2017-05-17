@@ -43,6 +43,8 @@ CONFFLAGS = \
 	--disable-firstboot \
 	--disable-xkbcommon \
 	--disable-libiptc \
+	--disable-networkd \
+	--disable-resolved \
 	--disable-timesyncd \
 	--disable-microhttpd \
 	--disable-silent-rules \
