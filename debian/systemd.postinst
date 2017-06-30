@@ -68,23 +68,6 @@ EOF
     fi
 fi
 
-# Do a one-time migration of the RAMTMP setting
-if [ -z "$2" ]; then
-    if [ -f /etc/default/rcS ]; then
-        . /etc/default/rcS
-    fi
-    if [ -f /etc/default/tmpfs ]; then
-        . /etc/default/tmpfs
-    fi
-    if [ "$RAMTMP" = "yes" ]; then
-        # systemctl enable will work even when systemd is not the active PID 1.
-        if [ ! -e /etc/systemd/system/tmp.mount ]; then
-            cp /usr/share/systemd/tmp.mount /etc/systemd/system/tmp.mount
-            systemctl enable tmp.mount || true
-        fi
-    fi
-fi
-
 # Create /etc/machine-id
 systemd-machine-id-setup
 
