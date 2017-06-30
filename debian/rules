@@ -219,11 +219,6 @@ endif
 
 	dh_install --remaining-packages --sourcedir=debian/install/deb
 
-	# we don't want /tmp to be a tmpfs by default
-	mv debian/systemd/lib/systemd/system/tmp.mount debian/systemd/usr/share/systemd/
-	printf '\n[Install]\nWantedBy=local-fs.target\n' >> debian/systemd/usr/share/systemd/tmp.mount
-	rm debian/systemd/lib/systemd/system/local-fs.target.wants/tmp.mount
-
 	# files shipped by cryptsetup
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
 	rm debian/systemd/usr/share/man/man5/crypttab.5
