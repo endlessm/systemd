@@ -10,6 +10,16 @@ set -e
 if [ -z "$ADT_REBOOT_MARK" ]; then
     # enable persistent journal
     mkdir -p /var/log/journal
+    # allow X to start even on headless machines
+    mkdir -p /etc/X11/xorg.conf.d/
+    cat << EOF > /etc/X11/xorg.conf.d/dummy.conf
+Section "Device"
+    Identifier "test"
+    Driver "dummy"
+EndSection
+EOF
+
+
     ADT_REBOOT_MARK=0
     if [ -d /tmp/systemd-replace/ ]; then
         for f in /tmp/systemd-replace/*; do
@@ -19,7 +29,6 @@ if [ -z "$ADT_REBOOT_MARK" ]; then
         done
     fi
 else
-    journalctl -ab > $ADT_ARTIFACTS/journal.txt
     echo "checking for failed unmounts for user systemd"
     if journalctl | grep -E "systemd\[([2-9]|[1-9][0-9]+)\].*Failed unmounting"; then
         exit 1
@@ -39,10 +48,16 @@ else
         [ -n "$running" ] || break
         TIMEOUT=$((TIMEOUT - 1))
     done
-    assert_eq "$running" ""
+    if [ -n "$running" ]; then
+        echo "running jobs after remaining timeout $TIMEOUT: $running"
+        journalctl --sync
+        journalctl -ab > $ADT_ARTIFACTS/journal.txt
+        udevadm info --export-db > $ADT_ARTIFACTS/udevdb.txt
+        exit 1
+    fi
 fi
 
-if [ "$ADT_REBOOT_MARK" -ge 20 ]; then
+if [ "$ADT_REBOOT_MARK" -ge 5 ]; then
     exit 0
 fi
 

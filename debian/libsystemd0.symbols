@@ -1,4 +1,5 @@
 libsystemd.so.0 libsystemd0 #MINVER#
+* Build-Depends-Package: libsystemd-dev
  LIBSYSTEMD_209@LIBSYSTEMD_209 0
  LIBSYSTEMD_211@LIBSYSTEMD_211 211
  LIBSYSTEMD_213@LIBSYSTEMD_213 213
@@ -12,6 +13,9 @@ libsystemd.so.0 libsystemd0 #MINVER#
  LIBSYSTEMD_226@LIBSYSTEMD_226 226
  LIBSYSTEMD_227@LIBSYSTEMD_227 227
  LIBSYSTEMD_229@LIBSYSTEMD_229 229
+ LIBSYSTEMD_230@LIBSYSTEMD_230 230
+ LIBSYSTEMD_231@LIBSYSTEMD_231 231
+ LIBSYSTEMD_232@LIBSYSTEMD_232 231-6~
  sd_booted@LIBSYSTEMD_209 0
  sd_bus_add_fallback@LIBSYSTEMD_221 221
  sd_bus_add_fallback_vtable@LIBSYSTEMD_221 221
@@ -106,6 +110,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_get_description@LIBSYSTEMD_221 221
  sd_bus_get_event@LIBSYSTEMD_221 221
  sd_bus_get_events@LIBSYSTEMD_221 221
+ sd_bus_get_exit_on_disconnect@LIBSYSTEMD_232 232
  sd_bus_get_fd@LIBSYSTEMD_221 221
  sd_bus_get_name_creds@LIBSYSTEMD_221 221
  sd_bus_get_name_machine_id@LIBSYSTEMD_221 221
@@ -221,6 +226,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_set_bus_client@LIBSYSTEMD_221 221
  sd_bus_set_description@LIBSYSTEMD_221 221
  sd_bus_set_exec@LIBSYSTEMD_221 221
+ sd_bus_set_exit_on_disconnect@LIBSYSTEMD_232 232
  sd_bus_set_fd@LIBSYSTEMD_221 221
  sd_bus_set_monitor@LIBSYSTEMD_221 221
  sd_bus_set_property@LIBSYSTEMD_221 221
@@ -241,14 +247,18 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_track_add_sender@LIBSYSTEMD_221 221
  sd_bus_track_contains@LIBSYSTEMD_221 221
  sd_bus_track_count@LIBSYSTEMD_221 221
+ sd_bus_track_count_name@LIBSYSTEMD_232 231-6~
+ sd_bus_track_count_sender@LIBSYSTEMD_232 231-6~
  sd_bus_track_first@LIBSYSTEMD_221 221
  sd_bus_track_get_bus@LIBSYSTEMD_221 221
+ sd_bus_track_get_recursive@LIBSYSTEMD_232 231-6~
  sd_bus_track_get_userdata@LIBSYSTEMD_221 221
  sd_bus_track_new@LIBSYSTEMD_221 221
  sd_bus_track_next@LIBSYSTEMD_221 221
  sd_bus_track_ref@LIBSYSTEMD_221 221
  sd_bus_track_remove_name@LIBSYSTEMD_221 221
  sd_bus_track_remove_sender@LIBSYSTEMD_221 221
+ sd_bus_track_set_recursive@LIBSYSTEMD_232 231-6~
  sd_bus_track_set_userdata@LIBSYSTEMD_221 221
  sd_bus_track_unref@LIBSYSTEMD_221 221
  sd_bus_try_close@LIBSYSTEMD_221 221
@@ -266,6 +276,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_event_exit@LIBSYSTEMD_221 221
  sd_event_get_exit_code@LIBSYSTEMD_221 221
  sd_event_get_fd@LIBSYSTEMD_221 221
+ sd_event_get_iteration@LIBSYSTEMD_231 231
  sd_event_get_state@LIBSYSTEMD_221 221
  sd_event_get_tid@LIBSYSTEMD_221 221
  sd_event_get_watchdog@LIBSYSTEMD_221 221
@@ -309,6 +320,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_get_uids@LIBSYSTEMD_209 0
  sd_id128_from_string@LIBSYSTEMD_209 0
  sd_id128_get_boot@LIBSYSTEMD_209 0
+ sd_id128_get_invocation@LIBSYSTEMD_232 232
  sd_id128_get_machine@LIBSYSTEMD_209 0
  sd_id128_randomize@LIBSYSTEMD_209 0
  sd_id128_to_string@LIBSYSTEMD_209 0
@@ -346,7 +358,9 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_journal_open@LIBSYSTEMD_209 0
  sd_journal_open_container@LIBSYSTEMD_209 0
  sd_journal_open_directory@LIBSYSTEMD_209 0
+ sd_journal_open_directory_fd@LIBSYSTEMD_230 230
  sd_journal_open_files@LIBSYSTEMD_209 0
+ sd_journal_open_files_fd@LIBSYSTEMD_230 230
  sd_journal_perror@LIBSYSTEMD_209 0
  sd_journal_perror_with_location@LIBSYSTEMD_209 0
  sd_journal_previous@LIBSYSTEMD_209 0

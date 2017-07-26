@@ -11,7 +11,7 @@ Depends: systemd,
   acl,
   locales,
   evemu-tools,
-Restrictions: needs-root, isolation-machine
+Restrictions: needs-root, isolation-container
 
 Tests: unit-config
 Depends: systemd,
@@ -20,6 +20,7 @@ Depends: systemd,
   locales,
   evemu-tools,
   python3,
+  pkg-config,
 Restrictions: needs-root, allow-stderr
 
 Tests: storage
@@ -29,16 +30,19 @@ Depends: systemd,
   locales,
   evemu-tools,
   python3,
+  pkg-config,
   cryptsetup-bin,
 Restrictions: needs-root, isolation-machine
 
-Tests: networkd
+Tests: networkd-test.py
+Tests-Directory: test
 Depends: systemd,
   libpam-systemd,
   acl,
   locales,
   evemu-tools,
   python3,
+  pkg-config,
   cryptsetup-bin,
   systemd-sysv,
   policykit-1,
@@ -52,12 +56,12 @@ Depends: systemd,
   locales,
   evemu-tools,
   python3,
+  pkg-config,
   cryptsetup-bin,
   systemd-sysv,
   policykit-1,
   dnsmasq-base,
   build-essential,
-  pkg-config,
   libsystemd-dev,
 Restrictions: isolation-container
 
@@ -67,46 +71,92 @@ Depends: systemd-sysv,
   systemd-coredump,
   libpam-systemd,
   xserver-xorg-video-dummy,
+  xserver-xorg,
   lightdm,
+  lightdm-gtk-greeter | lightdm-greeter,
   cron,
   network-manager,
   busybox-static,
   apparmor,
+  pkg-config,
   python3
 Restrictions: needs-root, isolation-machine, needs-recommends, breaks-testbed
 
+Tests: udev
+Depends: libsystemd-dev,
+  tree,
+  perl,
+  xz-utils,
+Restrictions: needs-root, allow-stderr, isolation-machine
+
+Tests: root-unittests
+Depends: libsystemd-dev,
+  systemd,
+  tree,
+  perl,
+  xz-utils,
+  libcap2-bin,
+  iproute2,
+  liblz4-tool,
+  acl,
+Restrictions: needs-root, allow-stderr, isolation-container
+
+Tests: upstream
+Depends: libsystemd-dev,
+  tree,
+  perl,
+  xz-utils,
+  libcap2-bin,
+  iproute2,
+  liblz4-tool,
+  acl,
+  kbd,
+  cryptsetup-bin,
+  net-tools,
+  isc-dhcp-client,
+  iputils-ping,
+  strace,
+  qemu-system-x86 [amd64],
+  less,
+  pkg-config,
+  gcc,
+  libc6-dev | libc-dev,
+  make,
+  systemd-journal-remote,
+  systemd-container,
+Restrictions: needs-root, allow-stderr, isolation-machine
+
 Tests: boot-smoke
-Depends: systemd-sysv,
+Depends: libsystemd-dev,
+  tree,
+  perl,
+  xz-utils,
+  libcap2-bin,
+  iproute2,
+  liblz4-tool,
+  acl,
+  kbd,
+  cryptsetup-bin,
+  net-tools,
+  isc-dhcp-client,
+  iputils-ping,
+  strace,
+  qemu-system-x86 [amd64],
+  less,
+  pkg-config,
+  gcc,
+  libc6-dev | libc-dev,
+  make,
+  systemd-journal-remote,
+  systemd-container,
+  systemd-sysv,
   network-manager,
   policykit-1,
   lightdm,
-Restrictions: needs-recommends, needs-root, isolation-machine, allow-stderr
+  xserver-xorg-video-dummy,
+Restrictions: needs-recommends, needs-root, isolation-container, allow-stderr, breaks-testbed
 
 # NOUPSTREAM: Do not run these tests for upstream builds
-
-Tests: bootchart
-Depends: systemd,
-  libpam-systemd,
-  acl,
-  locales,
-  evemu-tools,
-  python3,
-  cryptsetup-bin,
-  systemd-sysv,
-  dnsmasq-base,
-  build-essential,
-  pkg-config,
-  libsystemd-dev,
-Restrictions: needs-root, isolation-machine, breaks-testbed
-
-Tests: cmdline-upstart-boot
-Depends: systemd-sysv,
-  network-manager,
-  policykit-1,
-  lightdm,
-  cron,
-  python3,
-Restrictions: needs-root, isolation-machine, breaks-testbed
 
 Tests: systemd-fsckd
 Depends: systemd-sysv,

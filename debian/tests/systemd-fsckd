@@ -94,7 +94,7 @@ class FsckdTest(unittest.TestCase):
             self.reboot()
         else:
             self.assertFsckdStop()
-            self.assertTrue(self.was_running('process-killer'))
+            self.assertWasRunning('process-killer')
             self.assertFalse(self.is_failed_unit('process-killer'))
             self.assertFsckProceeded()
             self.assertSystemRunning()
@@ -108,8 +108,8 @@ class FsckdTest(unittest.TestCase):
             self.assertFsckdStop()
             self.assertProcessKilled()
             self.assertTrue(self.is_failed_unit('systemd-fsck-root'))
-            self.assertTrue(self.was_running('systemd-fsckd'))
-            self.assertTrue(self.was_running('plymouth-start'))
+            self.assertWasRunning('systemd-fsckd')
+            self.assertWasRunning('plymouth-start')
             self.assertSystemRunning()
 
     def test_systemd_fsckd_with_failure(self):
@@ -122,7 +122,7 @@ class FsckdTest(unittest.TestCase):
             self.assertProcessKilled()
             self.assertFalse(self.is_failed_unit('systemd-fsck-root'))
             self.assertTrue(self.is_failed_unit('systemd-fsckd'))
-            self.assertTrue(self.was_running('plymouth-start'))
+            self.assertWasRunning('plymouth-start')
             self.assertSystemRunning()
 
     def test_systemd_fsck_with_plymouth_failure(self):
@@ -132,7 +132,7 @@ class FsckdTest(unittest.TestCase):
             self.reboot()
         else:
             self.assertFsckdStop()
-            self.assertTrue(self.was_running('process-killer'))
+            self.assertWasRunning('process-killer')
             self.assertFsckProceeded()
             self.assertFalse(self.is_active_unit('plymouth-start'))
             self.assertSystemRunning()
@@ -146,9 +146,8 @@ class FsckdTest(unittest.TestCase):
     def is_active_unit(self, unit):
         '''Check that given unit is active'''
 
-        if subprocess.call(['systemctl', '-q', 'is-active', unit]) != 0:
-            return False
-        return True
+        return subprocess.call(['systemctl', 'status', unit],
+                               stdout=subprocess.PIPE) == 0
 
     def is_failed_unit(self, unit):
         '''Check that given unit failed'''
@@ -159,12 +158,16 @@ class FsckdTest(unittest.TestCase):
             return True
         return False
 
-    def was_running(self, unit):
-        '''Check that a given unit has been running'''
-        out = subprocess.check_output(['systemctl', 'show', '--property=ExecStart', unit])
-        if b'start_time=[n/a]' in out:
-            return False
-        return True
+    def assertWasRunning(self, unit, expect_running=True):
+        '''Assert that a given unit has been running'''
+        p = subprocess.Popen(['systemctl', 'status', '--no-pager', unit],
+                             stdout=subprocess.PIPE, universal_newlines=True)
+        out = p.communicate()[0].strip()
+        if expect_running:
+            self.assertRegex(out, 'Active:.*since')
+        else:
+            self.assertNotRegex(out, 'Active:.*since')
+        self.assertIn(p.returncode, (0, 3))
 
     def assertFsckdStop(self):
         '''Ensure systemd-fsckd stops, which indicates no more fsck activity'''
@@ -177,13 +180,13 @@ class FsckdTest(unittest.TestCase):
 
     def assertFsckProceeded(self, with_plymouth=True):
         '''Assert we executed most of the fsck-related services successfully'''
-        self.assertTrue(self.was_running('systemd-fsckd'))
+        self.assertWasRunning('systemd-fsckd')
         self.assertFalse(self.is_failed_unit('systemd-fsckd'))
         self.assertTrue(self.is_active_unit('systemd-fsck-root'))  # remains active after exit
         if with_plymouth:
-            self.assertTrue(self.was_running('plymouth-start'))
+            self.assertWasRunning('plymouth-start')
         else:
-            self.assertFalse(self.was_running('plymouth-start'))
+            self.assertWasRunning('plymouth-start', expect_running=False)
 
     def assertSystemRunning(self):
         '''Assert that the system is running'''
@@ -192,7 +195,7 @@ class FsckdTest(unittest.TestCase):
 
     def assertProcessKilled(self):
         '''Assert the targeted process was killed successfully'''
-        self.assertTrue(self.was_running('process-killer'))
+        self.assertWasRunning('process-killer')
         self.assertFalse(self.is_failed_unit('process-killer'))
 
     def reboot(self):
@@ -226,6 +229,7 @@ def enable_plymouth(enable=True):
                 if line.startswith("GRUB_CMDLINE_LINUX_DEFAULT"):
                     print(line[:line.rfind('"')] + ' splash quiet"\n')
         else:
+            os.makedirs(os.path.dirname(TEST_AUTOPKGTEST_CONFIG_PATH), exist_ok=True)
             with open(TEST_AUTOPKGTEST_CONFIG_PATH, 'w') as f:
                 f.write('GRUB_CMDLINE_LINUX_DEFAULT="console=ttyS0 splash quiet"\n')
     elif not enable and plymouth_enabled:

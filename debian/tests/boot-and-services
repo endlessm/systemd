@@ -14,6 +14,19 @@ import re
 from glob import glob
 
 
+def wait_unit_stop(unit, timeout=10):
+    '''Wait until given unit is not running any more
+
+    Raise RuntimeError on timeout.
+    '''
+    for i in range(timeout):
+        if subprocess.call(['systemctl', 'is-active', '--quiet', unit]) != 0:
+            return
+        time.sleep(1)
+
+    raise RuntimeError('Timed out waiting for %s to stop' % unit)
+
+
 class ServicesTest(unittest.TestCase):
     '''Check that expected services are running'''
 
@@ -25,7 +38,7 @@ class ServicesTest(unittest.TestCase):
     def test_no_failed(self):
         '''No failed units'''
 
-        out = subprocess.check_output(['systemctl', '--failed', '--no-legend'],
+        out = subprocess.check_output(['systemctl', '--state=failed', '--no-legend'],
                                       universal_newlines=True)
         failed = out.splitlines()
         # ignore /etc/modules failure as stuff that we put there by default
@@ -38,7 +51,13 @@ class ServicesTest(unittest.TestCase):
         failed = [f for f in failed if 'thermald' not in f]
         # console-setup.service fails on devices without keyboard (LP: #1516591)
         failed = [f for f in failed if 'console-setup' not in f]
-        self.assertEqual(failed, [])
+        if failed:
+            for f in failed:
+                f = f.split()[0]
+                print('-------- journal for failed service %s -----------' % f)
+                sys.stdout.flush()
+                subprocess.call(['journalctl', '-b', '-u', f])
+            self.assertEqual(failed, [])
 
     def test_lightdm(self):
         out = subprocess.check_output(['ps', 'u', '-C', 'lightdm'])
@@ -96,7 +115,16 @@ class ServicesTest(unittest.TestCase):
         self.active_unit('systemd-udevd')
 
     def test_tmp_mount(self):
-        want_tmp_mount = True
+        # check if we want to mount /tmp in fstab
+        want_tmp_mount = False
+        with open('/etc/fstab') as f:
+            for l in f:
+                try:
+                    if not l.startswith('#') and l.split()[1] in ('/tmp', '/tmp/'):
+                        want_tmp_mount = True
+                        break
+                except IndexError:
+                    pass
 
         # ensure that we actually do/don't have a /tmp mount
         (status, status_out) = subprocess.getstatusoutput('systemctl status tmp.mount')
@@ -105,7 +133,8 @@ class ServicesTest(unittest.TestCase):
             self.assertEqual(status, 0, status_out)
             self.assertEqual(findmnt, 0)
         else:
-            self.assertEqual(status, 3, status_out)
+            # 4 is correct (since upstream commit ca473d57), accept 3 for systemd <= 230
+            self.assertIn(status, [3, 4], status_out)
             self.assertNotEqual(findmnt, 0)
 
     @unittest.skipIf('TEST_UPSTREAM' in os.environ,
@@ -129,7 +158,7 @@ class ServicesTest(unittest.TestCase):
         os.close(os.open('/tmp/newfile.test',
                          os.O_CREAT | os.O_EXCL | os.O_WRONLY))
         subprocess.check_call(['systemctl', 'start', 'systemd-tmpfiles-clean'])
-        time.sleep(2)
+        wait_unit_stop('systemd-tmpfiles-clean')
         self.assertTrue(os.path.exists('/tmp/newfile.test'))
 
     # Helper methods
@@ -209,7 +238,7 @@ poweroff\n''')
         self.addCleanup(shutil.rmtree, cont)
         os.sync()
         subprocess.check_call(['systemctl', 'start', 'systemd-nspawn@c1'])
-        time.sleep(5)
+        wait_unit_stop('systemd-nspawn@c1')
 
         subprocess.call(['journalctl', '--sync'])
         systemctl = subprocess.Popen(
@@ -217,7 +246,7 @@ poweroff\n''')
             stdout=subprocess.PIPE)
         out = systemctl.communicate()[0].decode('UTF-8', 'replace')
         self.assertEqual(systemctl.returncode, 3, out)
-        self.assertTrue('Stopped Container c1' in out, out)
+        self.assertNotIn('failed', out)
 
 
 @unittest.skipUnless(os.path.exists('/sys/kernel/security/apparmor'),
@@ -254,8 +283,7 @@ AppArmorProfile=violator-test
         # launch
         subprocess.check_call(['systemctl', 'daemon-reload'])
         subprocess.check_call(['systemctl', 'start', 'violator.service'])
-
-        time.sleep(2)
+        wait_unit_stop('violator.service')
 
         # check status
         st = subprocess.Popen(['systemctl', 'status', '-l',
@@ -274,6 +302,8 @@ AppArmorProfile=violator-test
         self.assertNotIn('root:x', out, 'unit can read /etc/passwd')
 
 
+@unittest.skipIf(os.path.exists('/sys/fs/cgroup/cgroup.controllers'),
+                 'test needs to be reworked on unified cgroup hierarchy')
 class CgroupsTest(unittest.TestCase):
     '''Check cgroup setup'''
 
@@ -377,8 +407,6 @@ ExecStart=/bin/sleep 500
         self.assertTrue(os.path.exists('/sys/fs/cgroup/perf_event/aux'))
 
 
-@unittest.skipUnless('+SECCOMP' in subprocess.getoutput('systemctl --version'),
-                     'seccomp support not enabled')
 class SeccompTest(unittest.TestCase):
     '''Check seccomp syscall filtering'''
 
@@ -395,7 +423,7 @@ SystemCallFilter=access
         # launch
         subprocess.check_call(['systemctl', 'daemon-reload'])
         subprocess.check_call(['systemctl', 'start', 'scfail.service'])
-        time.sleep(2)
+        wait_unit_stop('scfail.service')
 
         # check status
         st = subprocess.Popen(['systemctl', 'status', '-l',
@@ -429,14 +457,10 @@ class CoredumpTest(unittest.TestCase):
         self.assertNotEqual(cores, [])
         self.assertEqual(glob('/tmp/core*'), [])
 
-        # FIXME: this often fails on upstream PRs
-        if 'TEST_UPSTREAM' in os.environ:
-            return
-
         # we should also get a message and stack trace in journal
         for timeout in range(10):
             subprocess.call(['journalctl', '--sync'])
-            journal = subprocess.check_output(['journalctl', '/lib/systemd/systemd-coredump'])
+            journal = subprocess.check_output(['journalctl', '-t', 'systemd-coredump'])
             if re.search(b'Process.*bash.*dumped core', journal) and \
                re.search(b'#[0-9] .*bash', journal):
                 break
@@ -444,6 +468,65 @@ class CoredumpTest(unittest.TestCase):
         self.assertRegex(journal, b'Process.*bash.*dumped core')
         self.assertIn(b'Stack trace', journal)
         self.assertRegex(journal, b'#[0-9] .*bash')
+
+
+class CLITest(unittest.TestCase):
+    def setUp(self):
+        self.programs = []
+        for line in subprocess.check_output(['dpkg', '-L', 'systemd', 'systemd-container', 'systemd-coredump', 'udev'],
+                                            universal_newlines=True).splitlines():
+            if '/bin/' in line:
+                self.programs.append(line.strip())
+
+    def test_help(self):
+        '--help works and succeeds'''
+
+        for program in self.programs:
+            p = subprocess.Popen([program, '--help'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            (out, err) = p.communicate()
+            try:
+                self.assertEqual(err, '')
+                self.assertEqual(p.returncode, 0)
+                self.assertIn(os.path.basename(program), out)
+                self.assertTrue('--help' in out or 'Usage' in out, out)
+            except AssertionError:
+                print('Failed program: %s' % program)
+                raise
+
+    def test_version(self):
+        '--version works and succeeds'''
+
+        version = subprocess.check_output(['pkg-config', '--modversion', 'systemd'],
+                                          universal_newlines=True).strip()
+
+        for program in self.programs:
+            # known to not respond to --version
+            if os.path.basename(program) in ['kernel-install', 'systemd-ask-password', 'systemd-stdio-bridge']:
+                continue
+            p = subprocess.Popen([program, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            (out, err) = p.communicate()
+            try:
+                self.assertEqual(err, '')
+                self.assertEqual(p.returncode, 0)
+                self.assertIn(version, out)
+            except AssertionError:
+                print('Failed program: %s' % program)
+                raise
+
+    def test_invalid_option(self):
+        '''Calling with invalid option fails'''
+
+        for program in self.programs:
+            p = subprocess.Popen([program, '--invalid-option'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            (out, err) = p.communicate()
+            try:
+                # kernel-install is an unique snowflake
+                if not program.endswith('/kernel-install'):
+                    self.assertIn('--invalid-option', err)
+                self.assertNotEqual(p.returncode, 0)
+            except AssertionError:
+                print('Failed program: %s' % program)
+                raise
 
 
 def pre_boot_setup():

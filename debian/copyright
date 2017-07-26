@@ -1,7 +1,7 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: systemd
 Upstream-Contact: systemd-devel@lists.freedesktop.org
-Source: http://www.freedesktop.org/wiki/Software/systemd/
+Source: https://www.freedesktop.org/wiki/Software/systemd/
 
 Files: debian/*
 Copyright: 2010-2013 Tollef Fog Heen <tfheen@debian.org>
@@ -63,7 +63,7 @@ License: Expat
 
 Files: src/journal/lookup3.c
        src/journal/lookup3.h
-Copyright: 2006 Bob Jenkins
+Copyright: none
 License: public-domain
  You can use this free for any purpose. It's in the public domain. It has no
  warranty.
