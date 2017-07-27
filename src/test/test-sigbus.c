@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
         char template[] = "/tmp/sigbus-test-XXXXXX";
         void *addr = NULL;
         uint8_t *p;
+        int ret;
 
 #ifdef __SANITIZE_ADDRESS__
         return EXIT_TEST_SKIP;
@@ -38,7 +39,10 @@ int main(int argc, char *argv[]) {
 
         assert_se((fd = mkostemp(template, O_RDWR|O_CREAT|O_EXCL)) >= 0);
         assert_se(unlink(template) >= 0);
-        assert_se(fallocate(fd, 0, 0, page_size() * 8) >= 0);
+        ret = fallocate(fd, 0, 0, page_size() * 8);
+        if (ret < 0 && errno == EOPNOTSUPP)
+                return EXIT_TEST_SKIP;
+        assert_se(ret >= 0);
 
         p = mmap(NULL, page_size() * 16, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
         assert_se(p != MAP_FAILED);
