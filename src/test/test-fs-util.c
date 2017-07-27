@@ -112,7 +112,7 @@ static void test_chase_symlinks(void) {
 
         result = mfree(result);
         r = chase_symlinks("/etc/issue/foo", NULL, &result);
-        assert_se(r == -ENOTDIR);
+        assert_se(r == -ENOTDIR || r == -ENOENT);
 
         result = mfree(result);
         p = strjoina(temp, "/recursive-symlink");
