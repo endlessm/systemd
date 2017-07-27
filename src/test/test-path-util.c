@@ -202,17 +202,6 @@ static void test_path_join(void) {
         test_join(NULL, "/", NULL, "/");
 }
 
-static void test_fsck_exists(void) {
-        /* Ensure we use a sane default for PATH. */
-        unsetenv("PATH");
-
-        /* fsck.minix is provided by util-linux and will probably exist. */
-        assert_se(fsck_exists("minix") == 1);
-
-        assert_se(fsck_exists("AbCdE") == 0);
-        assert_se(fsck_exists("/../bin/") == 0);
-}
-
 static void test_make_relative(void) {
         char *result;
 
@@ -554,7 +543,6 @@ int main(int argc, char **argv) {
         test_find_binary(argv[0]);
         test_prefixes();
         test_path_join();
-        test_fsck_exists();
         test_make_relative();
         test_strv_resolve();
         test_path_startswith();
