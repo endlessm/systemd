@@ -12,6 +12,7 @@ DefaultDependencies=no
 Wants=systemd-readahead-done.timer
 Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
+After=var.mount
 ConditionPathExists=!/run/systemd/readahead/cancel
 ConditionPathExists=!/run/systemd/readahead/done
 ConditionVirtualization=no
