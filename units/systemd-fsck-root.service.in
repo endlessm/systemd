@@ -14,7 +14,6 @@ DefaultDependencies=no
 Conflicts=shutdown.target
 Before=local-fs.target shutdown.target
 Wants=systemd-fsckd.socket
-After=systemd-readahead-collect.service systemd-readahead-replay.service
 After=systemd-fsckd.socket
 ConditionPathIsReadWrite=!/
 ConditionPathExists=!/run/initramfs/fsck-root
