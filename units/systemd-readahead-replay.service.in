@@ -11,6 +11,7 @@ Documentation=man:systemd-readahead-replay.service(8)
 DefaultDependencies=no
 Conflicts=shutdown.target
 Before=sysinit.target shutdown.target
+After=var.mount
 ConditionPathExists=!/run/systemd/readahead/noreplay
 ConditionPathExists=/var/readahead
 ConditionVirtualization=no
