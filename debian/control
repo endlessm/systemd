@@ -133,7 +133,6 @@ Description: systemd container/nspawn tools
  This package provides systemd's tools for nspawn and container/VM management:
   * systemd-nspawn
   * systemd-machined and machinectl
-  * systemd-importd
 
 Package: systemd-coredump
 Architecture: linux-any
