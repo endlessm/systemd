@@ -32,7 +32,6 @@ fi
 if [ -z "$2" ]; then
     systemctl enable getty@tty1.service || true
     systemctl enable remote-fs.target || true
-    systemctl enable systemd-timesyncd.service || true
 fi
 
 # Enable ondemand by default on new installs
@@ -104,8 +103,6 @@ if dpkg --compare-versions "$2" lt-nl "239-6"; then
 fi
 
 adduser --quiet --system --group --no-create-home --home /run/systemd \
-    --gecos "systemd Time Synchronization" systemd-timesync
-adduser --quiet --system --group --no-create-home --home /run/systemd \
     --gecos "systemd Resolver" systemd-resolve
 
 # Remove old state directory of systemd-timesyncd
@@ -124,7 +121,6 @@ if [ -n "$2" ]; then
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
     _systemctl try-restart systemd-resolved.service || true
-    _systemctl try-restart systemd-timesyncd.service || true
     _systemctl try-restart systemd-journald.service || true
 fi
 
