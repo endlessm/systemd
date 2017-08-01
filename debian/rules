@@ -49,6 +49,7 @@ CONFFLAGS = \
 	--disable-microhttpd \
 	--disable-silent-rules \
 	--disable-libcurl \
+	--disable-importd \
 	--with-ntp-servers="$(DEFAULT_NTP_SERVERS)"  \
 	--with-system-uid-max=999 \
 	--with-system-gid-max=999
@@ -66,7 +67,6 @@ CONFFLAGS_deb += \
 	--enable-coredump \
 	--enable-elfutils \
 	--disable-apparmor \
-	--enable-importd \
 	--enable-gnutls
 else
 CONFFLAGS_deb += \
@@ -75,7 +75,6 @@ CONFFLAGS_deb += \
 	--disable-coredump \
 	--disable-elfutils \
 	--disable-apparmor \
-	--disable-importd \
 	--disable-gnutls
 endif
 
@@ -97,7 +96,6 @@ CONFFLAGS_udeb = \
 	--disable-backlight \
 	--disable-logind \
 	--disable-machined \
-	--disable-importd \
 	--disable-gnutls \
 	--disable-hostnamed \
 	--disable-timedated \
