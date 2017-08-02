@@ -1,1 +1,2 @@
 interest-noawait /lib/udev/hwdb.d
+activate update-initramfs
