@@ -6,6 +6,7 @@
 disable systemd-timesyncd.service
 disable systemd-networkd.service
 disable systemd-resolved.service
+disable systemd-networkd-wait-online.service
 
 # Disable other unwanted units
 disable bluetooth-init.service
