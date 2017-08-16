@@ -10,6 +10,10 @@ disable systemd-resolved.service
 # Disable other unwanted units
 disable bluetooth-init.service
 disable eos-firewall-localonly.service
+disable eos-update-server.service
+disable eos-update-server.socket
+disable eos-updater-avahi.path
+disable eos-updater-avahi.service
 disable NetworkManager-wait-online.service
 disable rtkit-daemon.service
 disable serial-getty@.service
