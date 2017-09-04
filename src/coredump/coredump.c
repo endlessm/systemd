@@ -28,6 +28,8 @@
 #include <elfutils/libdwfl.h>
 #endif
 
+#include <eosmetrics/eosmetrics.h>
+
 #include "sd-daemon.h"
 #include "sd-journal.h"
 #include "sd-login.h"
@@ -671,6 +673,8 @@ static int change_uid_gid(const char *context[]) {
         return drop_privileges(uid, gid, 0);
 }
 
+#define PROGRAM_DUMPED_CORE_EVENT "ed57b607-4a56-47f1-b1e4-5dc3e74335ec"
+
 static int submit_coredump(
                 const char *context[_CONTEXT_MAX],
                 struct iovec *iovec,
@@ -774,6 +778,10 @@ log:
         r = sd_journal_sendv(iovec, n_iovec);
         if (r < 0)
                 return log_error_errno(r, "Failed to log coredump: %m");
+
+        emtr_event_recorder_record_event_sync (emtr_event_recorder_get_default (),
+                                               PROGRAM_DUMPED_CORE_EVENT,
+                                               NULL);
 
         return 0;
 }

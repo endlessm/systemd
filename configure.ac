@@ -385,6 +385,17 @@ AS_IF([test "x$have_utmp" = "xyes"], [AC_DEFINE(HAVE_UTMP, 1, [Define if utmp/wt
 AM_CONDITIONAL([HAVE_UTMP], [test "x$have_utmp" = "xyes"])
 
 # ------------------------------------------------------------------------------
+have_dbus=no
+AC_ARG_ENABLE(eosmetrics, AS_HELP_STRING([--disable-eosmetrics], [disable usage of eosmetrics in tests]))
+AS_IF([test "x$enable_eosmetrics" != "xno"], [
+        PKG_CHECK_MODULES(EOSMETRICS, [eosmetrics-0],
+                [AC_DEFINE(HAVE_EOSMETRICS, 1, [Define if eosmetrics library is available]) have_eosmetrics=yes],
+                [have_eosmetrics=no])
+        AS_IF([test "x$have_eosmetrics" = "xno" -a "x$enable_eosmetrics" = "xyes"],
+                [AC_MSG_ERROR([*** eosmetrics support requested but libraries not found])])])
+AM_CONDITIONAL(HAVE_DBUS, [test "$have_eosmetrics" = "yes"])
+
+# ------------------------------------------------------------------------------
 have_coverage=no
 AC_ARG_ENABLE(coverage, AS_HELP_STRING([--enable-coverage], [enable test coverage]))
 if test "x$enable_coverage" = "xyes" ; then
