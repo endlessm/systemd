@@ -4580,11 +4580,13 @@ systemd_coredump_SOURCES = \
 
 systemd_coredump_CFLAGS = \
 	$(AM_CFLAGS) \
-	$(ACL_CFLAGS)
+	$(ACL_CFLAGS) \
+	$(EOSMETRICS_CFLAGS)
 
 systemd_coredump_LDADD = \
 	libsystemd-shared.la \
-	$(ACL_LIBS)
+	$(ACL_LIBS) \
+	$(EOSMETRICS_LIBS)
 
 if HAVE_ELFUTILS
 systemd_coredump_SOURCES += \
