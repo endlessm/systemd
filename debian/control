@@ -80,6 +80,7 @@ Breaks: lvm2 (<< 2.02.104-1),
         ifupdown (<< 0.8.5~),
         udev (<< 228-5),
         laptop-mode-tools (<< 1.68~),
+        eos-boot-helper (<= 1+dev257.069d46c),
         ${Breaks:rcs-compat}
 Replaces: udev (<< 228-5),
 Description: system and service manager
