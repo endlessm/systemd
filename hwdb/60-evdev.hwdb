@@ -270,6 +270,15 @@ evdev:name:AlpsPS/2 ALPS GlidePoint:dmi:*svnLENOVO:*pvrLenovoYoga500-14ISK*
  EVDEV_ABS_36=103:1959:26
 
 #########################################
+# Positivo
+#########################################
+
+# Positivo EC10IS1 classmate
+evdev:input:b0003v22B9p0005*
+ EVDEV_ABS_00=::18
+ EVDEV_ABS_01=::34
+
+#########################################
 # Samsung
 #########################################
 
