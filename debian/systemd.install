@@ -3,6 +3,7 @@ bin/systemctl
 bin/journalctl
 bin/loginctl
 bin/machinectl
+bin/networkctl
 bin/systemd-notify
 bin/systemd-tty-ask-password-agent
 bin/systemd-ask-password
@@ -11,6 +12,7 @@ bin/systemd-tmpfiles
 bin/systemd-inhibit
 bin/systemd-escape
 bin/systemd-sysusers
+lib/modprobe.d/
 lib/systemd/
 lib/udev/rules.d/70-uaccess.rules
 lib/udev/rules.d/73-seat-late.rules
@@ -28,12 +30,14 @@ usr/bin/systemd-run
 usr/bin/systemd-path
 usr/bin/systemd-socket-activate
 usr/bin/systemd-mount
+usr/bin/systemd-umount
 usr/bin/kernel-install
 usr/bin/bootctl
 usr/bin/busctl
 usr/bin/timedatectl
 usr/bin/localectl
 usr/bin/hostnamectl
+usr/bin/systemd-resolve
 usr/share/man/man1/
 usr/share/man/man5/
 usr/share/man/man7/
@@ -47,6 +51,7 @@ usr/share/polkit-1/
 usr/share/systemd/kbd-model-map
 usr/share/systemd/language-fallback-map
 usr/lib/binfmt.d/
+usr/lib/environment.d/
 usr/lib/modules-load.d/
 usr/lib/sysctl.d/
 # FIXME: ship this once we generate a proper Debianized basic.conf
@@ -60,5 +65,6 @@ var/lib
 ../../extra/tmpfiles.d/*.conf usr/lib/tmpfiles.d/
 ../../extra/systemd-sysv-install lib/systemd/
 ../../extra/units/* lib/systemd/system/
+../../extra/dhclient-exit-hooks.d/ etc/dhcp/
 ../../extra/kernel-install.d/* usr/lib/kernel/install.d
 ../../extra/pam.d etc/

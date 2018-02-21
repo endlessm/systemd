@@ -1,4 +1,302 @@
-systemd (232-25+deb9u1) stretch; urgency=medium
+systemd (236-3) unstable; urgency=medium
+
+  * Revert "core/execute: RuntimeDirectory= or friends requires mount
+    namespace"
+    This was making mounts from SSH sessions invisible to the system.
+    (Closes: #885325)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Jan 2018 16:46:04 +0100
+
+systemd (236-2) unstable; urgency=medium
+
+  * Downgrade priority of libudev1 to optional.
+    This makes it compliant with recent versions of debian-policy which
+    recommends to use priority optional for library packages.
+  * Clarify NEWS entry about removal of system users.
+    Mention in the recent NEWS entry that the associated system groups
+    should be removed as well. (Closes: #885061)
+  * cryptsetup-generator: Don't mistake NULL input as OOM.
+    Fixes systemd-cryptsetup-generator failing to run during boot.
+    (Closes: #885201)
+  * analyze: Use normal bus connection for "plot" verb.
+    Fixes "systemd-analyze plot" failing to run as root. (Closes: #884506)
+  * Stop re-enabling systemd services on every upgrade.
+    This was done so changes to the [Install] section would be applied on
+    upgrades. Forcefully re-enabling a service might overwrite local
+    modifications though and thus far, none of the affected services did
+    actually change its [Install] section. So remove this code from the
+    maintainer scripts as it was apparently doing more harm then good.
+    (Closes: #869354)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 02 Jan 2018 00:35:14 +0100
+
+systemd (236-1) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/tests/upstream: Only show ≥ warning in journal dumps.
+    Showing the entire debug log is too hard to scan visually, and most of
+    the time the warnings and errors are sufficient to explain a failure.
+    Put the journal files into the artifacts though, in case the debug
+    information is necessary.
+
+  [ Michael Biebl ]
+  * New upstream version 236
+    - nspawn: Adjust path to static resolv.conf to support split usr.
+      (Closes: #881310)
+    - networkd: Don't stop networkd if CONFIG_FIB_RULES=n in kernel.
+      (Closes: #881823)
+    - core: Fix segfault in compile_bind_mounts() when BindPaths= or
+      BindReadOnlyPaths= is set. (Closes: #883380)
+    - meson: Link NSS modules with -z nodelete to fix memory leak in
+      nss-systemd. (Closes: #883407)
+    - logind: Make sure we don't acces m->action_what if it's not initialized.
+      (Closes: #882270)
+    - systemctl: Ignore shutdown's "-t" argument. (Closes: #882245)
+    - core: Be more defensive if we can't determine per-connection socket
+      peer. (Closes: #879603)
+    - bpf-firewall: Actually invoke BPF_PROG_ATTACH to check whether
+      cgroup/bpf is available. (Closes: #878965)
+  * Rebase patches
+  * Update symbols file for libsystemd0
+  * Bump Standards-Version to 4.1.2
+  * Clean up old /var/lib/systemd/clock on upgrade.
+    The clock file used by systemd-timesyncd is now stored in
+    StateDirectory=systemd/timesync. (Closes: #883605)
+  * Stop creating systemd-timesync system user.
+    DynamicUser=yes has been enabled for systemd-timesyncd.service so
+    allocating a system user statically is no longer necessary.
+  * Document removal of systemd-{timesync,journal-gateway,journal-upload} user.
+    We no longer create those system users as the corresponding services now
+    use DynamicUser=yes. Removing those system users automatically is tricky,
+    as the relevant services might be running during upgrade. Add a NEWS
+    entry instead which documents this change.
+  * Revert "udev-rules: Permission changes for /dev/dri/renderD*"
+    This would introduce a new system group "render". As the name is rather
+    generic, this needs further discussion first, so revert this change for
+    now.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 17 Dec 2017 21:45:51 +0100
+
+systemd (235-3) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Switch from XC-Package-Type to Package-Type. As of dpkg-dev 1.15.7
+    Package-Type is recognized as an official field name.
+  * Install modprobe configuration file to /lib/modprobe.d.
+    Otherwise it is not read by kmod. (Closes: #879191)
+
+  [ Felipe Sateler ]
+  * Backport upstream (partial) fix for combined DynamicUser= + User=
+    UID was not allowed to be different to GID, which is normally the case in
+    debian, due to the group users being allocated the GID 100 without an
+    equivalent UID 100 being allocated.
+  * Backport upstream patches to fully make DynamicUser=yes + static,
+    pre-existing User= work.
+
+  [ Martin Pitt ]
+  * Add missing python3-minimal dependency to systemd-tests
+  * Drop long-obsolete systemd-bus-proxy system user
+    systemd-bus-proxy hasn't been shipped since before stretch and never
+    created any files. Thus clean up the obsolete system user on upgrades.
+    (Closes: #878182)
+  * Drop static systemd-journal-gateway system user
+    systemd-journal-gatewayd.service now uses DynamicUser=, so we don't need
+    to create this statically any more. Don't remove the user on upgrades
+    though, as there is likely still be a running process. (Closes: #878183)
+  * Use DynamicUser= for systemd-journal-upload.service.
+  * Add Recommends: libnss-systemd to systemd-sysv.
+    This is useful to actually be able to resolve dynamically created system
+    users with DynamicUser=true. This concept is going to be used much more
+    in future versions and (hopefully) third-party .services, so pulling it
+    into the default installation seems prudent now.
+  * resolved: Fix loop on packets with pseudo dns types.
+    (CVE-2017-15908, Closes: #880026, LP: #1725351)
+  * bpf-firewall: Properly handle kernels without BPF cgroup but with TRIE maps.
+    Fixes "Detaching egress BPF: Invalid argument" log spam. (Closes: #878965)
+  * Fix MemoryDenyWriteExecution= bypass with pkey_mprotect() (LP: #1725348)
+
+ -- Martin Pitt <mpitt@debian.org>  Wed, 15 Nov 2017 09:34:00 +0100
+
+systemd (235-2) unstable; urgency=medium
+
+  * Revert "tests: when running a manager object in a test, migrate to private
+    cgroup subroot first"
+    This was causing test suite failures when running inside a chroot.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 11 Oct 2017 00:46:07 +0200
+
+systemd (235-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 235
+    - cryptsetup-generator: use remote-cryptsetup.target when _netdev is
+      present (Closes: #852534)
+    - tmpfiles: change btmp mode 0600 → 0660 (Closes: #870638)
+    - networkd: For IPv6 addresses do not treat IFA_F_DEPRECATED as not ready
+      (Closes: #869995)
+    - exec-util,conf-files: skip non-executable files in execute_directories()
+      (Closes: #867902)
+    - man: update udevadm -y/--sysname-match documentation (Closes: #865081)
+    - tmpfiles: silently ignore any path that passes through autofs
+      (Closes: #805553)
+    - shared: end string with % if one was found at the end of a expandible
+      string (Closes: #865450)
+  * Refresh patches
+  * Bump Build-Depends on libmount-dev to (>= 2.30)
+  * Install new modprobe.d config file
+  * Bump Standards-Version to 4.1.1
+
+  [ Martin Pitt ]
+  * Merge logind-kill-off autopkgtest into logind test.
+    This was horribly inefficient as a separate test (from commit
+    6bd0dab41e), as that cost two VM resets plus accompanying boots; and
+    this does not change any state thus does not require this kind of
+    isolation.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 10 Oct 2017 18:29:28 +0200
+
+systemd (234-3) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * Various fixes for the upstream autopkgtest.
+
+  [ Felipe Sateler ]
+  * Add fdisk to the dependencies of the upstream autopkgtest.
+    The upstream autopkgtest uses sfdisk, which is now in the non-essential
+    fdisk package. (Closes: #872119)
+  * Disable nss-systemd on udeb builds
+  * Correctly disable resolved on udeb builds
+  * Help fix collisions in libsystemd-shared symbols by versioning them.
+    Backport upstream patch to version the symbols provided in the private
+    library, so that they cannot confuse unversioned pam modules or libraries
+    linked into them. (Closes: #873708)
+
+  [ Dimitri John Ledkov ]
+  * Cherrypick upstream networkd-test.py assertion/check fixes.
+    This resolves ADT test suite failures, when running tests under lxc/lxd
+    providers.
+  * Cherrypick arm* seccomp fixes.
+    This should resolve ADT test failures, on arm64, when running as root.
+  * Disable KillUserProcesses, yet again, with meson this time.
+  * initramfs-tools: trigger udevadm add actions with subsystems first.
+    This updates the initramfs-tools init-top udev script to trigger udevadm
+    actions with type specified. This mimics the systemd-udev-trigger.service.
+    Without type specified only devices are triggered, but triggering
+    subsystems may also be required and should happen before triggering the
+    devices. This is the case for example on s390x with zdev generated udev
+    rules. (LP: #1713536)
+
+  [ Michael Biebl ]
+  * (Re)add --quiet flag to addgroup calls.
+    This is now safe with adduser having been fixed to no longer suppress
+    fatal error messages if --quiet is used. (Closes: #837871)
+  * Switch back to default GCC (Closes: #873661)
+  * Drop systemd-timesyncd.service.d/disable-with-time-daemon.conf.
+    All major NTP implementations ship a native service file nowadays with a
+    Conflicts=systemd-timesyncd.service so this drop-in is no longer
+    necessary. (Closes: #873185)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 04 Sep 2017 00:17:00 +0200
+
+systemd (234-2.3) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Also switch to g++-6 temporarily (needed for some tests):
+    - Add g++-6 to Build-Depends
+    - Export CXX = g++-6
+
+ -- Cyril Brulebois <kibi@debian.org>  Thu, 24 Aug 2017 02:40:53 +0200
+
+systemd (234-2.2) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Switch to gcc-6 on all architectures, working around an FTBFS on mips64el,
+    apparently due to a gcc-7 bug (See: #871514):
+    - Add gcc-6 to Build-Depends in debian/control
+    - Export CC = gcc-6 in debian/rules
+
+ -- Cyril Brulebois <kibi@debian.org>  Wed, 23 Aug 2017 22:53:09 +0000
+
+systemd (234-2.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Fix missing 60-input-id.rules in udev-udeb, which breaks the graphical
+    version of the Debian Installer, as no key presses or mouse events get
+    processed (Closes: #872598).
+
+ -- Cyril Brulebois <kibi@debian.org>  Wed, 23 Aug 2017 20:41:33 +0200
+
+systemd (234-2) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * udev README.Debian: Fix name of example *.link file
+
+  [ Felipe Sateler ]
+  * test-condition: Don't assume that all non-root users are normal users.
+    Automated builders may run under a dedicated system user, and this test
+    would fail that.
+
+  [ Michael Biebl ]
+  * Revert "units: Tell login to preserve environment"
+    Environment=LANG= LANGUAGE= LC_CTYPE= ... as used in the getty units is
+    not unsetting the variables but instead sets it to an empty var. Passing
+    that environment to login messes up the system locale settings and
+    breaks programs like gpg-agent.
+    (Closes: #868695)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 20 Jul 2017 15:13:42 +0200
+
+systemd (234-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 234
+    - tmpfiles: Create /var/log/lastlog if it does not exist.
+      (Closes: #866313)
+    - network: Bridge vlan without PVID. (Closes: #859941)
+  * Rebase patches
+  * Switch build system from autotools to meson.
+    Update the Build-Depends accordingly.
+  * Update fsckd patch for meson
+  * udev autopkgtest: no longer install test-udev binary manually.
+    This is now done by the upstream build system.
+  * Update symbols file for libsystemd0
+  * Update lintian override for systemd-tests.
+    Upstream now installs manual and unsafe tests in subdirectories of
+    /usr/lib/systemd/tests/, so ignore those as well.
+  * Bump Standards-Version to 4.0.0
+  * Change priority of libnss-* packages from extra to optional.
+  * Use UTF-8 locale when building the package.
+    Otherwise meson will be pretty unhappy when trying to process files with
+    unicode characters. Use C.UTF-8 as this locale is pretty much guaranteed
+    to be available everywhere.
+  * Mark test-timesync as manual.
+    The test tries to setup inotify watches for /run/systemd/netif/links
+    which fails in a buildd environment where systemd is not active.
+  * Do not link udev against libsystemd-shared.
+    We ship udev in a separate binary package, so can't use
+    libsystemd-shared, which is part of the systemd binary package.
+  * Avoid requiring a "kvm" system group.
+    This group is not universally available and as a result generates a
+    warning during boot. As kvm is only really useful if the qemu package is
+    installed and this package already takes care of setting up the proper
+    permissions for /dev/kvm, drop this rule from 50-udev-default.rules.
+
+  [ Martin Pitt ]
+  * udev README.Debian: Update transitional rules and mention *.link files.
+    - 01-mac-for-usb.link got replaced with 73-usb-net-by-mac.rules
+    - /etc/systemd/network/50-virtio-kernel-names.link is an upgrade
+      transition for VMs with virtio
+    - Describe *.link files as a simpler/less error prone (but also less
+      flexible) way of customizing interface names. (Closes: #868002)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 13 Jul 2017 17:38:28 +0200
+
+systemd (233-10) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * Adjust var-lib-machines.mount target.
+    Upstream PR #6095 changed the location to
+    {remote-fs,machines}.target.wants, so just install all available ones.
 
   [ Dimitri John Ledkov ]
   * Fix out-of-bounds write in systemd-resolved.
@@ -15,81 +313,65 @@ systemd (232-25+deb9u1) stretch; urgency=medium
   * debian/extra/rules: Use updated U2F ruleset.
     This ruleset comes from Yubico's libu2f-host. (Closes: #824532)
 
- -- Michael Biebl <biebl@debian.org>  Wed, 05 Jul 2017 22:31:25 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 03 Jul 2017 18:51:58 +0200
 
-systemd (232-25) unstable; urgency=medium
+systemd (233-9) unstable; urgency=medium
 
   * hwdb: Use path_join() to generate the hwdb_bin path.
     This ensures /lib/udev/hwdb.bin gets the correct SELinux context. Having
     double slashes in the path makes selabel_lookup_raw() return the wrong
     context. (Closes: #851933)
-  * selinux: Enable labeling and access checks for unprivileged users.
-    Revert commit that inadvertently broke a lot of SELinux related
-    functionality for both unprivileged users and systemd instances running
-    as MANAGER_USER and instead deal with the auditd issue by checking for
-    the CAP_AUDIT_WRITE capability before opening an audit netlink socket.
-    (Closes: #863800)
-  * Revert "systemd-sysv: Add Conflicts: systemd-shim"
-    Under certain conditions this confuses Jessies's apt which then tries to
-    remove systemd while being the active init system, resulting in a failed
-    dist-upgrade. While this turned out to be a bug in apt, avoid this
-    situation by dropping the Conflicts. (Closes: #854041)
-  * link: Fix offload features initialization.
-    This fixes a regression introduced in v232 which caused TCP
-    segmentation offloads being disabled by default, resulting in
-    significant performance issues under certain conditions. (Closes: #864073)
+  * Drop no longer needed Breaks against usb-modeswitch
+  * Drop Breaks for packages shipping rcS init scripts.
+    This transition was completed in stretch.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 04 Jun 2017 22:58:32 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 19 Jun 2017 15:10:14 +0200
 
-systemd (232-24) unstable; urgency=medium
+systemd (233-8) experimental; urgency=medium
+
+  * Bump debhelper compatibility level to 10
+  * Drop versioned Build-Depends on dpkg-dev.
+    It's no longer necessary as even Jessie ships a new enough version.
+  * timesyncd: don't use compiled-in list if FallbackNTP has been configured
+    explicitly (Closes: #861769)
+  * resolved: fix null pointer p->question dereferencing.
+    This fixes a bug which allowed a remote DoS (daemon crash) via a crafted
+    DNS response with an empty question section.
+    Fixes: CVE-2017-9217 (Closes: #863277)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 29 May 2017 14:12:08 +0200
+
+systemd (233-7) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * basic/journal-importer: Fix unaligned access in get_data_size()
+    (Closes: #862062)
+  * ima: Ensure policy exists before asking the kernel to load it
+    (Closes: #863111)
+  * Add Depends: procps to systemd.
+    It's required by /usr/lib/systemd/user/systemd-exit.service which calls
+    /bin/kill to stop the systemd --user instance. (Closes: #862292)
+  * service: Serialize information about currently executing command
+    (Closes: #861157)
+  * seccomp: Add clone syscall definitions for mips (Closes: #861171)
+
+  [ Dimitri John Ledkov ]
+  * ubuntu: disable dnssec on any ubuntu releases (LP: #1690605)
 
   [ Felipe Sateler ]
   * Specify nobody user and group.
     Otherwise nss-systemd will translate to group 'nobody', which doesn't
     exist on debian systems.
 
-  [ Michael Biebl ]
-  * Add Depends: procps to systemd.
-    It's required by /usr/lib/systemd/user/systemd-exit.service which calls
-    /bin/kill to stop the systemd --user instance. (Closes: #862292)
-  * resolved: fix null pointer p->question dereferencing.
-    This fixes a bug which allowed a remote DoS (daemon crash) via a crafted
-    DNS response with an empty question section.
-    Fixes: CVE-2017-9217 (Closes: #863277)
+ -- Michael Biebl <biebl@debian.org>  Wed, 24 May 2017 12:26:18 +0200
 
- -- Michael Biebl <biebl@debian.org>  Mon, 29 May 2017 16:25:43 +0200
-
-systemd (232-23) unstable; urgency=medium
-
-  [ Michael Biebl ]
-  * journal: fix up syslog facility when forwarding native messages.
-    Native journal messages (_TRANSPORT=journal) typically don't have a
-    syslog facility attached to it. As a result when forwarding the
-    messages to syslog they ended up with facility 0 (LOG_KERN).
-    Apply syslog_fixup_facility() so we use LOG_USER instead. (Closes: #837893)
-  * nspawn: Support ephemeral boots from images (Closes: #858149)
-  * Exclude test binaries from dh_shlibdeps.
-    The test binaries in libsystemd-dev require libsystemd-shared which is
-    shipped in the systemd package. Those test binaries are primarily meant
-    to be run via autopkgtest. As the libsystemd-dev package is not supposed
-    to depend on systemd, exclude the tests from dh_shlibdeps and instead
-    update the autopkgtest dependencies to pull in the systemd package.
-    (Closes: #859152)
+systemd (233-6) experimental; urgency=medium
 
   [ Felipe Sateler ]
-  * Backport patch to make inability to get OS version nonfatal in machinectl.
-    Otherwise machinectl list breaks when there are libvirt machines
-    (Closes: #849316)
-
-  [ Sjoerd Simons ]
-  * init-functions: Only call daemon-reload when planning to redirect.
-    systemctl daemon-reload is a quite a heavy operation, it will re-parse
-    all configuration and re-run all generators. This should only be done
-    when strictly needed. (Closes: #861158)
-
- -- Michael Biebl <biebl@debian.org>  Sat, 29 Apr 2017 21:47:47 +0200
-
-systemd (232-22) unstable; urgency=medium
+  * Backport upstream PR #5531.
+    This delays opening the mdns and llmnr sockets until a network has enabled
+    them. This silences annoying messages when networkd receives such packets
+    without expecting them: Got mDNS UDP packet on unknown scope.
 
   [ Martin Pitt ]
   * resolved: Disable DNSSEC by default on stretch and zesty.
@@ -102,22 +384,29 @@ systemd (232-22) unstable; urgency=medium
     Since v183, udev no longer supports RUN+="socket:". This feature is
     still used by hal, but now generates vast amounts of errors in the
     journal. Thus force the removal of hal by adding a Conflicts to the udev
-    package. This is safe, as hal is long dead and no package depends on it
-    anymore.
+    package. This is safe, as hal is long dead and no longer useful.
+  * Drop systemd-ui Suggests
+    systemd-ui is unmaintained upstream and not particularly useful anymore.
+  * journal: fix up syslog facility when forwarding native messages.
+    Native journal messages (_TRANSPORT=journal) typically don't have a
+    syslog facility attached to it. As a result when forwarding the
+    messages to syslog they ended up with facility 0 (LOG_KERN).
+    Apply syslog_fixup_facility() so we use LOG_USER instead.
+    (Closes: #837893)
+  * Split upstream tests into systemd-tests binary package (Closes: #859152)
+  * Get PACKAGE_VERSION from config.h.
+    This also works with meson and is not autotools specific.
 
-  [ Dimitri John Ledkov ]
-  * Adjust pkgconfig files to point at rootlibdir.
-    The .so symlinks got moved to rootlibdir in v232 so the .pc files for
-    libudev and libsystemd need to be adjusted accordingly. Otherwise we
-    break cross compilation. (LP: #1674201)
+  [ Sjoerd Simons ]
+  * init-functions Only call daemon-reload when planning to redirect
+    systemctl daemon-reload is a quite a heavy operation, it will re-parse
+    all configuration and re-run all generators. This should only be done
+    when strictly needed. (Closes: #861158)
 
- -- Michael Biebl <biebl@debian.org>  Tue, 28 Mar 2017 21:23:30 +0200
+ -- Michael Biebl <biebl@debian.org>  Fri, 28 Apr 2017 21:47:14 +0200
 
-systemd (232-21) unstable; urgency=medium
+systemd (233-5) experimental; urgency=medium
 
-  * resolved: Downgrade "processing query..." message to debug.
-    It doesn't really add much value in normal operation and just spams the
-    log. (Closes: #858197)
   * Do not throw a warning in emergency and rescue mode if plymouth is not
     installed.
     Ideally, plymouth should only be referenced via dependencies, not
@@ -126,22 +415,21 @@ systemd (232-21) unstable; urgency=medium
   * rules: Allow SPARC vdisk devices when identifying CD drives
     (Closes: #858014)
 
- -- Michael Biebl <biebl@debian.org>  Tue, 21 Mar 2017 19:52:17 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 21 Mar 2017 21:00:08 +0100
 
-systemd (232-20) unstable; urgency=medium
+systemd (233-4) experimental; urgency=medium
 
   [ Martin Pitt ]
-  * debian/gbp.conf: Switch to "stretch" branch
-  * udev: Fix /dev/disk/by-path aliases for virtio disks. (Closes: #856558)
-  * udev: Create persistent net names for virtio CCW devices.
-    This only affects s390x as only this has CCW devices. This provides
-    stable network interface names for those and avoids changing the names
-    on updating Stretch to Buster. (Closes: #856559)
+  * udev autopkgtest: Drop obsolete sys.tar.xz fallback.
+    This was only necessary for supporting 232 as well.
+  * root-unittest: Drop obsolete FIXME comment.
+  * Add libpolkit-gobject-1-dev build dep for polkit version detection.
   * Move systemd.link(5) to udev package.
     .link files are being handled by udev, so it should ship the
     corresponding manpage. Bump Breaks/Replaces accordingly. (Closes: #857270)
 
   [ Michael Biebl ]
+  * Restart journald on upgrades (Closes: #851438)
   * Avoid strict DM API versioning.
     Compiling against the dm-ioctl.h header as provided by the Linux kernel
     will embed the DM interface version number. Running an older kernel can
@@ -149,21 +437,68 @@ systemd (232-20) unstable; urgency=medium
     As a workaround, build against a local copy of dm-ioctl.h based on 3.13,
     which is the minimum required version to support DM_DEFERRED_REMOVE.
     (Closes: #856337)
-  * cryptsetup-generator: Run cryptsetup service before swap unit.
-    Otherwise if the cryptsetup service unit and swap unit for a swap
-    device are not strictly ordered, it might happen that the swap unit
-    activates/mounts the swap device before its cryptsetup service unit has
-    a chance to run the 'mkswap' command. (Closes: #787028)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 16 Mar 2017 18:40:16 +0100
+
+systemd (233-3) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * Install D-Bus policy files in /usr
+  * Drop no longer needed maintainer scripts migration code and simplify
+    various version checks
+  * Fix location of installed tests
   * Override package-name-doesnt-match-sonames lintian warning for libnss-*
-  * networkd: Fix size of MTUBytes so that it does not overwrite ARP
+  * Don't ship any symlinks in /etc/systemd/system.
+    Those should be created dynamically via "systemctl enable".
 
-  [ Felipe Sateler ]
-  * git-cherry-pick: Actually use cherry-pick for picking.
-    Use git cherry-pick for picking instead of rebase.
-    This allows using -x flag and thus record the upstream commit that is
-    being picked.
+  [ Martin Pitt ]
+  * root-unittests autopkgtest: Skip test-udev.
+    It has its own autopkgtest and needs some special preparation. At some
+    point that should be merged into root-unittests, but let's quickfix this
+    to unbreak upstream CI.
 
- -- Michael Biebl <biebl@debian.org>  Thu, 16 Mar 2017 17:38:24 +0100
+ -- Michael Biebl <biebl@debian.org>  Fri, 03 Mar 2017 19:49:44 +0100
+
+systemd (233-2) experimental; urgency=medium
+
+  * test: skip instead of fail if crypto kmods are not available.
+    The Debian buildds have module loading disabled, thus AF_ALG sockets are
+    not available during build. Skip the tests that cover those (khash and
+    id128) instead of failing them in this case.
+    https://github.com/systemd/systemd/issues/5524
+
+ -- Martin Pitt <mpitt@debian.org>  Fri, 03 Mar 2017 11:51:25 +0100
+
+systemd (233-1) experimental; urgency=medium
+
+  [ Martin Pitt ]
+  * New upstream release 233:
+    - udev: Remove /run/udev/control on stop to avoid sendsigs to kill
+      udevd. (Closes: #791944)
+    - nspawn: Handle container directory symlinks. (Closes: #805785)
+    - Fix mount units to not become "active" when NFS mounts time out.
+      (Closes: #835810)
+    - hwdb: Rework path/priority comparison when loading files from /etc/
+      vs. /lib. (Closes: #845442)
+    - machinectl: Fix "list" command when failing to determine OS version.
+      (Closes: #849316)
+    - Support tilegx architecture. (Closes: #856306)
+    - systemd-sleep(8): Point out inhibitor interface as better alternative
+      for suspend integration. (Closes: #758279)
+    - journalctl: Improve error message wording when specifying boot
+      offset with ephemeral journal. (Closes: #839291)
+  * Install new systemd-umount and /usr/lib/environment.d/
+  * Use "make install-tests" for shipped unit tests
+  * Switch back to gold linker on mips*
+    Bug #851736 got fixed now.
+  * debian/rules: Drop obsolete SETCAP path
+
+  [ Michael Biebl ]
+  * Drop upstart jobs for udev
+  * Drop /sbin/udevadm compat symlink from udev-udeb and initramfs
+  * Drop Breaks and Replaces from pre-jessie
+
+ -- Martin Pitt <mpitt@debian.org>  Thu, 02 Mar 2017 17:10:09 +0100
 
 systemd (232-19) unstable; urgency=medium
 

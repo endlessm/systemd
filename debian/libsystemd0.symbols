@@ -15,7 +15,10 @@ libsystemd.so.0 libsystemd0 #MINVER#
  LIBSYSTEMD_229@LIBSYSTEMD_229 229
  LIBSYSTEMD_230@LIBSYSTEMD_230 230
  LIBSYSTEMD_231@LIBSYSTEMD_231 231
- LIBSYSTEMD_232@LIBSYSTEMD_232 231-6~
+ LIBSYSTEMD_232@LIBSYSTEMD_232 232
+ LIBSYSTEMD_233@LIBSYSTEMD_233 233
+ LIBSYSTEMD_234@LIBSYSTEMD_234 234
+ LIBSYSTEMD_236@LIBSYSTEMD_236 236
  sd_booted@LIBSYSTEMD_209 0
  sd_bus_add_fallback@LIBSYSTEMD_221 221
  sd_bus_add_fallback_vtable@LIBSYSTEMD_221 221
@@ -140,6 +143,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_message_append_string_memfd@LIBSYSTEMD_221 221
  sd_bus_message_append_string_space@LIBSYSTEMD_221 221
  sd_bus_message_append_strv@LIBSYSTEMD_221 221
+ sd_bus_message_appendv@LIBSYSTEMD_234 234
  sd_bus_message_at_end@LIBSYSTEMD_221 221
  sd_bus_message_close_container@LIBSYSTEMD_221 221
  sd_bus_message_copy@LIBSYSTEMD_221 221
@@ -170,6 +174,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_message_is_method_call@LIBSYSTEMD_221 221
  sd_bus_message_is_method_error@LIBSYSTEMD_221 221
  sd_bus_message_is_signal@LIBSYSTEMD_221 221
+ sd_bus_message_new@LIBSYSTEMD_236 236
  sd_bus_message_new_method_call@LIBSYSTEMD_221 221
  sd_bus_message_new_method_errno@LIBSYSTEMD_221 221
  sd_bus_message_new_method_errnof@LIBSYSTEMD_221 221
@@ -185,6 +190,7 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_message_read_strv@LIBSYSTEMD_221 221
  sd_bus_message_ref@LIBSYSTEMD_221 221
  sd_bus_message_rewind@LIBSYSTEMD_221 221
+ sd_bus_message_seal@LIBSYSTEMD_236 236
  sd_bus_message_set_allow_interactive_authorization@LIBSYSTEMD_221 221
  sd_bus_message_set_auto_start@LIBSYSTEMD_221 221
  sd_bus_message_set_destination@LIBSYSTEMD_221 221
@@ -247,18 +253,18 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_bus_track_add_sender@LIBSYSTEMD_221 221
  sd_bus_track_contains@LIBSYSTEMD_221 221
  sd_bus_track_count@LIBSYSTEMD_221 221
- sd_bus_track_count_name@LIBSYSTEMD_232 231-6~
- sd_bus_track_count_sender@LIBSYSTEMD_232 231-6~
+ sd_bus_track_count_name@LIBSYSTEMD_232 232
+ sd_bus_track_count_sender@LIBSYSTEMD_232 232
  sd_bus_track_first@LIBSYSTEMD_221 221
  sd_bus_track_get_bus@LIBSYSTEMD_221 221
- sd_bus_track_get_recursive@LIBSYSTEMD_232 231-6~
+ sd_bus_track_get_recursive@LIBSYSTEMD_232 232
  sd_bus_track_get_userdata@LIBSYSTEMD_221 221
  sd_bus_track_new@LIBSYSTEMD_221 221
  sd_bus_track_next@LIBSYSTEMD_221 221
  sd_bus_track_ref@LIBSYSTEMD_221 221
  sd_bus_track_remove_name@LIBSYSTEMD_221 221
  sd_bus_track_remove_sender@LIBSYSTEMD_221 221
- sd_bus_track_set_recursive@LIBSYSTEMD_232 231-6~
+ sd_bus_track_set_recursive@LIBSYSTEMD_232 232
  sd_bus_track_set_userdata@LIBSYSTEMD_221 221
  sd_bus_track_unref@LIBSYSTEMD_221 221
  sd_bus_try_close@LIBSYSTEMD_221 221
@@ -322,12 +328,14 @@ libsystemd.so.0 libsystemd0 #MINVER#
  sd_id128_get_boot@LIBSYSTEMD_209 0
  sd_id128_get_invocation@LIBSYSTEMD_232 232
  sd_id128_get_machine@LIBSYSTEMD_209 0
+ sd_id128_get_machine_app_specific@LIBSYSTEMD_233 233
  sd_id128_randomize@LIBSYSTEMD_209 0
  sd_id128_to_string@LIBSYSTEMD_209 0
  sd_is_fifo@LIBSYSTEMD_209 0
  sd_is_mq@LIBSYSTEMD_209 0
  sd_is_socket@LIBSYSTEMD_209 0
  sd_is_socket_inet@LIBSYSTEMD_209 0
+ sd_is_socket_sockaddr@LIBSYSTEMD_233 233
  sd_is_socket_unix@LIBSYSTEMD_209 0
  sd_is_special@LIBSYSTEMD_209 0
  sd_journal_add_conjunction@LIBSYSTEMD_209 0
