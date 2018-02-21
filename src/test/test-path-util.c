@@ -204,31 +204,6 @@ TEST(find_executable_full) {
         assert_se(streq(basename(p), "sh"));
         free(p);
 
-        assert_se(find_executable_full("sh", NULL, NULL, false, &p, NULL) == 0);
-        puts(p);
-        assert_se(streq(basename(p), "sh"));
-        free(p);
-
-        _cleanup_free_ char *oldpath = NULL;
-        p = getenv("PATH");
-        if (p)
-                assert_se(oldpath = strdup(p));
-
-        assert_se(unsetenv("PATH") == 0);
-
-        assert_se(find_executable_full("sh", NULL, NULL, true, &p, NULL) == 0);
-        puts(p);
-        assert_se(streq(basename(p), "sh"));
-        free(p);
-
-        assert_se(find_executable_full("sh", NULL, NULL, false, &p, NULL) == 0);
-        puts(p);
-        assert_se(streq(basename(p), "sh"));
-        free(p);
-
-        if (oldpath)
-                assert_se(setenv("PATH", oldpath, true) >= 0);
-
         assert_se((fd = mkostemp_safe(fn)) >= 0);
         assert_se(fchmod(fd, 0755) >= 0);
 
@@ -441,8 +416,9 @@ TEST(path_extend) {
 }
 
 TEST(fsck_exists) {
-        /* Ensure we use a sane default for PATH. */
-        assert_se(unsetenv("PATH") == 0);
+        /* The build environment might not use the same split-usr approach
+         * as the current build, so lets use the most inclusive PATH. */
+        assert_se(setenv("PATH", DEFAULT_PATH_SPLIT_USR, 1) == 0);
 
         /* fsck.minix is provided by util-linux and will probably exist. */
         assert_se(fsck_exists("minix") == 1);
