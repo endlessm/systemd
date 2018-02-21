@@ -27,7 +27,13 @@ int main(int argc, char *argv[]) {
 
         assert_se(khash_new(&h, "foobar") == -EOPNOTSUPP); /* undefined hash function */
 
-        assert_se(khash_new(&h, "sha256") >= 0);
+        r = khash_new(&h, "sha256");
+        if (r == -EOPNOTSUPP) {
+                puts("sha256 not supported on this kernel, skipping");
+                return EXIT_TEST_SKIP;
+        }
+
+        assert_se(r >= 0);
         assert_se(khash_get_size(h) == 32);
         assert_se(streq(khash_get_algorithm(h), "sha256"));
 
@@ -61,7 +67,13 @@ int main(int argc, char *argv[]) {
 
         h = khash_unref(h);
 
-        assert_se(khash_new_with_key(&h, "hmac(sha256)", "quux", 4) >= 0);
+        r = khash_new_with_key(&h, "hmac(sha256)", "quux", 4);
+        if (r == -EOPNOTSUPP) {
+                puts("hmac(sha256) not supported on this kernel, skipping");
+                return EXIT_TEST_SKIP;
+        }
+
+        assert_se(r >= 0);
         assert_se(khash_get_size(h) == 32);
         assert_se(streq(khash_get_algorithm(h), "hmac(sha256)"));
 
