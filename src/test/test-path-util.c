@@ -251,8 +251,9 @@ static void test_path_join(void) {
 }
 
 static void test_fsck_exists(void) {
-        /* Ensure we use a sane default for PATH. */
-        unsetenv("PATH");
+        /* The build environment might not use the same split-usr approach
+         * as the current build, so lets use the most inclusive PATH. */
+        setenv("PATH", DEFAULT_PATH_SPLIT_USR, 1);
 
         /* fsck.minix is provided by util-linux and will probably exist. */
         assert_se(fsck_exists("minix") == 1);
