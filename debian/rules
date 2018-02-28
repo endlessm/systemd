@@ -104,6 +104,7 @@ CONFFLAGS_deb += \
 	-Daudit=true \
 	-Dlibcryptsetup=true \
 	-Dcoredump=true \
+	-Dreadahead=true \
 	-Delfutils=true \
 	-Dlibidn2=true \
 	-Dlibiptc=true \
