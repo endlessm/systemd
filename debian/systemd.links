@@ -7,8 +7,7 @@
 
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/module-init-tools.service
 /lib/systemd/system/systemd-modules-load.service /lib/systemd/system/kmod.service
-# Don't ship the symlink so the service files know to skip this
-#/etc/modules /etc/modules-load.d/modules.conf
+/etc/modules /etc/modules-load.d/modules.conf
 
 # X server and ICE socket directories are created by /usr/lib/tmpfiles.d/x11.conf
 /dev/null /lib/systemd/system/x11-common.service
@@ -19,9 +18,6 @@
 # /run/nologin is handled by systemd-user-sessions.service
 /dev/null /lib/systemd/system/rmnologin.service
 /dev/null /lib/systemd/system/bootmisc.service
-
-# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=643700
-/dev/null /lib/systemd/system/fuse.service
 
 # Although bootlogd is disabled by default (via /etc/default/bootlogd)
 # by masking them we avoid spawning a shell uselessly thrice during boot.
@@ -85,11 +81,3 @@
 
 # Create a compat symlink as systemd-sysctl no longer reads /etc/sysctl.conf
 /etc/sysctl.conf /etc/sysctl.d/99-sysctl.conf
-
-# Store locale info in just 1 place, but add a compat symlink.
-/etc/locale.conf /etc/default/locale
-
-# Enable readahead
-/lib/systemd/system/systemd-readahead-collect.service /lib/systemd/system/default.target.wants/systemd-readahead-collect.service
-/lib/systemd/system/systemd-readahead-replay.service /lib/systemd/system/default.target.wants/systemd-readahead-replay.service
-/lib/systemd/system/systemd-readahead-drop.service /lib/systemd/system/system-update.target.wants/systemd-readahead-drop.service
