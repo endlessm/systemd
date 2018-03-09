@@ -27,7 +27,18 @@ substs = configuration_data()
 substs.set('PACKAGE_URL',          'https://www.freedesktop.org/wiki/Software/systemd')
 substs.set('PACKAGE_VERSION',      meson.project_version())
 
-conf.set_quoted('CANONICAL_HOST',  host_machine.cpu_family() + '-pc-' + host_machine.system() + '-gnu')
+# Define CANONICAL_HOST with what the old AC_CANONICAL_HOST macro would return:
+#
+# on armhf: "arm-unknown-linux-gnueabihf"
+# on amd64: "x86_64-pc-linux-gnu"
+if host_machine.cpu_family() == 'x86_64'
+        autoconf_vendor = 'pc'
+else
+        autoconf_vendor = 'unknown'
+endif
+dpkg_architecture = find_program('dpkg-architecture')
+deb_host_gnu_system = run_command(dpkg_architecture, '-qDEB_HOST_GNU_SYSTEM').stdout().strip()
+conf.set_quoted('CANONICAL_HOST', host_machine.cpu_family() + '-' + autoconf_vendor + '-' + deb_host_gnu_system)
 
 #####################################################################
 
