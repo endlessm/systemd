@@ -33,6 +33,7 @@ endif
 
 CONFFLAGS = \
 	-Db_lto=true \
+	-Drootprefix=/ \
 	-Drootlibdir=/lib/$(DEB_HOST_MULTIARCH) \
 	-Dsplit-usr=false \
 	-Dquotaon-path=/sbin/quotaon \
@@ -228,10 +229,10 @@ ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
 endif
 
 	# files shipped by systemd
-	rm debian/udev/usr/lib/udev/rules.d/70-uaccess.rules
-	rm debian/udev/usr/lib/udev/rules.d/73-seat-late.rules
-	rm debian/udev/usr/lib/udev/rules.d/71-seat.rules
-	rm debian/udev/usr/lib/udev/rules.d/99-systemd.rules
+	rm debian/udev/lib/udev/rules.d/70-uaccess.rules
+	rm debian/udev/lib/udev/rules.d/73-seat-late.rules
+	rm debian/udev/lib/udev/rules.d/71-seat.rules
+	rm debian/udev/lib/udev/rules.d/99-systemd.rules
 
 	# remove duplicate files shipped by systemd-*/udev
 	echo "Removing duplicate files in systemd package:"
@@ -262,7 +263,7 @@ override_dh_installinit:
 # quasi-essential, so add their dependencies to Pre-Depends
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=753589
 override_dh_shlibdeps:
-	dh_shlibdeps -psystemd -- -dPre-Depends -edebian/systemd/usr/bin/systemctl -dDepends
+	dh_shlibdeps -psystemd -- -dPre-Depends -edebian/systemd/bin/systemctl -dDepends
 	dh_shlibdeps --remaining-packages -Lsystemd
 
 override_dh_makeshlibs:
