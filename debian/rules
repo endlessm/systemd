@@ -33,6 +33,7 @@ endif
 
 CONFFLAGS = \
 	-Db_lto=true \
+	-Drootprefix=/ \
 	-Drootlibdir=/lib/$(DEB_HOST_MULTIARCH) \
 	-Dsplit-usr=false \
 	-Dquotaon-path=/sbin/quotaon \
