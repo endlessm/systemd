@@ -36,6 +36,7 @@ CONFFLAGS = \
 	-Db_pie=true \
 	-Dstatic-libsystemd=true \
 	-Dmode=release \
+	-Drootprefix=/ \
 	-Dversion-tag="$(DEB_VERSION)" \
 	-Dquotaon-path=/usr/sbin/quotaon \
 	-Dquotacheck-path=/usr/sbin/quotacheck \
