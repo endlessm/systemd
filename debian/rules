@@ -36,6 +36,7 @@ CONFFLAGS = \
 	-Db_pie=true \
 	-Dstatic-libsystemd=true \
 	-Dmode=release \
+	-Drootprefix=/ \
 	-Drootlibdir=/usr/lib/$(DEB_HOST_MULTIARCH) \
 	-Dsplit-usr=false \
 	-Dversion-tag="$(DEB_VERSION)" \
