@@ -1464,23 +1464,6 @@ static void initialize_clock(void) {
                 log_info("System time before build time, advancing clock.");
 }
 
-static void initialize_coredump(bool skip_setup) {
-#if ENABLE_COREDUMP
-        if (getpid_cached() != 1)
-                return;
-
-        /* Don't limit the core dump size, so that coredump handlers such as systemd-coredump (which honour the limit)
-         * will process core dumps for system services by default. */
-        if (setrlimit(RLIMIT_CORE, &RLIMIT_MAKE_CONST(RLIM_INFINITY)) < 0)
-                log_warning_errno(errno, "Failed to set RLIMIT_CORE: %m");
-
-        /* But at the same time, turn off the core_pattern logic by default, so that no coredumps are stored
-         * until the systemd-coredump tool is enabled via sysctl. */
-        if (!skip_setup)
-                disable_coredumps();
-#endif
-}
-
 static void do_reexecute(
                 int argc,
                 char *argv[],
