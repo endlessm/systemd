@@ -34,6 +34,11 @@ if [ -z "$2" ]; then
     systemctl enable remote-fs.target || true
 fi
 
+# Enable timesyncd by default on new installs installs and upgrades
+if dpkg --compare-versions "$2" lt "218-11~"; then
+    systemctl enable systemd-timesyncd.service || true
+fi
+
 # Enable ondemand by default on new installs installs and upgrades
 if [ -e /lib/systemd/system/ondemand.service ] && dpkg --compare-versions "$2" lt "231-7~"; then
     systemctl enable ondemand.service || true
@@ -68,11 +73,46 @@ EOF
     fi
 fi
 
+# Do a one-time migration of the RAMTMP setting
+if [ -z "$2" ]; then
+    if [ -f /etc/default/rcS ]; then
+        . /etc/default/rcS
+    fi
+    if [ -f /etc/default/tmpfs ]; then
+        . /etc/default/tmpfs
+    fi
+    if [ "$RAMTMP" = "yes" ]; then
+        # systemctl enable will work even when systemd is not the active PID 1.
+        if [ ! -e /etc/systemd/system/tmp.mount ]; then
+            cp /usr/share/systemd/tmp.mount /etc/systemd/system/tmp.mount
+            systemctl enable tmp.mount || true
+        fi
+    fi
+fi
+
 # Create /etc/machine-id
 systemd-machine-id-setup
 
 # Setup system users and groups
 addgroup --quiet --system systemd-journal
+
+# We need to stop running services before we call adduser
+RESTART=""
+if dpkg --compare-versions "$2" lt-nl "239-6"; then
+    for s in systemd-networkd systemd-timesyncd systemd-resolved ; do
+        if _systemctl -q is-active $s; then
+            _systemctl stop $s
+            RESTART="$s $RESTART"
+        fi
+    done
+fi
+
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Time Synchronization" systemd-timesync
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Network Management" systemd-network
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Resolver" systemd-resolve
 
 # Initial update of the Message Catalogs database
 _update_catalog
@@ -81,7 +121,18 @@ if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
+    _systemctl try-restart systemd-networkd.service || true
+    _systemctl try-restart systemd-resolved.service || true
+    _systemctl try-restart systemd-timesyncd.service || true
     _systemctl try-restart systemd-journald.service || true
+fi
+
+# Restart services which we stopped earlier
+# This needs to run after daemon-rexec
+if dpkg --compare-versions "$2" lt-nl "239-6"; then
+    for s in $RESTART ; do
+        _systemctl start $s
+    done
 fi
 
 # Cleanup hwclock-save.service, which was shipped in jessie.

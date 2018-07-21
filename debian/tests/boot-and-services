@@ -51,6 +51,8 @@ class ServicesTest(unittest.TestCase):
         failed = [f for f in failed if 'thermald' not in f]
         # console-setup.service fails on devices without keyboard (LP: #1516591)
         failed = [f for f in failed if 'console-setup' not in f]
+        # cpi.service fails on s390x
+        failed = [f for f in failed if 'cpi.service' not in f]
         if failed:
             for f in failed:
                 f = f.split()[0]
@@ -115,7 +117,16 @@ class ServicesTest(unittest.TestCase):
         self.active_unit('systemd-udevd')
 
     def test_tmp_mount(self):
-        want_tmp_mount = True
+        # check if we want to mount /tmp in fstab
+        want_tmp_mount = False
+        with open('/etc/fstab') as f:
+            for l in f:
+                try:
+                    if not l.startswith('#') and l.split()[1] in ('/tmp', '/tmp/'):
+                        want_tmp_mount = True
+                        break
+                except IndexError:
+                    pass
 
         # ensure that we actually do/don't have a /tmp mount
         (status, status_out) = subprocess.getstatusoutput('systemctl status tmp.mount')
@@ -253,7 +264,7 @@ class AppArmorTest(unittest.TestCase):
 profile "violator-test" {
   #include <abstractions/base>
 
-  /bin/** rix,
+  /{usr/,}bin/** rix,
   /etc/machine-id r,
 }
 ''')
