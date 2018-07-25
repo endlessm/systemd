@@ -89,7 +89,7 @@ CONFFLAGS = \
 	-Dnobody-user=nobody \
 	-Dnobody-group=nogroup \
 	-Dbump-proc-sys-fs-nr-open=false \
-	-Ddev-kvm-mode=0660 \
+	-Ddev-kvm-mode=0666 \
 	-Dgroup-render-mode=0660
 
 CONFFLAGS_deb = \
