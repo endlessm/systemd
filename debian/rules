@@ -67,6 +67,7 @@ CONFFLAGS = \
 	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Dlink-udev-shared=false \
+	-Ddev-kvm-mode=0666 \
 	-Dsystem-uid-max=999 \
 	-Dsystem-gid-max=999 \
 	-Dnobody-user=nobody \
