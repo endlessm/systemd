@@ -208,9 +208,6 @@ evdev:atkbd:dmi:bvn*:bvr*:bd*:svnASUS:pn*
 evdev:name:Asus WMI hotkeys:dmi:bvn*:bvr*:bd*:svnASUS*:pn*:pvr*
 evdev:name:Eee PC WMI hotkeys:dmi:bvn*:bvr*:bd*:svnASUS*:pn*:pvr*
 evdev:name:Asus Laptop extra buttons:dmi:bvn*:bvr*:bd*:svnASUS*:pn*:pvr*
-evdev:name:Asus Keyboard:dmi:bvn*:bvr*:bd*:svnASUS*:pn*:pvr*
-evdev:name:ASUS Touchpad and G-sensor Custom Media Keys:dmi:bvn*:bvr*:bd*:svnASUS*:pn*:pvr*
- KEYBOARD_KEY_35=screenlock                             # Lock the screen
  KEYBOARD_KEY_6b=f21                                    # Touchpad Toggle
 
 ###########################################################
