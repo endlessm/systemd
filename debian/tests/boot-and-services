@@ -61,12 +61,10 @@ class ServicesTest(unittest.TestCase):
                 subprocess.call(['journalctl', '-b', '-u', f])
             self.assertEqual(failed, [])
 
-    def test_lightdm(self):
-        out = subprocess.check_output(['ps', 'u', '-C', 'lightdm'])
-        self.assertIn(b'lightdm --session', out)
-        out = subprocess.check_output(['ps', 'u', '-C', 'Xorg'])
-        self.assertIn(b':0', out)
-        self.active_unit('lightdm')
+    @unittest.skipUnless(shutil.which('gdm3') is not None, 'gdm3 not found')
+    def test_gdm3(self):
+        subprocess.check_call(['pgrep', '-af', 'gdm-.*-session'])
+        self.active_unit('gdm')
 
     def test_dbus(self):
         out = subprocess.check_output(
@@ -117,7 +115,16 @@ class ServicesTest(unittest.TestCase):
         self.active_unit('systemd-udevd')
 
     def test_tmp_mount(self):
-        want_tmp_mount = True
+        # check if we want to mount /tmp in fstab
+        want_tmp_mount = False
+        with open('/etc/fstab') as f:
+            for l in f:
+                try:
+                    if not l.startswith('#') and l.split()[1] in ('/tmp', '/tmp/'):
+                        want_tmp_mount = True
+                        break
+                except IndexError:
+                    pass
 
         # ensure that we actually do/don't have a /tmp mount
         (status, status_out) = subprocess.getstatusoutput('systemctl status tmp.mount')
@@ -370,34 +377,6 @@ ExecStart=/bin/sleep 500
         self.assertController('cpu,cpuacct')
         subprocess.check_call(['systemctl', 'stop', self.service])
         self.assertNoControllers()
-
-    @unittest.skipIf('TEST_UPSTREAM' in os.environ,
-                     'fix not applied upstream')
-    def test_custom_cgroup_cleanup(self):
-        '''cgroup cleanup does not touch manually created cgroups'''
-
-        # reproduces https://bugs.debian.org/777601
-        self.create_service()
-        os.mkdir('/sys/fs/cgroup/blkio/aux')
-        os.mkdir('/sys/fs/cgroup/perf_event/aux')
-        self.addCleanup(os.rmdir, '/sys/fs/cgroup/blkio/aux')
-        self.addCleanup(os.rmdir, '/sys/fs/cgroup/perf_event/aux')
-        subprocess.check_call(['systemctl', 'start', self.service])
-        self.assertController('systemd')
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/blkio/aux'))
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/perf_event/aux'))
-
-        subprocess.check_call(['systemctl', 'daemon-reload'])
-        time.sleep(1)
-        subprocess.check_call(['systemctl', 'restart', self.service])
-        time.sleep(1)
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/blkio/aux'))
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/perf_event/aux'))
-
-        subprocess.check_call(['systemctl', 'stop', self.service])
-        self.assertNoControllers()
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/blkio/aux'))
-        self.assertTrue(os.path.exists('/sys/fs/cgroup/perf_event/aux'))
 
 
 class SeccompTest(unittest.TestCase):

@@ -78,15 +78,14 @@ Depends: systemd-sysv,
   libpam-systemd,
   xserver-xorg-video-dummy,
   xserver-xorg,
-  lightdm,
-  lightdm-gtk-greeter | lightdm-greeter,
+  gdm3 [!s390x],
   cron,
   network-manager,
   busybox-static,
   apparmor,
   pkg-config,
   python3
-Restrictions: needs-root, isolation-machine, needs-recommends, breaks-testbed
+Restrictions: needs-root, isolation-machine, breaks-testbed
 
 Tests: udev
 Depends: systemd-tests,
@@ -125,7 +124,9 @@ Depends: libsystemd-dev,
   isc-dhcp-client,
   iputils-ping,
   strace,
-  qemu-system-x86 [amd64],
+  qemu-system-x86 [amd64 i386],
+  qemu-system-arm [arm64 armhf],
+  qemu-system-s390x [s390x],
   less,
   pkg-config,
   gcc,
@@ -137,8 +138,10 @@ Depends: libsystemd-dev,
   systemd-coredump,
   fdisk | util-linux (<< 2.29.2-3~),
   netcat-openbsd,
+  socat,
   busybox-static,
   plymouth,
+  e2fsprogs,
 Restrictions: needs-root, allow-stderr, isolation-machine
 
 Tests: boot-smoke
@@ -156,20 +159,28 @@ Depends: libsystemd-dev,
   isc-dhcp-client,
   iputils-ping,
   strace,
-  qemu-system-x86 [amd64],
+  qemu-system-x86 [amd64 i386],
+  qemu-system-arm [arm64 armhf],
+  qemu-system-s390x [s390x],
   less,
   pkg-config,
   gcc,
   libc6-dev | libc-dev,
   make,
+  quota,
   systemd-journal-remote,
   systemd-container,
+  systemd-coredump,
   systemd-sysv,
+  fdisk | util-linux (<< 2.29.2-3~),
+  netcat-openbsd,
+  busybox-static,
+  plymouth,
   network-manager,
   policykit-1,
-  lightdm,
+  gdm3 [!s390x],
   xserver-xorg-video-dummy,
-Restrictions: needs-recommends, needs-root, isolation-container, allow-stderr, breaks-testbed
+Restrictions: needs-root, isolation-container, allow-stderr, breaks-testbed
 
 # NOUPSTREAM: Do not run these tests for upstream builds
 
@@ -177,4 +188,4 @@ Tests: systemd-fsckd
 Depends: systemd-sysv,
   python3,
   plymouth
-Restrictions: needs-root, isolation-machine, needs-recommends, breaks-testbed
+Restrictions: needs-root, isolation-machine, breaks-testbed
