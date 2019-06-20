@@ -1513,8 +1513,39 @@ static void config_entry_add_from_file(
         TAKE_PTR(entry);
 }
 
+static CHAR16 *resolve_link(EFI_FILE *root_dir, CHAR16 *link, CHAR16 *file) {
+  EFI_STATUS err;
+  _cleanup_freepool_ CHAR8 *contents = NULL;
+  _cleanup_freepool_ CHAR16 *linkname = NULL;
+  _cleanup_freepool_ CHAR16 *target = NULL;
+  CHAR16 *out = NULL;
+
+  linkname = AllocatePool(StrSize(link) + StrSize(L".sln"));
+  if (!linkname)
+    return NULL;
+  StrCpy(linkname, link);
+  StrCat(linkname, L".sln");
+
+  err = file_read(root_dir, linkname, 0, 0, &contents, NULL);
+  if (EFI_ERROR(err))
+    return NULL;
+
+  target = xstra_to_str(contents);
+  if (!target)
+    return NULL;
+
+  out = AllocatePool(StrSize(target) + StrSize(file));
+  if (!out)
+    return NULL;
+  StrCpy(out, target);
+  StrCat(out, file);
+
+  return out;
+}
+
 static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
         _cleanup_freepool_ CHAR8 *content = NULL;
+        _cleanup_freepool_ CHAR16 *link = NULL;
         UINTN value;
         EFI_STATUS err;
 
@@ -1532,7 +1563,10 @@ static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
                 .timeout_sec_efivar = TIMEOUT_UNSET,
         };
 
-        err = file_read(root_dir, L"\\loader\\loader.conf", 0, 0, &content, NULL);
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+          link = L"\\loader\\entries";
+        err = file_read(root_dir, link, 0, 0, &content, NULL);
         if (!EFI_ERROR(err))
                 config_defaults_load_from_file(config, content);
 
@@ -1578,12 +1612,16 @@ static void config_load_entries(
         _cleanup_freepool_ EFI_FILE_INFO *f = NULL;
         UINTN f_size = 0;
         EFI_STATUS err;
+        _cleanup_freepool_ CHAR16 *link = NULL;
 
         assert(config);
         assert(device);
         assert(root_dir);
 
-        err = open_directory(root_dir, L"\\loader\\entries", &entries_dir);
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+          link = L"\\loader\\entries";
+        err = open_directory(root_dir, link, &entries_dir);
         if (EFI_ERROR(err))
                 return;
 
