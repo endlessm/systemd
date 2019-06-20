@@ -1442,8 +1442,39 @@ static VOID config_entry_add_from_file(
         config_entry_parse_tries(entry, path, file, L".conf");
 }
 
+static CHAR16 *resolve_link(EFI_FILE *root_dir, CHAR16 *link, CHAR16 *file) {
+  EFI_STATUS err;
+  _cleanup_freepool_ CHAR8 *contents = NULL;
+  _cleanup_freepool_ CHAR16 *linkname = NULL;
+  _cleanup_freepool_ CHAR16 *target = NULL;
+  CHAR16 *out = NULL;
+
+  linkname = AllocatePool(StrSize(link) + StrSize(L".sln"));
+  if (!linkname)
+    return NULL;
+  StrCpy(linkname, link);
+  StrCat(linkname, L".sln");
+
+  err = file_read(root_dir, linkname, 0, 0, &contents, NULL);
+  if (EFI_ERROR(err))
+    return NULL;
+
+  target = stra_to_str(contents);
+  if (!target)
+    return NULL;
+
+  out = AllocatePool(StrSize(target) + StrSize(file));
+  if (!out)
+    return NULL;
+  StrCpy(out, target);
+  StrCat(out, file);
+
+  return out;
+}
+
 static VOID config_load_defaults(Config *config, EFI_FILE *root_dir) {
         _cleanup_freepool_ CHAR8 *content = NULL;
+        _cleanup_freepool_ CHAR16 *link = NULL;
         UINTN sec;
         EFI_STATUS err;
 
@@ -1453,8 +1484,11 @@ static VOID config_load_defaults(Config *config, EFI_FILE *root_dir) {
                 .auto_firmware = TRUE,
                 .random_seed_mode = RANDOM_SEED_WITH_SYSTEM_TOKEN,
         };
-
-        err = file_read(root_dir, L"\\loader\\loader.conf", 0, 0, &content, NULL);
+        link = resolve_link(root_dir, L"\\loader", L"\\loader.conf");
+        if (link)
+          err = file_read(root_dir, link, 0, 0, &content, NULL);
+        else
+          err = file_read(root_dir, L"\\loader\\loader.conf", 0, 0, &content, NULL);
         if (!EFI_ERROR(err))
                 config_defaults_load_from_file(config, content);
 
@@ -1483,7 +1517,12 @@ static VOID config_load_entries(
 
         EFI_FILE_HANDLE entries_dir;
         EFI_STATUS err;
+        _cleanup_freepool_ CHAR16 *link = NULL;
 
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (link)
+          err = uefi_call_wrapper(root_dir->Open, 5, root_dir, &entries_dir, link, EFI_FILE_MODE_READ, 0ULL);
+        else
         err = uefi_call_wrapper(root_dir->Open, 5, root_dir, &entries_dir, L"\\loader\\entries", EFI_FILE_MODE_READ, 0ULL);
         if (!EFI_ERROR(err)) {
                 for (;;) {
