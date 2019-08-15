@@ -20,6 +20,11 @@ static inline int dir_is_empty(const char *path) {
         return dir_is_empty_at(AT_FDCWD, path);
 }
 
+int dir_is_empty_except_efi_at(int dir_fd, const char *path);
+static inline int dir_is_empty_except_efi(const char *path) {
+        return dir_is_empty_except_efi_at(AT_FDCWD, path);
+}
+
 static inline int dir_is_populated(const char *path) {
         int r;
         r = dir_is_empty(path);
