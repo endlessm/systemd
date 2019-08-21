@@ -16,6 +16,30 @@ static const char __attribute__((used)) magic[] = "#### LoaderInfo: systemd-stub
 
 static const EFI_GUID global_guid = EFI_GLOBAL_VARIABLE;
 
+static CHAR16 *whitelist[] = {
+        L"ostree",
+        L"rw",
+        L"quiet",
+        L"splash",
+        L"plymouth.ignore-serial-consoles",
+        L"loglevel",
+        NULL
+};
+
+static BOOLEAN validate_option(CHAR16 *pos, UINTN len)
+{
+        UINTN optlen = 0, i;
+
+        while (optlen < len && pos[optlen] != ' ' && pos[optlen] != '=')
+                optlen++;
+
+        for (i = 0; i < ELEMENTSOF(whitelist); i++)
+                if (StrnCmp(pos, whitelist[i], optlen) == 0)
+                        return TRUE;
+
+        return FALSE;
+}
+
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
         EFI_LOADED_IMAGE *loaded_image;
         _cleanup_freepool_ CHAR8 *b = NULL;
@@ -62,6 +86,43 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
 
         cmdline_len = szs[0];
 
+        /* PAYG: combine options from both the image and the loader configuration */
+        if (loaded_image->LoadOptionsSize > 0 && *(CHAR16 *)loaded_image->LoadOptions > 0x1F) {
+                CHAR8 *line;
+                CHAR16 *options;
+                UINTN max_len, options_len, options_left, i;
+
+                options_len = (loaded_image->LoadOptionsSize / sizeof(CHAR16)) * sizeof(CHAR8);
+                options_left = options_len;
+                max_len = options_len + szs[0] + 1;
+                line = AllocatePool(max_len);
+
+                /* Lose the terminating null byte */
+                cmdline_len--;
+                for (i = 0; i < cmdline_len; i++)
+                        line[i] = cmdline[i];
+
+                options = (CHAR16 *)loaded_image->LoadOptions;
+                for (i = 0; i < options_len; i++) {
+                        BOOLEAN safe;
+
+                        safe = validate_option(&options[i], options_left);
+                        if (safe)
+                                line[cmdline_len++] = ' ';
+
+                        while (i < options_len && options[i] != ' ') {
+                                if (safe)
+                                        line[cmdline_len++] = options[i];
+                                i++;
+                                options_left--;
+                        }
+                }
+                /* Make sure we're terminated */
+                line[cmdline_len++] = '\0';
+                cmdline = line;
+        }
+
+#if 0 /* PAYG: our new behaviour above supercedes this... */
         /* if we are not in secure boot mode, or none was provided, accept a custom command line and replace the built-in one */
         if ((!secure || cmdline_len == 0) && loaded_image->LoadOptionsSize > 0 && *(CHAR16 *)loaded_image->LoadOptions > 0x1F) {
                 CHAR16 *options;
@@ -86,6 +147,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
                 }
 #endif
         }
+#endif /*0*/
 
         /* Export the device path this image is started from, if it's not set yet */
         if (efivar_get_raw(&loader_guid, L"LoaderDevicePartUUID", NULL, NULL) != EFI_SUCCESS)
