@@ -17,6 +17,31 @@
 /* magic string to find in the binary image */
 _used_ _section_(".sdmagic") static const char magic[] = "#### LoaderInfo: systemd-stub " GIT_VERSION " ####";
 
+/* Allowed kernel cmdline options */
+static CHAR16 *allowed_opts[] = {
+        L"ostree",
+        L"rw",
+        L"quiet",
+        L"splash",
+        L"plymouth.ignore-serial-consoles",
+        L"loglevel",
+        NULL
+};
+
+static BOOLEAN validate_option(CHAR16 *pos, UINTN len)
+{
+        UINTN optlen = 0, i;
+
+        while (optlen < len && pos[optlen] != ' ' && pos[optlen] != '=')
+                optlen++;
+
+        for (i = 0; i < ELEMENTSOF(allowed_opts); i++)
+                if (StrnCmp(pos, allowed_opts[i], optlen) == 0)
+                        return TRUE;
+
+        return FALSE;
+}
+
 static EFI_STATUS combine_initrd(
                 EFI_PHYSICAL_ADDRESS initrd_base, UINTN initrd_size,
                 const void *credential_initrd, UINTN credential_initrd_size,
@@ -207,20 +232,40 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
                 cmdline_len = szs[SECTION_CMDLINE];
         }
 
-        /* if we are not in secure boot mode, or none was provided, accept a custom command line and replace the built-in one */
-        if ((!secure_boot_enabled() || cmdline_len == 0) && loaded_image->LoadOptionsSize > 0 &&
-            *(CHAR16 *) loaded_image->LoadOptions > 0x1F) {
-                cmdline_len = (loaded_image->LoadOptionsSize / sizeof(CHAR16)) * sizeof(CHAR8);
-                cmdline = cmdline_owned = xallocate_pool(cmdline_len);
+        /* PAYG: combine options from both the image and the loader configuration */
+        if (loaded_image->LoadOptionsSize > 0 && *(CHAR16 *)loaded_image->LoadOptions > 0x1F) {
+                CHAR8 *line;
+                CHAR16 *options;
+                UINTN max_len, options_len, options_left, i;
 
-                for (UINTN i = 0; i < cmdline_len; i++)
-                        cmdline[i] = ((CHAR16 *) loaded_image->LoadOptions)[i];
+                options_len = (loaded_image->LoadOptionsSize / sizeof(CHAR16)) * sizeof(CHAR8);
+                options_left = options_len;
+                max_len = options_len + szs[0] + 1;
+                line = AllocatePool(max_len);
 
-                /* Let's measure the passed kernel command line into the TPM. Note that this possibly
-                 * duplicates what we already did in the boot menu, if that was already used. However, since
-                 * we want the boot menu to support an EFI binary, and want to this stub to be usable from
-                 * any boot menu, let's measure things anyway. */
-                (void) tpm_log_load_options(loaded_image->LoadOptions);
+                /* Lose the terminating null byte */
+                cmdline_len--;
+                for (i = 0; i < cmdline_len; i++)
+                        line[i] = cmdline[i];
+
+                options = (CHAR16 *)loaded_image->LoadOptions;
+                for (i = 0; i < options_len; i++) {
+                        BOOLEAN safe;
+
+                        safe = validate_option(&options[i], options_left);
+                        if (safe)
+                                line[cmdline_len++] = ' ';
+
+                        while (i < options_len && options[i] != ' ') {
+                                if (safe)
+                                        line[cmdline_len++] = options[i];
+                                i++;
+                                options_left--;
+                        }
+                }
+                /* Make sure we're terminated */
+                line[cmdline_len++] = '\0';
+                cmdline = line;
         }
 
         export_variables(loaded_image);
