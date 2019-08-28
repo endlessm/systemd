@@ -240,6 +240,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
                 CHAR8 *line;
                 CHAR16 *options;
                 UINTN max_len, options_len, options_left, i;
+                BOOLEAN secure = secure_boot_enabled();
 
                 options_len = (loaded_image->LoadOptionsSize / sizeof(CHAR16)) * sizeof(CHAR8);
                 options_left = options_len;
@@ -255,7 +256,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
                 for (i = 0; i < options_len; i++) {
                         BOOLEAN safe;
 
-                        safe = validate_option(&options[i], options_left);
+                        /* If we're not secure booting, all options are ok */
+                        safe = !secure || validate_option(&options[i], options_left);
                         if (safe)
                                 line[cmdline_len++] = ' ';
 
