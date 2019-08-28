@@ -106,7 +106,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *sys_table) {
                 for (i = 0; i < options_len; i++) {
                         BOOLEAN safe;
 
-                        safe = validate_option(&options[i], options_left);
+                        /* If we're not secure booting, all options are ok */
+                        safe = !secure || validate_option(&options[i], options_left);
                         if (safe)
                                 line[cmdline_len++] = ' ';
 
