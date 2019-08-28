@@ -539,6 +539,7 @@ static EFI_STATUS run(EFI_HANDLE image) {
                 char16_t *line;
                 char16_t *options;
                 size_t cmdline_len, max_len, options_len, options_left, i;
+                bool secure = secure_boot_enabled();
 
                 options_len = (loaded_image->LoadOptionsSize / sizeof(char16_t)) * sizeof(char);
                 options_left = options_len;
@@ -556,7 +557,8 @@ static EFI_STATUS run(EFI_HANDLE image) {
                 for (i = 0; i < options_len; i++) {
                         bool safe;
 
-                        safe = validate_option(&options[i], options_left);
+                        /* If we're not secure booting, all options are ok */
+                        safe = !secure || validate_option(&options[i], options_left);
                         if (safe)
                                 line[cmdline_len++] = ' ';
 
