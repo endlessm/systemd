@@ -66,7 +66,7 @@ Section: admin
 Priority: important
 Recommends: dbus
 Suggests: systemd-container,
-          systemd-boot,
+          systemd-boot-signed | systemd-boot,
           policykit-1
 Pre-Depends: ${shlibs:Pre-Depends},
              ${misc:Pre-Depends}
@@ -152,7 +152,9 @@ Section: admin
 Priority: optional
 Depends: ${misc:Depends}
 Breaks: systemd (<< 241+dev69.424bf57-22)
-Replaces: systemd (<< 241+dev69.424bf57-22)
+Replaces: systemd (<< 241+dev69.424bf57-22),
+          systemd-boot-signed
+Conflicts: systemd-boot-signed
 Description: systemd boot loader
  This package provides systemd's boot loader known as systemd-boot. It is a
  simple UEFI boot manager.
