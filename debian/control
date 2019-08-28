@@ -66,6 +66,7 @@ Section: admin
 Priority: important
 Recommends: dbus
 Suggests: systemd-container,
+          systemd-boot,
           policykit-1
 Pre-Depends: ${shlibs:Pre-Depends},
              ${misc:Pre-Depends}
@@ -143,6 +144,18 @@ Description: systemd container/nspawn tools
   * systemd-machined and machinectl
   * systemd-importd
   * systemd-portabled and portablectl
+
+Package: systemd-boot
+Architecture: linux-amd64 linux-i386 linux-arm64
+Multi-Arch: foreign
+Section: admin
+Priority: optional
+Depends: ${misc:Depends}
+Breaks: systemd (<< 241+dev69.424bf57-22)
+Replaces: systemd (<< 241+dev69.424bf57-22)
+Description: systemd boot loader
+ This package provides systemd's boot loader known as systemd-boot. It is a
+ simple UEFI boot manager.
 
 Package: systemd-journal-remote
 Build-Profiles: <!stage1>
