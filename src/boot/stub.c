@@ -1251,6 +1251,7 @@ static EFI_STATUS run(EFI_HANDLE image) {
         cmdline_append_and_measure_smbios(&cmdline, &parameters_measured);
 
         /* PAYG: combine options from both the image and the loader configuration */
+        bool secure = secure_boot_enabled();
         if (loaded_image->LoadOptionsSize > 0 && *(char16_t *)loaded_image->LoadOptions > 0x1F) {
                 char16_t *line;
                 char16_t *options;
@@ -1272,7 +1273,7 @@ static EFI_STATUS run(EFI_HANDLE image) {
                 for (i = 0; i < options_len; i++) {
                         bool safe;
 
-                        safe = validate_option(&options[i], options_left);
+                        safe = !secure || validate_option(&options[i], options_left);
                         if (safe)
                                 line[cmdline_len++] = ' ';
 
