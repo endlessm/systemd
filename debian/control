@@ -63,7 +63,8 @@ Section: admin
 Priority: important
 Recommends: libpam-systemd,
             dbus
-Suggests: systemd-container,
+Suggests: systemd-boot-signed | systemd-boot,
+          systemd-container,
           policykit-1
 Pre-Depends: ${shlibs:Pre-Depends},
              ${misc:Pre-Depends}
@@ -75,7 +76,6 @@ Depends: ${shlibs:Depends},
          adduser,
 Conflicts: consolekit,
            libpam-ck-connector,
-           systemd-signed,
 Breaks: apparmor (<< 2.9.2-1),
         systemd-shim (<< 10-4~),
         ifupdown (<< 0.8.5~),
@@ -84,7 +84,6 @@ Breaks: apparmor (<< 2.9.2-1),
         python-dbusmock (<< 0.18),
         python3-dbusmock (<< 0.18),
 Replaces: udev (<< 228-5),
-          systemd-signed,
 Description: system and service manager
  systemd is a system and service manager for Linux. It provides aggressive
  parallelization capabilities, uses socket and D-Bus activation for starting
@@ -149,6 +148,20 @@ Description: systemd container/nspawn tools
   * systemd-nspawn
   * systemd-machined and machinectl
   * systemd-importd
+
+Package: systemd-boot
+Architecture: linux-amd64 linux-i386 linux-arm64
+Multi-Arch: foreign
+Section: admin
+Priority: optional
+Depends: ${misc:Depends}
+Breaks: systemd (<< 241+dev69.424bf57-22)
+Replaces: systemd (<< 241+dev69.424bf57-22),
+          systemd-boot-signed
+Conflicts: systemd-boot-signed
+Description: systemd boot loader
+ This package provides systemd's boot loader known as systemd-boot. It is a
+ simple UEFI boot manager.
 
 Package: systemd-journal-remote
 Build-Profiles: <!stage1>
