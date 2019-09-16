@@ -239,6 +239,17 @@ if have_gnu_efi
                         install : true,
                         install_dir : bootlibdir)
 
+                # Check to make sure nothing has elided the "Microsoft"
+                # string we injected into systemd-boot
+                if want_tests != 'false'
+                        if tuple[0] == 'systemd_boot.so'
+                                ms_test_sh = find_program('ms_test.sh')
+                                test('Microsoft string present',
+                                     ms_test_sh,
+                                     args : [stub])
+                        endif
+                endif
+
                 set_variable(tuple[0].underscorify(), so)
                 set_variable(tuple[0].underscorify() + '_stub', stub)
         endforeach
