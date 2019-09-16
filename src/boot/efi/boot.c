@@ -20,6 +20,11 @@
 #define EFI_OS_INDICATIONS_BOOT_TO_FW_UI 0x0000000000000001ULL
 #endif
 
+/* Some BIOSes scan the boot loader binary for the string "Microsoft" and
+ * deliver broken ACPI tables if it's not present.
+ */
+const char bios_confuser[] = "Microsoft";
+
 /* magic string to find in the binary image */
 static const char __attribute__((used)) magic[] = "#### LoaderInfo: systemd-boot " GIT_VERSION " ####";
 
