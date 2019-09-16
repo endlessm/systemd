@@ -30,6 +30,11 @@
 
 #define TEXT_ATTR_SWAP(c) EFI_TEXT_ATTR(((c) & 0b11110000) >> 4, (c) & 0b1111)
 
+/* Some BIOSes scan the boot loader binary for the string "Microsoft" and
+ * deliver broken ACPI tables if it's not present.
+ */
+const char bios_confuser[] = "Microsoft";
+
 /* Magic string for recognizing our own binaries */
 _used_ _section_(".sdmagic") static const char magic[] =
         "#### LoaderInfo: systemd-boot " GIT_VERSION " ####";
