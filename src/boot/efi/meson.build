@@ -170,6 +170,17 @@ elif get_option('sbat-distro') != ''
         endif
 endif
 
+                # Check to make sure nothing has elided the "Microsoft"
+                # string we injected into systemd-boot
+                if want_tests != 'false'
+                        if tuple[0] == 'systemd_boot.so'
+                                ms_test_sh = find_program('ms_test.sh')
+                                test('Microsoft string present',
+                                     ms_test_sh,
+                                     args : [stub])
+                        endif
+                endif
+
 efi_config_h = configure_file(
         output : 'efi_config.h',
         configuration : efi_conf)
