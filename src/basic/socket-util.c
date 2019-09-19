@@ -1311,12 +1311,13 @@ int sockaddr_un_set_path(struct sockaddr_un *ret, const char *path) {
         /* Initialize ret->sun_path from the specified argument. This will interpret paths starting with '@' as
          * abstract namespace sockets, and those starting with '/' as regular filesystem sockets. It won't accept
          * anything else (i.e. no relative paths), to avoid ambiguities. Note that this function cannot be used to
-         * reference paths in the abstract namespace that include NUL bytes in the name. */
+         * reference paths in the abstract namespace that include NUL bytes in the name.
+         * NOTE: ! is a downstream hack to allow setting a relative socket path*/
 
         l = strlen(path);
         if (l == 0)
                 return -EINVAL;
-        if (!IN_SET(path[0], '/', '@'))
+        if (!IN_SET(path[0], '/', '@', '!'))
                 return -EINVAL;
         if (path[1] == 0)
                 return -EINVAL;
@@ -1336,7 +1337,10 @@ int sockaddr_un_set_path(struct sockaddr_un *ret, const char *path) {
                 /* Abstract namespace socket */
                 memcpy(ret->sun_path + 1, path + 1, l); /* copy *with* trailing NUL byte */
                 return (int) (offsetof(struct sockaddr_un, sun_path) + l); /* 🔥 *don't* 🔥 include trailing NUL in size */
-
+        } else if (path[0] == '!') {
+                /* Relative socket path - l includes trailing NUL because we skip the first byte */
+                memcpy(ret->sun_path, path + 1, l); /* copy *with* trailing NUL byte */
+                return (int) (offsetof(struct sockaddr_un, sun_path) + l); /* include trailing NUL in size */
         } else {
                 assert(path[0] == '/');
 
