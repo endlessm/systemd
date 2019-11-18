@@ -278,6 +278,7 @@ evdev:input:b0003v049Fp0051*
 ###########################################################
 
 evdev:atkbd:dmi:bvn*:bvr*:bd*:svnCONNEX*:pnCONNEX*L1430:*
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnCONNEX*:pnL1475*:*
  KEYBOARD_KEY_76=f21
 
 ###########################################################
