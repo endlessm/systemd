@@ -32,7 +32,6 @@ MemoryDenyWriteExecute=yes
 RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
-SystemCallArchitectures=native
 LockPersonality=yes
 IPAddressDeny=any
 @SERVICE_WATCHDOG@
