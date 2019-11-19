@@ -37,7 +37,6 @@ RestrictRealtime=yes
 RestrictSUIDSGID=yes
 SystemCallFilter=@system-service @module @raw-io bpf
 SystemCallErrorNumber=EPERM
-SystemCallArchitectures=native
 LockPersonality=yes
 IPAddressDeny=any
 {{SERVICE_WATCHDOG}}
