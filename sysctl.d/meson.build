@@ -3,6 +3,7 @@
 install_data(
         'README',
         '50-default.conf',
+        '51-coredump.conf',
         install_dir : sysctldir)
 
 # Kernel determines PID_MAX_LIMIT by
