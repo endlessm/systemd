@@ -7,7 +7,7 @@ Uploaders: Michael Biebl <biebl@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Martin Pitt <mpitt@debian.org>,
            Felipe Sateler <fsateler@debian.org>
-Standards-Version: 4.2.1
+Standards-Version: 4.4.1
 Rules-Requires-Root: no
 Vcs-Git: https://salsa.debian.org/systemd-team/systemd.git
 Vcs-Browser: https://salsa.debian.org/systemd-team/systemd
@@ -24,10 +24,11 @@ Build-Depends: debhelper (>= 10.4~),
                gnu-efi [amd64 i386 arm64],
                libcap-dev (>= 1:2.24-9~),
                libpam0g-dev,
-               libidn11-dev <!stage1>,
+               libapparmor-dev (>= 2.9.0-3+exp2) <!stage1>,
+               libidn2-dev <!stage1>,
                libiptc-dev <!stage1>,
                libaudit-dev <!stage1>,
-               libdbus-1-dev (>= 1.3.2) <!nocheck>,
+               libdbus-1-dev (>= 1.3.2) <!nocheck> <!noinsttest>,
                libcryptsetup-dev (>= 2:1.6.0) <!stage1>,
                libselinux1-dev (>= 2.1.9),
                libacl1-dev,
@@ -39,6 +40,7 @@ Build-Depends: debhelper (>= 10.4~),
                libcurl4-gnutls-dev <!stage1> | libcurl-dev <!stage1>,
                libmicrohttpd-dev <!stage1>,
                libgnutls28-dev <!stage1>,
+               libpcre2-dev <!stage1>,
                libgcrypt20-dev,
                libkmod-dev (>= 15),
                libblkid-dev (>= 2.24),
@@ -61,10 +63,8 @@ Architecture: linux-any
 Multi-Arch: foreign
 Section: admin
 Priority: important
-Recommends: libpam-systemd,
-            dbus
-Suggests: systemd-boot-signed | systemd-boot,
-          systemd-container,
+Recommends: dbus
+Suggests: systemd-container,
           policykit-1
 Pre-Depends: ${shlibs:Pre-Depends},
              ${misc:Pre-Depends}
@@ -76,14 +76,9 @@ Depends: ${shlibs:Depends},
          adduser,
 Conflicts: consolekit,
            libpam-ck-connector,
-Breaks: apparmor (<< 2.9.2-1),
-        systemd-shim (<< 10-4~),
-        ifupdown (<< 0.8.5~),
-        udev (<< 228-5),
-        laptop-mode-tools (<< 1.68~),
+Breaks: systemd-shim (<< 10-4~),
         python-dbusmock (<< 0.18),
         python3-dbusmock (<< 0.18),
-Replaces: udev (<< 228-5),
 Description: system and service manager
  systemd is a system and service manager for Linux. It provides aggressive
  parallelization capabilities, uses socket and D-Bus activation for starting
@@ -101,20 +96,18 @@ Package: systemd-sysv
 Architecture: linux-any
 Multi-Arch: foreign
 Section: admin
-Priority: required
+Priority: important
 Conflicts: sysvinit-core,
            upstart (<< 1.13.2-0ubuntu10~),
-           upstart-sysv,
-           openrc (<< 0.20.4-2.1),
            file-rc,
            systemd-shim,
 Replaces: sysvinit-core,
           upstart (<< 1.13.2-0ubuntu10~),
-          upstart-sysv,
 Pre-Depends: systemd
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Recommends: libnss-systemd
+Recommends: libpam-systemd,
+            libnss-systemd
 Description: system and service manager - SysV links
  systemd is a system and service manager for Linux. It provides aggressive
  parallelization capabilities, uses socket and D-Bus activation for starting
@@ -141,27 +134,12 @@ Depends: ${shlibs:Depends},
          dbus
 Recommends: btrfs-progs,
             libnss-mymachines,
-Breaks: systemd (<< 224-2)
-Replaces: systemd (<< 224-2)
 Description: systemd container/nspawn tools
  This package provides systemd's tools for nspawn and container/VM management:
   * systemd-nspawn
   * systemd-machined and machinectl
   * systemd-importd
-
-Package: systemd-boot
-Architecture: linux-amd64 linux-i386 linux-arm64
-Multi-Arch: foreign
-Section: admin
-Priority: optional
-Depends: ${misc:Depends}
-Breaks: systemd (<< 241+dev69.424bf57-22)
-Replaces: systemd (<< 241+dev69.424bf57-22),
-          systemd-boot-signed
-Conflicts: systemd-boot-signed
-Description: systemd boot loader
- This package provides systemd's boot loader known as systemd-boot. It is a
- simple UEFI boot manager.
+  * systemd-portabled and portablectl
 
 Package: systemd-journal-remote
 Build-Profiles: <!stage1>
@@ -192,9 +170,8 @@ Depends: ${shlibs:Depends},
          adduser,
          systemd
 Conflicts: core-dump-handler
-Replaces: core-dump-handler, systemd (<< 229-2)
+Replaces: core-dump-handler
 Provides: core-dump-handler
-Breaks: systemd (<< 229-2)
 Description: tools for storing and retrieving coredumps
  This package provides systemd tools for storing and retrieving coredumps:
   * systemd-coredump
@@ -208,6 +185,7 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          systemd (= ${binary:Version}),
          python3,
+Build-Profiles: <!noinsttest>
 Description: tests for systemd
  This package contains the test binaries. Those binaries are primarily used
  for autopkgtest and not meant to be installed on regular user systems.
@@ -216,14 +194,14 @@ Package: libpam-systemd
 Architecture: linux-any
 Multi-Arch: same
 Section: admin
-Priority: required
+Priority: standard
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          systemd (= ${binary:Version}),
          libpam-runtime (>= 1.0.1-6),
          dbus,
-         systemd-shim (>= 10-4~) | systemd-sysv
+         systemd-sysv
 Provides: logind (= ${binary:Version}), default-logind (= ${binary:Version})
 Description: system and service manager - PAM module
  This package contains the PAM module which registers user sessions in
@@ -241,8 +219,6 @@ Priority: optional
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-Breaks: systemd (<< 222-1)
-Replaces: systemd (<< 222-1)
 Description: nss module providing fallback resolution for the current hostname
  This package contains a plugin for the Name Service Switch, providing host
  name resolution for the locally configured system hostname as returned by
@@ -265,8 +241,6 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          systemd-container (= ${binary:Version}),
-Breaks: systemd (<< 222-1)
-Replaces: systemd (<< 222-1)
 Description: nss module to resolve hostnames for local container instances
  nss-mymachines is a plugin for the GNU Name Service Switch (NSS) functionality
  of the GNU C Library (glibc) providing hostname resolution for local containers
@@ -274,6 +248,22 @@ Description: nss module to resolve hostnames for local container instances
  resolved to IP addresses of the specific container, ordered by their scope.
  .
  Installing this package automatically adds mymachines to /etc/nsswitch.conf.
+
+Package: libnss-resolve
+Architecture: linux-any
+Multi-Arch: same
+Section: admin
+Priority: optional
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         systemd (= ${binary:Version}),
+Description: nss module to resolve names via systemd-resolved
+ nss-resolve is a plugin for the GNU Name Service Switch (NSS) functionality
+ of the GNU C Library (glibc) providing DNS and LLMNR resolution to programs via
+ the systemd-resolved daemon (provided in the systemd package).
+ .
+ Installing this package automatically adds resolve to /etc/nsswitch.conf.
 
 Package: libnss-systemd
 Architecture: linux-any
@@ -326,15 +316,12 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          adduser,
+         dpkg (>= 1.19.3) | systemd-sysv,
          libudev1 (= ${binary:Version}),
-         lsb-base (>= 3.0-6),
          util-linux (>= 2.27.1),
          s390-tools (>> 1.6.2) [s390],
 Conflicts: hal
 Breaks: systemd (<< 233-4),
-        ifupdown (<< 0.8.5~),
-        ifplugd (<< 0.28-19.1~),
-        joystick (<< 1:1.4.9-1~),
 Replaces: systemd (<< 233-4)
 Description: /dev/ and hotplug management daemon
  udev is a daemon which dynamically creates and removes device nodes from

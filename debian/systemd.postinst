@@ -28,14 +28,15 @@ if [ "$1" = "triggered" ]; then
     exit 0
 fi
 
-# Enable getty and remote-fs.target by default on new installs
+# Enable getty, remote-fs.target and timesyncd by default on new installs
 if [ -z "$2" ]; then
     systemctl enable getty@tty1.service || true
     systemctl enable remote-fs.target || true
+    systemctl enable systemd-timesyncd.service || true
 fi
 
-# Enable ondemand by default on new installs installs and upgrades
-if [ -e /lib/systemd/system/ondemand.service ] && dpkg --compare-versions "$2" lt "231-7~"; then
+# Enable ondemand by default on new installs
+if [ -e /lib/systemd/system/ondemand.service ] && [ -z "$2" ]; then
     systemctl enable ondemand.service || true
 fi
 
@@ -68,6 +69,23 @@ EOF
     fi
 fi
 
+# Do a one-time migration of the RAMTMP setting
+if [ -z "$2" ]; then
+    if [ -f /etc/default/rcS ]; then
+        . /etc/default/rcS
+    fi
+    if [ -f /etc/default/tmpfs ]; then
+        . /etc/default/tmpfs
+    fi
+    if [ "$RAMTMP" = "yes" ]; then
+        # systemctl enable will work even when systemd is not the active PID 1.
+        if [ ! -e /etc/systemd/system/tmp.mount ]; then
+            cp /usr/share/systemd/tmp.mount /etc/systemd/system/tmp.mount
+            systemctl enable tmp.mount || true
+        fi
+    fi
+fi
+
 # Create /etc/machine-id
 systemd-machine-id-setup
 
@@ -85,6 +103,13 @@ if dpkg --compare-versions "$2" lt-nl "239-6"; then
     done
 fi
 
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Time Synchronization" systemd-timesync
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Network Management" systemd-network
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Resolver" systemd-resolve
+
 # Remove old state directory of systemd-timesyncd
 if dpkg --compare-versions "$2" lt-nl "240-3~"; then
     if [ -L /var/lib/systemd/timesync ] ; then
@@ -100,6 +125,9 @@ if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
+    _systemctl try-restart systemd-networkd.service || true
+    _systemctl try-restart systemd-resolved.service || true
+    _systemctl try-restart systemd-timesyncd.service || true
     _systemctl try-restart systemd-journald.service || true
 fi
 
@@ -109,14 +137,6 @@ if dpkg --compare-versions "$2" lt-nl "239-6"; then
     for s in $RESTART ; do
         _systemctl start $s
     done
-fi
-
-# Cleanup hwclock-save.service, which was shipped in jessie.
-if dpkg --compare-versions "$2" lt-nl "228-5~"; then
-   for t in reboot halt poweroff ; do
-       rm -f /etc/systemd/system/${t}.target.wants/hwclock-save.service
-       rmdir --ignore-fail-on-non-empty /etc/systemd/system/${t}.target.wants 2> /dev/null || true
-   done
 fi
 
 if dpkg --compare-versions "$2" lt-nl "235-3~"; then

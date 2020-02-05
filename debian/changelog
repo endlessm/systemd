@@ -1,9 +1,498 @@
+systemd (244.1-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 244.1
+    - network: fix segfault in parsing SendOption= (Closes: #946475)
+  * core: don't allow perpetual units to be masked (Closes: #948710)
+
+  [ Balint Reczey ]
+  * debian/watch: Switch to watch tags at github.com/systemd/systemd-stable.
+    Upstream point releases appear there.
+
+  [ Helmut Grohne ]
+  * Add basic support for the noinsttest build profile
+  * Annotate dbus build dependency with <!noinsttest>
+    The dbus library is needed for building tests. As such it must be
+    present unless we disable both build time and installed tests.
+    Previously, building with the nocheck profile worked, but it didn't
+    reproduce a regular build.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 25 Jan 2020 18:53:23 +0100
+
+systemd (244-3) unstable; urgency=medium
+
+  * Update udev-udeb to use 73-usb-net-by-mac.link
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 02 Dec 2019 23:44:52 +0100
+
+systemd (244-2) unstable; urgency=medium
+
+  * Add lintian override for udev.
+    60-autosuspend-chromiumos.rules triggers a udev-rule-missing-subsystem
+    warning. This is a false positive, as SUBSYSTEM is tested at the
+    beginning of the rules file.
+  * Add lintian override for systemd-container
+    systemd-nspawn@.service triggers a
+    systemd-service-file-refers-to-unusual-wantedby-target warning but
+    nspawn containers are supposed to be started via machines.target.
+  * Make it easier to override MAC based name policy for USB network adapters.
+    Replace 73-usb-net-by-mac.rules with 73-usb-net-by-mac.link. The .link
+    file provides the same functionality but makes it easier to set a custom
+    name for USB network adapters via the systemd.link mechanism.
+    Thanks to Benjamin Poirier (Closes: #941636)
+  * Move libpam-systemd Recommends from systemd to systemd-sysv.
+    libpam-systemd is only really useful if systemd is PID 1 and the systemd
+    package should be installable without affecting another installed init
+    system. (Closes: #926316)
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 02 Dec 2019 17:57:55 +0100
+
+systemd (244-1) experimental; urgency=medium
+
+  * New upstream version 244
+    - udev: do not propagate error when executing PROGRAM and IMPORT{program}
+      (Closes: #944675)
+    - sd-event: don't invalidate source type on disconnect
+      (Closes: #945332)
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 30 Nov 2019 16:39:57 +0100
+
+systemd (243-9) unstable; urgency=medium
+
+  [ Daniel Kahn Gillmor ]
+  * resolved: fix connection failures with TLS 1.3 and GnuTLS (Closes: #945507)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 29 Nov 2019 21:33:19 +0100
+
+systemd (243-8) unstable; urgency=medium
+
+  * udevadm: ignore EROFS and return earlier.
+    Fixes failures of "udevadm trigger" in containers with a readonly /sys.
+    (Closes: #944860)
+  * udev: silence warning about PROGRAM+= or IMPORT+= rules (Closes: #944917)
+  * man: add entry about SpeedMeter= (Closes: #944597)
+  * udev: drop SystemCallArchitectures=native from systemd-udevd.service.
+    We can't really control what helper programs are run from other udev
+    rules. E.g. running i386 binaries under amd64 is a valid use case and
+    should not trigger a SIGSYS failure. (Closes: #869719)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 19 Nov 2019 09:17:12 +0100
+
+systemd (243-7) unstable; urgency=medium
+
+  * Fix build failure on arm64 with libseccomp >= 2.4.2
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 15 Nov 2019 22:01:17 +0100
+
+systemd (243-6) unstable; urgency=medium
+
+  * Revert "sysusers: properly mark generated accounts as locked"
+    We shouldn't lock the accounts because people actually need to use them, and
+    if they are locked, various tools will refuse.
+  * udev: ignore error caused by device disconnection.
+    During an add or change event, the device may be disconnected.
+    (Closes: #944586)
+  * udev: do not append newline when writing attributes
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 Nov 2019 14:09:49 +0100
+
+systemd (243-5) unstable; urgency=medium
+
+  * Switch default hierarchy (back) to hybrid.
+    Since v243, the new upstream default is unified, but this still causes
+    regressions in important packages, like LXC or Docker, so switch the
+    default back to hybrid for now.
+  * Drop masks for SysV init scripts that have been dropped
+  * Drop masks for SysV init scripts provided by initscripts and bootlogd
+  * logind: fix emission of PropertiesChanged signal for users and seats
+  * Bump Standards Version to 4.4.1
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 11 Nov 2019 00:58:41 +0100
+
+systemd (243-4) experimental; urgency=medium
+
+   * Merge changes from unstable branch
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 09 Nov 2019 01:15:08 +0100
+
+systemd (243-3) experimental; urgency=medium
+
+  * Import patches from v243-stable branch (up to ef677436aa)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 14 Oct 2019 15:26:01 +0200
+
+systemd (243-2) experimental; urgency=medium
+
+  * Import patches from v243-stable branch (up to fab6f010ac)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 22 Sep 2019 12:46:02 +0200
+
+systemd (243-1) experimental; urgency=medium
+
+  * New upstream version 243
+  * Merge changes from unstable branch
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 05 Sep 2019 01:21:49 +0200
+
+systemd (243~rc2-1) experimental; urgency=medium
+
+  * New upstream version 243~rc2
+    - man: document that "systemd-analyze blame/critical-chain" is not useful
+      to track down job latency. (Closes: #920234)
+    - systemctl: process all units matched by a glob in the cat verb by
+      default. (Closes: #904913)
+    - units: automatically revert to /run logging on shutdown if necessary.
+      Prevents /var staying busy on shutdown due to journald.
+      (Closes: #851402)
+    - bash-completion: don't sort syslog priorities. (Closes: #913222)
+    - man: add example for setting multiple properties at once.
+      (Closes: #807464)
+  * Rebase patches
+  * Update symbols file for libsystemd0
+  * core: stop removing non-existent and duplicate lookup paths
+  * Install static-nodes-permissions.conf tmpfile in udev
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 31 Aug 2019 00:20:41 +0200
+
+systemd (242-8) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * d/extra/rules/73-special-net-names.rules: use $$ instead of $ in PROGRAM=
+    value.
+    Fixes incorrect variable substitution.
+  * Rework and improve blacklist handling in debian/tests/upstream
+
+  [ Balint Reczey ]
+  * Various improvements to debian/extra/checkout-upstream making it more
+    straightforward to override the default behaviour
+  * Use package version as systemd's reported version (LP: #1849158)
+
+  [ Michael Biebl]
+  * debiant/tests/udev: replace deprecated ADTTMP with AUTOPKGTEST_TMP
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 08 Nov 2019 23:18:00 +0100
+
+systemd (242-7) unstable; urgency=medium
+
+  * sleep: properly pass verb to sleep script
+  * core: factor root_directory application out of apply_working_directory.
+    Fixes RootDirectory not working when used in combination with User.
+    (Closes: #939408)
+  * shared/bus-util: drop trusted annotation from
+    bus_open_system_watch_bind_with_description().
+    This ensures that access controls on systemd-resolved's D-Bus interface
+    are enforced properly.
+    (CVE-2019-15718, Closes: #939353)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Sep 2019 19:34:17 +0200
+
+systemd (242-6) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * d/t/control: upstream test requires qemu-system-ppc on ppc64el
+  * d/t/control: install seabios for upstream test.
+    Some archs (at least arm64) qemu implementation require the vga bios.
+
+  [ Michael Biebl ]
+  * Drop unused lintian override
+  * network: fix ListenPort= in [WireGuard] section (Closes: #936198)
+  * d/e/r/73-usb-net-by-mac.rules: import net.ifnames only for network devices
+    (Closes: #934589)
+  * d/e/r/73-usb-net-by-mac.rules: skip if iface name was provided by
+    user-space
+  * Drop dbus activation stub service.
+    Since dbus 1.11.0, a dbus-daemon that is run with --systemd-activation
+    automatically assumes that o.fd.systemd1 is an activatable service.
+    As a result, with a new enough dbus version,
+    /usr/share/dbus-1/services/org.freedesktop.systemd1.service and
+    /usr/share/dbus-1/system-services/org.freedesktop.systemd1.service
+    become unnecessary and can be removed. (Closes: #914015)
+  * Revert "core: check start limit on condition checks too"
+    If a unit was referenced too often, it hit the restart limit and the
+    unit was marked as failed. Fixes a regression introduced in v242.
+    (Closes: #935829)
+
+  [ Michael Prokop ]
+  * README.Debian: document KillUserProcesses behavior in Debian
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Sep 2019 11:09:07 +0200
+
+systemd (242-5) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * d/rules: add CONFFGLAGS_UPSTREAM to dh_auto_configure -- params
+
+  [ Michael Biebl ]
+  * core: never propagate reload failure to service result.
+    Fixes a regression introduced in v239 where the main process of a
+    service unit gets killed on reload if ExecReload fails. (Closes: #936032)
+  * shared/seccomp: add sync_file_range2.
+    Some architectures need the arguments to be reordered because of alignment
+    issues. Otherwise, it's the same as sync_file_range.
+    Fixes sync_file_range failures in nspawn containers on arm, ppc.
+    (Closes: #935091)
+  * bash-completion: don't sort syslog priorities.
+    By default, the available completions are sorted alphabetically, which
+    is counterproductive in case of syslog priorities. Override the default
+    behavior using the `nosort` option. (Closes: #913222)
+  * test-bpf: skip test when run inside containers
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 29 Aug 2019 16:18:18 +0200
+
+systemd (242-4) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Aug 2019 22:09:13 +0200
+
+systemd (242-3) experimental; urgency=medium
+
+  [ Dan Streetman ]
+  * d/t/boot-and-services: fix test_failing()
+  * d/t/boot-and-services: check for any kernel message, not just first kernel
+    message (Closes: #929730)
+  * d/t/upstream: add TEST-30, TEST-34 to blacklist
+  * d/t/timedated: replace systemctl is-active with systemctl show
+  * d/t/control: root-unittests can break networking, add breaks-testbed
+  * d/t/control: mark udev test skippable
+  * d/t/upstream: always cleanup after (and before) each test
+  * d/t/control: upstream test requires dmeventd
+  * d/e/checkout-upstream: don't remove .git
+  * d/e/checkout-upstream: move change to debian/ files above other changes
+  * d/e/checkout-upstream: add UPSTREAM_KEEP_CHANGELOG param
+  * d/e/checkout-upstream: create git commits for each change
+  * d/e/checkout-upstream: switch from 'quilt' to 'native' format
+  * d/e/checkout-upstream: set user.name, user.email if unset
+  * d/t/storage: change plaintext_name to include testname
+  * d/t/storage: increase wait for plaintext_dev from 5 to 30 seconds
+  * d/t/storage: wait for service to start, only stop if active
+  * d/t/storage: don't search for 'scsi_debug' in ask_password
+  * d/t/storage: manage scsi_debug using add_hosts (Closes: #929728)
+  * d/t/storage: use short timeout waiting for scsi_debug block dev to appear
+  * d/t/storage: convert password agent into normal Thread
+  * d/t/storage: fail if socket info not in ask_password contents
+  * d/t/boot-smoke: pass failure reason to fail() to print instead of separate
+    echo
+  * d/t/boot-smoke: in fail() set +e so errors are ignored while gathering
+    data
+  * d/t/boot-smoke: gather still running jobs in fail()
+  * d/t/boot-smoke: wait for is-system-running
+  * d/t/boot-smoke: call fail if pidof polkitd fails
+  * d/t/boot-smoke: remove check for running jobs
+
+  [ Michael Biebl ]
+  * d/t/boot-smoke: check for NetworkManager instead of D-Bus activated
+    polkitd (Closes: #934992)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Aug 2019 00:12:22 +0200
+
+systemd (242-2) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * Drop dependency on lsb-base.
+    It is only needed when booting with sysvinit and initscripts, but
+    initscripts already Depends on lsb-base (see #864999).
+  * Stop removing enablement symlinks in /etc/systemd/system.
+    With v242 this is no longer necessary as `ninja install` will no longer
+    create those symlinks.
+  * Replace manual removal of halt-local.service with upstream patch
+
+  [ Dimitri John Ledkov ]
+  * Build manpages in .deb variant.
+    Upstream snapshots are switching to building manpages off by default.
+
+  [ Luca Boccassi ]
+  * Enable portabled and install related files in systemd-container.
+    Keep disabled for the udeb profile. (Closes: #918606)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 07 Jun 2019 22:41:50 +0200
+
+systemd (242-1) experimental; urgency=medium
+
+  * New upstream version 242
+    - Change ownership/mode of the execution directories also for static users
+      (Closes: #919231)
+    - A new boolean sandboxing option RestrictSUIDSGID= has been added that is
+      built on seccomp. When turned on, creation of SUID/SGID files is
+      prohibited. The NoNewPrivileges= and the new RestrictSUIDSGID= options
+      are now implied if DynamicUser= is turned on for a service.
+      (Closes: #928102, CVE-2019-3843, CVE-2019-3844)
+  * Drop Revert-udev-network-device-renaming-immediately-give.patch.
+    This patch needs ongoing maintenance work to be adapted to new releases
+    and fails to apply with v242. Instead of investing more time into it we
+    are going to drop the patch as it was a hack anyway.
+  * Rebase patches
+  * Drop pre-stretch migration code
+  * Drop /sbin/udevadm compat symlink (Closes: #852580)
+  * socket-util: Make sure flush_accept() doesn't hang on unexpected
+    EOPNOTSUPP
+  * Enable regexp matching support in journalctl using pcre2 (Closes: #898892)
+  * Switch from libidn to libidn2 (Closes: #928615)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 08 May 2019 01:33:56 +0200
+
+systemd (241-7) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * network: Fix failure to bring up interface with Linux kernel 5.2.
+    Backport two patches from systemd master in order to fix a bug with 5.2
+    kernels where the network interface fails to come up with the following
+    error: "enp3s0: Could not bring up interface: Invalid argument"
+    (Closes: #931636)
+  * Use /usr/sbin/nologin as nologin shell.
+    In Debian the nologin shell is installed in /usr/sbin, not /sbin.
+    (Closes: #931850)
+
+  [ Mert Dirik ]
+  * 40-systemd: Don't fail if SysV init script uses set -u and $1 is unset
+    (Closes: #931719)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 18 Jul 2019 19:38:23 +0200
+
+systemd (241-6) unstable; urgency=medium
+
+  * ask-password: Prevent buffer overflow when reading from keyring.
+    Fixes a possible memory corruption that causes systemd-cryptsetup to
+    crash either when a single large password is used or when multiple
+    passwords have already been pushed to the keyring. (Closes: #929726)
+  * Clarify documentation regarding %h/%u/%U specifiers.
+    Make it clear, that setting "User=" has no effect on those specifiers.
+    Also ensure that "%h" is actually resolved to "/root" for the system
+    manager instance as documented in the systemd.unit man page.
+    (Closes: #927911)
+  * network: Behave more gracefully when IPv6 has been disabled.
+    Ignore any configured IPv6 settings when IPv6 has been disabled in the
+    kernel via sysctl. Instead of failing completely, continue and log a
+    warning instead. (Closes: #929469)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 08 Jul 2019 11:27:51 +0200
+
+systemd (241-5) unstable; urgency=medium
+
+  * Revert "Add check to switch VTs only between K_XLATE or K_UNICODE"
+    This change left the keyboard in an unusable state when exiting an X
+    session. (Closes: #929229)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 24 May 2019 22:58:59 +0200
+
+systemd (241-4) unstable; urgency=medium
+
+  * journal-remote: Do not request Content-Length if Transfer-Encoding is
+    chunked (Closes: #927008)
+  * systemctl: Restore "systemctl reboot ARG" functionality.
+    Fixes a regression introduced in v240. (Closes: #928659)
+  * random-util: Eat up bad RDRAND values seen on AMD CPUs.
+    Some AMD CPUs return bogus data via RDRAND after a suspend/resume cycle
+    while still reporting success via the carry flag.
+    Filter out invalid data like -1 (and also 0, just to be sure).
+    (Closes: #921267)
+  * Add check to switch VTs only between K_XLATE or K_UNICODE.
+    Switching to K_UNICODE from other than L_XLATE can make the keyboard
+    unusable and possibly leak keypresses from X.
+    (CVE-2018-20839, Closes: #929116)
+  * Document that DRM render nodes are now owned by group "render"
+    (Closes: #926886)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 17 May 2019 21:16:33 +0200
+
+systemd (241-3) unstable; urgency=high
+
+  [ Michael Biebl ]
+  * Drop systemd-shim alternative from libpam-systemd.
+    A fixed systemd-shim package which works with newer versions of systemd
+    is unlikely to happen given that the systemd-shim package has been
+    removed from the archive. Drop the alternative dependency from
+    libpam-systemd accordingly.
+  * Properly remove duplicate directories from systemd package.
+    When removing duplicate directories from the systemd package, sort the
+    list of directories in reverse order so we properly delete nested
+    directories.
+  * udev: Run programs in the specified order (Closes: #925190)
+  * bash-completion: Use default completion for redirect operators
+    (Closes: #924541)
+  * networkd: Clarify that IPv6 RA uses our own stack, no the kernel's
+    (Closes: #815582)
+  * Revert "Drop systemd-timesyncd.service.d/disable-with-time-daemon.conf"
+    Apparently Conflicts= are not a reliable mechanism to ensure alternative
+    NTP implementations take precedence over systemd-timesyncd.
+    (Closes: #902026)
+  * network: Fix routing policy rule issue.
+    When multiple links request a routing policy, make sure they are all
+    applied correctly. (Closes: #924406)
+  * pam-systemd: Use secure_getenv() rather than getenv()
+    Fixes a vulnerability in the systemd PAM module which insecurely uses
+    the environment and lacks seat verification permitting spoofing an
+    active session to PolicyKit. (CVE-2019-3842)
+
+  [ Martin Pitt ]
+  * Enable udev autopkgtest in containers.
+    This test doesn't actually need udev.service (which is disabled in
+    containers) and works fine in LXC.
+  * Enable boot-and-service autopkgtest in containers
+    - Skip tests which can't work in containers.
+    - Add missing rsyslog test dependency.
+    - e2scrub_reap.service fails in containers, ignore (filed as #926138)
+    - Relax pgrep pattern for gdm, as there's no wayland session in
+      containers.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 08 Apr 2019 12:59:32 +0200
+
+systemd (241-2) unstable; urgency=medium
+
+  [ Martin Pitt ]
+  * debian/tests/boot-smoke: Create journal and udevdb artifacts on all
+    failures
+  * autopkgtests: Replace obsolete $ADT_* variables
+  * networkd-test: Ignore failures of test_route_only_dns* in containers.
+    This test exposes a race condition when running in LXC, see issue #11848
+    for details. Until that is understood and fixed, skip the test as it's
+    not a recent regression. (Closes: #924539)
+  * Bump Standards-Version to 4.3.0.
+    No changes necessary.
+  * debian/tests/boot-smoke: Only check current boot for connection timeouts.
+    Otherwise we'll catch some
+        Failed to resolve group 'render': Connection timed out
+    messages that happen in earlier boots during VM setup, before the
+    "render" group is created.
+    Fixes https://github.com/systemd/systemd/issues/11875
+  * timedated: Fix emitted value when ntp client is enabled/disabled.
+    Fixes a regression introduced in 241.
+  * debian/tests/timedated: Check enabling/disabling NTP.
+    Assert that `timedatectl set-ntp` correctly controls the service, sets
+    the `org.freedesktop.timedate1 NTP` property, and sends the right
+    `PropertiesChanged` signal.
+    This reproduces <https://github.com/systemd/systemd/issues/11944> and
+    also the earlier <https://github.com/systemd/systemd/issues/9672>.
+
+  [ Michael Biebl ]
+  * Disable fallback DNS servers in resolved (Closes: #923081)
+  * cgtop: Fix processing of controllers other than CPU (Closes: #921280)
+  * udev: Restore debug level when logging a failure in the external prog
+    called by IMPORT{program} (Closes: #924199)
+  * core: Remove "." path components from required mount paths.
+    Fixes mount related failures when a user's home directory contains "/./"
+    (Closes: #923881)
+  * udev.init: Use new s-s-d --notify-await to start udev daemon.
+    Fixes a race condition during startup under SysV init.
+    Add versioned dependency on dpkg (>= 1.19.3) to ensure that a version
+    of start-stop-daemon which supports --notify-await is installed.
+    (Closes: #908796)
+  * Make /dev/dri/renderD* accessible to group "render"
+    Follow upstream and make render nodes available to a dedicated system
+    group "render" instead of "video". Keep the uaccess tag for local,
+    active users.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 15 Mar 2019 18:33:54 +0100
+
 systemd (241-1) unstable; urgency=medium
 
   [ Adam Borowski ]
   * Make libpam-systemd Provide: logind, default-logind.
     This allows alternate logind implementations such as elogind, without
-    having to recompile every dependant package -- as long as the client API
+    having to recompile every dependent package -- as long as the client API
     remains compatible.
     These new virtual packages got policy-approved in #917431. (Closes: #915407)
 
