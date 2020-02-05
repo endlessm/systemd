@@ -2,6 +2,7 @@
 
 install_data(
         '50-default.conf',
+        '51-coredump.conf',
         install_dir : sysctldir)
 
 in_files = []
