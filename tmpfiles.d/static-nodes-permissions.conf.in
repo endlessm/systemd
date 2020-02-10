@@ -14,4 +14,4 @@ z /dev/snd/timer    0660 - audio -
 z /dev/loop-control 0660 - disk  -
 z /dev/net/tun      0666 - -     -
 z /dev/fuse         0666 - -     -
-z /dev/kvm          @DEV_KVM_MODE@ - kvm -
+z /dev/kvm          @DEV_KVM_MODE@ - -     -
