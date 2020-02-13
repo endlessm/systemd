@@ -796,9 +796,6 @@ conf.set10('ENABLE_WHEEL_GROUP', get_option('wheel-group'))
 dev_kvm_mode = get_option('dev-kvm-mode')
 substs.set('DEV_KVM_MODE', dev_kvm_mode)
 conf.set10('DEV_KVM_UACCESS', dev_kvm_mode != '0666')
-group_render_mode = get_option('group-render-mode')
-substs.set('GROUP_RENDER_MODE', group_render_mode)
-conf.set10('GROUP_RENDER_UACCESS', group_render_mode != '0666')
 
 kill_user_processes = get_option('default-kill-user-processes')
 conf.set10('KILL_USER_PROCESSES', kill_user_processes)
@@ -3180,7 +3177,6 @@ status = [
         'minimum container UID base:        @0@'.format(container_uid_base_min),
         'maximum container UID base:        @0@'.format(container_uid_base_max),
         '/dev/kvm access mode:              @0@'.format(get_option('dev-kvm-mode')),
-        'render group access mode:          @0@'.format(get_option('group-render-mode')),
         'certificate root directory:        @0@'.format(get_option('certificate-root')),
         'support URL:                       @0@'.format(support_url),
         'nobody user name:                  @0@'.format(nobody_user),
