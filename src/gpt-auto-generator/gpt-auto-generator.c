@@ -487,7 +487,7 @@ static int add_esp(DissectedPartition *p, bool has_xbootldr) {
                              esp_path,
                              p->fstype,
                              true,
-                             "umask=0077",
+                             "umask=0022",
                              "EFI System Partition Automount",
                              120 * USEC_PER_SEC);
 }
