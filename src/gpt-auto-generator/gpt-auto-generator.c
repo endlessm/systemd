@@ -444,7 +444,7 @@ static const char *esp_or_xbootldr_options(const DissectedPartition *p) {
          * use kernel defaults. */
 
         if (!p->fstype || streq(p->fstype, "vfat"))
-                return "umask=0077";
+                return "umask=0022";
 
         return NULL;
 }
