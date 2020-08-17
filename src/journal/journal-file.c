@@ -3411,10 +3411,10 @@ int journal_file_open(
                 .prot = prot_from_flags(flags),
                 .writable = (flags & O_ACCMODE) != O_RDONLY,
 
-#if HAVE_ZSTD
-                .compress_zstd = compress,
-#elif HAVE_LZ4
+#if HAVE_LZ4
                 .compress_lz4 = compress,
+#elif HAVE_ZSTD
+                .compress_zstd = compress,
 #elif HAVE_XZ
                 .compress_xz = compress,
 #endif
@@ -3432,7 +3432,7 @@ int journal_file_open(
         if (r < 0) {
                 if (r != -ENXIO)
                         log_debug_errno(r, "Failed to parse $SYSTEMD_JOURNAL_KEYED_HASH environment variable, ignoring.");
-                f->keyed_hash = true;
+                f->keyed_hash = false;
         } else
                 f->keyed_hash = r;
 
