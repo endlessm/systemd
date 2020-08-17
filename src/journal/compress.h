@@ -18,14 +18,14 @@ int compress_blob_zstd(const void *src, uint64_t src_size,
 static inline int compress_blob(const void *src, uint64_t src_size,
                                 void *dst, size_t dst_alloc_size, size_t *dst_size) {
         int r;
-#if HAVE_ZSTD
-        r = compress_blob_zstd(src, src_size, dst, dst_alloc_size, dst_size);
-        if (r == 0)
-                return OBJECT_COMPRESSED_ZSTD;
-#elif HAVE_LZ4
+#if HAVE_LZ4
         r = compress_blob_lz4(src, src_size, dst, dst_alloc_size, dst_size);
         if (r == 0)
                 return OBJECT_COMPRESSED_LZ4;
+#elif HAVE_ZSTD
+        r = compress_blob_zstd(src, src_size, dst, dst_alloc_size, dst_size);
+        if (r == 0)
+                return OBJECT_COMPRESSED_ZSTD;
 #elif HAVE_XZ
         r = compress_blob_xz(src, src_size, dst, dst_alloc_size, dst_size);
         if (r == 0)
