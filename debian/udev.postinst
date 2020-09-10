@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 chrooted() {
   if [ "$(stat -c %d/%i /)" = "$(stat -Lc %d/%i /proc/1/root 2>/dev/null)" ];
@@ -35,12 +37,6 @@ enable_udev() {
   invoke-rc.d udev start
 }
 
-update_initramfs() {
-  [ -x /usr/sbin/update-initramfs -a -e /etc/initramfs-tools/initramfs.conf ] \
-    || return 0
-  update-initramfs -u
-}
-
 upgrade_fixes() {
   # new Default-Stop (see #791944)
   if dpkg --compare-versions "$2" lt-nl "239-8"; then
@@ -60,6 +56,9 @@ case "$1" in
     # Add new system group used by udev rules
     addgroup --quiet --system input
 
+    # Make /dev/kvm accessible to kvm group
+    addgroup --quiet --system kvm
+
     # Make /dev/dri/renderD* accessible to render group
     addgroup --quiet --system render
 
@@ -78,8 +77,6 @@ case "$1" in
 	fi
       fi
     fi
-
-    update_initramfs
     ;;
 
     triggered)
@@ -89,4 +86,3 @@ case "$1" in
 esac
 
 #DEBHELPER#
-

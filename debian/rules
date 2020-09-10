@@ -38,9 +38,8 @@ endif
 CONFFLAGS = \
 	-Db_lto=true \
 	-Db_pie=true \
-	-Drootprefix=/ \
 	-Drootlibdir=/lib/$(DEB_HOST_MULTIARCH) \
-	-Dsplit-usr=false \
+	-Dsplit-usr=true \
 	-Dversion-tag="$(DEB_VERSION)" \
 	-Dquotaon-path=/sbin/quotaon \
 	-Dquotacheck-path=/sbin/quotacheck \
@@ -61,7 +60,7 @@ CONFFLAGS = \
 	-Dsupport-url=$(SUPPORT_URL) \
 	-Ddefault-kill-user-processes=false \
 	-Ddefault-hierarchy=hybrid \
-	-Dapparmor=false \
+	-Ddefault-dnssec=no \
 	-Dpamconfdir=no \
 	-Drpmmacrosdir=no \
 	-Dqrencode=false \
@@ -69,9 +68,13 @@ CONFFLAGS = \
 	-Dfirstboot=false \
 	-Dxkbcommon=false \
 	-Dwheel-group=false \
-	-Dnetworkd=false \
-	-Dtimesyncd=false \
-	-Dresolve=false \
+	-Drepart=false \
+	-Duserdb=false \
+	-Dhomed=false \
+	-Dlibfido2=false \
+	-Dfdisk=false \
+	-Dpwquality=false \
+	-Dp11kit=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Ddns-servers='' \
 	-Dlink-udev-shared=false \
@@ -80,12 +83,8 @@ CONFFLAGS = \
 	-Dnobody-user=nobody \
 	-Dnobody-group=nogroup \
 	-Dbump-proc-sys-fs-nr-open=false \
-	-Ddev-kvm-mode=0666 \
+	-Ddev-kvm-mode=0660 \
 	-Dgroup-render-mode=0660
-
-# resolved's DNSSEC support is still not mature enough, don't enable it by
-# default on stable Debian or any Ubuntu releases
-CONFFLAGS += $(shell grep -qE 'stretch|ubuntu' /etc/os-release && echo -Ddefault-dnssec=no)
 
 CONFFLAGS_deb = \
 	-Dselinux=true \
@@ -96,7 +95,9 @@ CONFFLAGS_deb = \
 	-Dman=true \
 	-Dnss-myhostname=true \
 	-Dnss-mymachines=true \
+	-Dnss-resolve=true \
 	-Dnss-systemd=true \
+	-Dresolve=true \
 	-Dlink-systemctl-shared=false
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -104,8 +105,8 @@ CONFFLAGS_deb += \
 	-Daudit=true \
 	-Dlibcryptsetup=true \
 	-Dcoredump=true \
-	-Dreadahead=true \
 	-Delfutils=true \
+	-Dapparmor=true \
 	-Dlibidn2=true \
 	-Dlibiptc=true \
 	-Dlibcurl=true \
@@ -119,6 +120,7 @@ CONFFLAGS_deb += \
 	-Dlibcryptsetup=false \
 	-Dcoredump=false \
 	-Delfutils=false \
+	-Dapparmor=false \
 	-Dlibidn2=false \
 	-Dlibiptc=false \
 	-Dlibcurl=false \
@@ -135,6 +137,7 @@ CONFFLAGS_udeb = \
 	-Dpam=false \
 	-Daudit=false \
 	-Dselinux=false\
+	-Dapparmor=false \
 	-Dlibidn2=false \
 	-Dlibiptc=false \
 	-Dsmack=false \
@@ -153,11 +156,13 @@ CONFFLAGS_udeb = \
 	-Dhostnamed=false \
 	-Dtimedated=false \
 	-Dnetworkd=false \
+	-Dtimesyncd=false \
 	-Dlocaled=false \
 	-Dnss-myhostname=false \
 	-Dnss-mymachines=false \
 	-Dnss-resolve=false \
 	-Dnss-systemd=false \
+	-Dresolve=false \
 	-Dportabled=false \
 	-Dpolkit=false \
 	-Dacl=false \
@@ -209,6 +214,7 @@ endif
 	rm -rf debian/install/ debian/shlibs.local
 	# remove Python byte code files
 	rm -rf tools/__pycache__/
+	rm -rf tools/chromiumos/__pycache__/
 	rm -f po/systemd.pot
 
 override_dh_install:
@@ -220,9 +226,10 @@ override_dh_install:
 	rm -f debian/install/*/etc/X11/xinit/xinitrc.d/50-systemd-user.sh
 	rmdir -p --ignore-fail-on-non-empty debian/install/*/etc/X11/xinit/xinitrc.d/
 	# remove files related to factory-reset feature
-	find debian/install/ \( \
+	find debian/install/ \( -name 'systemd-update-done*' -o \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-udev-hwdb-update.service -o \
+		-name ldconfig.service -o \
 		-name etc.conf \) -delete
 	rm -rf debian/install/*/usr/share/factory/
 	# replace upstream sysusers.d/basic.conf with proper users for Debian
@@ -234,6 +241,11 @@ ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
 endif
 
 	dh_install --remaining-packages --sourcedir=debian/install/deb
+
+	# we don't want /tmp to be a tmpfs by default
+	mv debian/systemd/lib/systemd/system/tmp.mount debian/systemd/usr/share/systemd/
+	printf '\n[Install]\nWantedBy=local-fs.target\n' >> debian/systemd/usr/share/systemd/tmp.mount
+	rm debian/systemd/lib/systemd/system/local-fs.target.wants/tmp.mount
 
 	# files shipped by cryptsetup
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -260,12 +272,6 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	install -D --mode=644 debian/extra/systemd.py debian/systemd/usr/share/apport/package-hooks/systemd.py
 	install --mode=644 debian/extra/rules-ubuntu/*.rules debian/udev/lib/udev/rules.d/
 	cp -a debian/extra/units-ubuntu/* debian/systemd/lib/systemd/system/
-	install --mode=755 debian/extra/set-cpufreq debian/systemd/lib/systemd/
-endif
-
-	# Endless specific files
-ifeq ($(DEB_VENDOR),Endless)
-	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
 endif
 
 override_dh_missing:
@@ -273,6 +279,11 @@ override_dh_missing:
 
 override_dh_installinit:
 	dh_installinit --no-start
+
+override_dh_installsystemd:
+	dh_installsystemd -psystemd-timesyncd
+
+override_dh_installsystemduser:
 
 PROJECT_VERSION ?= $(shell awk '/(PROJECT|PACKAGE)_VERSION/ {print $$3}' build-deb/config.h | tr -d \")
 
@@ -295,10 +306,8 @@ override_dh_auto_test:
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
 	echo "01234567890123456789012345678901" > build-deb/machine-id
 	# some tests hang under fakeroot, so disable fakeroot
-	env -u LD_PRELOAD SYSTEMD_MACHINE_ID_PATH=$(CURDIR)/build-deb/machine-id meson test -C build-deb $(TEST_TIMEOUT_MULTIPLIER) || ( \
-		cat build-deb/meson-logs/testlog.txt; \
-		exit 1)
+	env -u LD_PRELOAD SYSTEMD_MACHINE_ID_PATH=$(CURDIR)/build-deb/machine-id meson test -C build-deb --print-errorlogs $(TEST_TIMEOUT_MULTIPLIER)
 endif
 
 %:
-	dh $@ --without autoreconf,systemd --buildsystem=meson
+	dh $@ --without autoreconf --buildsystem=meson

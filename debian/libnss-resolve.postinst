@@ -4,9 +4,9 @@ set -e
 
 # This code was taken from libnss-myhostname
 
-# try to insert mymachines entries to the "hosts" line in /etc/nsswitch.conf to
-# automatically enable libnss-mymachines support; do not change the
-# configuration if the "hosts" line already references some mymachines lookups
+# try to insert resolve entries to the "hosts" line in /etc/nsswitch.conf to
+# automatically enable libnss-resolve support; do not change the
+# configuration if the "hosts" line already references some resolve lookups
 insert_nss_entry() {
     echo "Checking NSS setup..."
     # abort if /etc/nsswitch.conf does not exist
@@ -20,12 +20,14 @@ insert_nss_entry() {
             # this also splits on tab
             my @bits=split(" ", $line);
             # do not break configuration if the "hosts" line already references
-            # mymachines
-            if (grep { $_ eq "mymachines"} @bits) {
+            # resolve
+            if (grep { $_ eq "resolve"} @bits) {
                 return $line;
             }
-            # add mymachines at the end
-            return $line . " mymachines";
+            # add resolve before dns
+            return join " ", map {
+                $_ eq "dns" ? ("resolve [!UNAVAIL=return]", "$_") : $_
+            } @bits;
         }
         s/^(hosts:\s+)(.*)/$1.insert($2)/e;
     ' /etc/nsswitch.conf
@@ -34,8 +36,13 @@ insert_nss_entry() {
 if [ "$1" = configure ] && [ -z "$2" ]; then
     echo "First installation detected..."
     # first install: setup the recommended configuration (unless
-    # nsswitch.conf already contains mymachines entries)
+    # nsswitch.conf already contains resolve entries)
     insert_nss_entry
+    # ... and enable resolved
+    systemctl enable systemd-resolved.service
+    if [ -d /run/systemd/system ]; then
+        deb-systemd-invoke start systemd-resolved.service || true
+    fi
 fi
 
 #DEBHELPER#

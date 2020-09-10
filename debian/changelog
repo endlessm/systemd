@@ -1,3 +1,402 @@
+systemd (246.4-1) unstable; urgency=medium
+
+  * New upstream version 246.4
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 02 Sep 2020 13:30:52 +0200
+
+systemd (246.3-1) unstable; urgency=medium
+
+  * New upstream version 246.3
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 29 Aug 2020 18:39:32 +0200
+
+systemd (246.2-2) unstable; urgency=medium
+
+  [ Balint Reczey ]
+  * debian/systemd.postinst: Restart systemd-networkd.socket on incompatible
+    change.
+    PassCredentials=yes is replaced with PassPacketInfo=yes and extra padding is
+    dropped, too.
+    (Closes: #968589, LP: #1891716)
+
+  [ Michael Biebl ]
+  * Fix restart of systemd-networkd.socket.
+    We can't restart the socket while systemd-networkd.service is still
+    active. Instead we stop the socket and ensure, that a try-restart of
+    systemd-networkd.service also starts the socket.
+  * seccomp: Add support for riscv64 (Closes: #954312)
+  * Support missing conditions/asserts everywhere (Closes: #968612)
+  * path: Skip directories when finalising $PATH search (Closes: #969006)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 29 Aug 2020 16:24:49 +0200
+
+systemd (246.2-1) unstable; urgency=medium
+
+  * New upstream version 246.2
+  * Remove resolvconf.conf drop-in, resolved integration moved to resolvconf
+    package
+  * Rebase patches
+  * Add versioned Breaks against resolvconf (<< 1.83~) to systemd.
+    The PathExists= directive was changed in v246 to match the documented
+    behaviour but now causes resolvconf-pull-resolved.service to be
+    continuously triggered by resolvconf-pull-resolved.path.
+    This requires a fix in the resolvconf package, see #968015.
+    (Closes: #967906)
+  * Keep journal files compatible with older versions.
+    Disable the KEYED-HASH journal feature by default and keep LZ4 (instead
+    of ZSTD) as default compression for new journal files. Otherwise journal
+    files are incompatible and can't be read by older journalctl
+    implementations.
+    This patch can be dropped in bullseye+1, as journalctl from bullseye
+    will then be able to read journal files with those features.
+    (Closes: #968055)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 17 Aug 2020 22:28:09 +0200
+
+systemd (246.1-1) unstable; urgency=medium
+
+  * New upstream version 246.1
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 16 Aug 2020 13:14:46 +0200
+
+systemd (246-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 03 Aug 2020 09:46:27 +0200
+
+systemd (246-1) experimental; urgency=medium
+
+  * New upstream version 246
+  * Rebase patches
+  * Update symbols file for libsystemd0
+  * Bump libapparmor-dev Build-Depends to (>= 2.13)
+  * Disable libfido2 support.
+    This is only used by homed which we don't enable.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 30 Jul 2020 22:22:24 +0200
+
+systemd (245.7-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 245.7
+    - resolve: enable RES_TRUSTAD towards the 127.0.0.53 stub resolver
+      (Closes: #965371)
+    - basic/cap-list: parse/print numerical capabilities
+      (Closes: #964926)
+  * Rebase patches
+
+  [ Dan Streetman ]
+  * Add libzstd-dev and zstd as build and test deps.
+    https://github.com/systemd/systemd/pull/15422
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 27 Jul 2020 23:24:47 +0200
+
+systemd (245.6-3) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * d/t/upstream: capture new merged 'system.journal' from tests.
+    https://github.com/systemd/systemd/pull/15281
+  * d/t/upstream: use --directory or --file param for journalctl.
+    Properly tell journalctl if the journal to parse is a dir or file.
+  * d/t/storage: check for ext2 or ext4 fs when using crypttab 'tmp' option.
+    https://github.com/systemd/systemd/pull/15853
+
+  [ Martin Pitt ]
+  * debian/tests/localed-locale: Fix for environments without en_US.UTF-8.
+    Unconditionally back up/restore locale configuration files and generate
+    en_US.UTF-8. Previously the test failed in environments which have some
+    locale other than en_US.UTF-8 in /etc/default/locale.
+    Also fix the assertion of /etc/locale.conf not being present after
+    localectl. This only applies to Debian/Ubuntu tests, not upstream ones.
+
+  [ Dimitri John Ledkov ]
+  * Enable EFI/bootctl on armhf.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 14 Jul 2020 18:16:57 +0200
+
+systemd (245.6-2) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * 40-vm-hotadd.rules: check offline before onlining memory/cpus.
+    The kernel will return EINVAL if the memory or cpu is already online,
+    which is harmless, but adds a confusing error to the log. Avoid the error
+    message by only onlining if the memory or cpu is currently offline.
+    (LP: #1876018)
+
+  [ Michael Biebl ]
+  * d/t/boot-and-services: use canonical name for NetworkManager service
+  * Fix build with libmicrohttpd 0.9.71.
+    The return type of callbacks was changed from int to an enum.
+
+  [ Youfu Zhang ]
+  * fsckd: avoid useless CR displayed on console (LP: #1692353)
+
+  [ Balint Reczey ]
+  * dhclient-exit-hooks.d/timesyncd: Act only when systemd-timesyncd is available.
+    Otherwise the hook script might trigger an error if the
+    systemd-timesyncd package is uninstalled but not purged. (LP: #1873031)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 Jul 2020 11:44:39 +0200
+
+systemd (245.6-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 245.6
+  * Rebase patches
+
+  [ Balint Reczey ]
+  * debian/tests/boot-and-services: Handle missing fstab (LP: #1877078)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 08 Jun 2020 00:56:37 +0200
+
+systemd (245.5-3) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Bump priority of libnss-systemd to standard
+  * logind: avoid shadow lookups when doing userdb client side
+  * Disable DNSSEC support by default in resolved.
+    The upstream default, DNSSEC=allow-downgrade can lead to compatibility
+    issues with certain network access points. Previously, DNSSEC support
+    was only turned off when built for a stable Debian release, but it is
+    safer and more consistent to just generally change the default to
+    DNSSEC=no. (Closes: #959996)
+  * Bump debhelper compatibility level to 13.
+    Use the debhelper-compat package to declare the compatibility level and
+    drop debian/compat.
+  * Convert to dh_installsystemd and disable dh_installsystemduser
+  * Drop custom initramfs update code.
+    Now handled by dh_installinitramfs which is enabled by default in compat
+    level 12 and above.
+
+  [ Dan Streetman ]
+  * Cherry-pick fix from upstream master to adjust UseGateway= default
+    - network: change UseGateway= default to UseRoutes= setting
+    - network: honor SetDNSRoutes= even if UseGateway=False
+    (LP: #1867375)
+
+  [ Topi Miettinen ]
+  * Delete empty lines at end of file.
+    Upstream commit hooks don't allow empty lines and of course they serve no
+    purpose.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 17 May 2020 19:28:49 +0200
+
+systemd (245.5-2) unstable; urgency=medium
+
+  * Cherry-pick various fixes from upstream master
+    - network: add a flag to ignore gateway provided by DHCP server
+    - userdb: when doing client-side NSS look-ups optionally avoid shadow
+      look-ups
+    - nss-systemd: don't synthesize root/nobody when iterating
+    - core: make sure we don't get confused when setting TERM for a tty fd
+    - core: make sure to restore the control command id, too
+  * Install 60-block.rules in udev-udeb and initramfs-tools.
+    The block device rules were split out from 60-persistent-storage.rules
+    into its own rules file in v220. Those rules ensure that change events
+    are emitted and the udev db is updated after metadata changes.
+    Thanks to Pascal Hambourg (Closes: #958397)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 27 Apr 2020 17:38:44 +0200
+
+systemd (245.5-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 245.5
+  * Rebase patches
+
+  [ Dan Streetman ]
+  * Follow symlinks when finding link files to copy into initramfs.
+    If the /{etc,lib}/systemd/network directory itself is a symlink, the find
+    command will not actually find any of the files in the dir it links to.
+    Use the find -L param to follow symlinks.
+    (LP: #1868892)
+  * Remove Ubuntu-specific ondemand.service.
+    New processors handle scaling/throttling in internal firmware
+    (e.g. intel_pstate), and do not require OS config.
+    Additionally, nobody else does this, not even Debian.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 18 Apr 2020 20:41:18 +0200
+
+systemd (245.4-4) unstable; urgency=medium
+
+  * Drop Conflicts: virtualbox-guest-utils from systemd-timesyncd.
+    Otherwise this could lead to virtualbox-guest-utils being uninstalled on
+    upgrades which is not intended. (Closes: #956436)
+  * pid1: automatically generate systemd-remount-fs.service deps, plus enable
+    systemd-pstore from sysinit.target
+  * Fix systemd-pstore.service enablement symlink on upgrades.
+    It is now started via sysinit.target. Also clean up the symlink on
+    purge.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Apr 2020 11:34:31 +0200
+
+systemd (245.4-3) unstable; urgency=medium
+
+  [ Dan Streetman ]
+  * d/rules: in dh_auto_test, include meson param --print-errorlogs.
+    Also, don't cat testlog.txt; it's noisy and not very helpful.
+    Upstream request:
+    https://github.com/systemd/systemd/pull/14338#issuecomment-603432989
+
+  [ Michael Biebl ]
+  * pid1: by default make user units inherit their umask from the user manager
+    (Closes: #945000)
+  * user-util: rework how we validate user names.
+    This reworks the user validation infrastructure. There are now two
+    modes. In regular mode we are strict and test against a strict set of
+    valid chars. And in "relaxed" mode we just filter out some really
+    obvious, dangerous stuff. i.e. strict is whitelisting what is OK, but
+    "relaxed" is blacklisting what is really not OK.
+    The idea is that we use strict mode whenever we allocate a new user,
+    while "relaxed" mode is used when we process users registered elsewhere.
+    (Closes: #955541)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 10 Apr 2020 11:55:15 +0200
+
+systemd (245.4-2) unstable; urgency=medium
+
+  [ Balint Reczey ]
+  * Ship systemd-timesyncd in a separate package.
+    The new systemd-timesyncd package conflicting with other NTP-related
+    packages resolves the problems arising when running systemd-timesyncd
+    and other NTP servers on the same system.
+    (LP: #1849156, Closes: #805927, #947936)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 04 Apr 2020 08:59:50 +0200
+
+systemd (245.4-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 245.4
+    - Allow names starting with a digit (Closes: #954174)
+    - Recognize davfs as network file system (Closes: #954755)
+  * Enable systemd-pstore.service by default on new installs and upgrades
+    (Closes: #952767)
+  * Revert "Enable seccomp support on riscv64"
+    This requires further changes to the source code and a newer, not yet
+    officially released, libseccomp. Since this complicates backports revert
+    this change for the time being.
+
+  [ Dan Streetman ]
+  * d/t/logind: use grep -s when checking /sys/power/state.
+    Some kernels in Ubuntu (e.g. linux-kvm) do not enable CONFIG_PM, which
+    results in stderr output when the logind test tries to grep the power
+    state file, causing the test to fail.  The test already handles skipping
+    the test if suspend isn't supported, so just use -s to suppress grep
+    from printing to stderr if the file doesn't exist.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 02 Apr 2020 11:58:18 +0200
+
+systemd (245.2-1) unstable; urgency=medium
+
+  * New upstream version 245.2
+  * Rebase patches
+  * Enable seccomp support on riscv64 (Closes: #954077)
+  * Drop migration code for the switch from DynamicUser=yes to no.
+    This code is no longer needed as it only affected systems between 239-1
+    and 239-5, i.e. it never affected a stable release.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Mar 2020 23:32:08 +0100
+
+systemd (245-2) unstable; urgency=medium
+
+  * Revert "job: Don't mark as redundant if deps are relevant"
+    This change negatively affects plymouth which was no longer properly
+    stopped after the system has completed booting. The running plymouth
+    daemon can trigger a VT switch (to tty1). (Closes: #953670)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 12 Mar 2020 13:55:26 +0100
+
+systemd (245-1) unstable; urgency=medium
+
+  [ Balint Reczey ]
+  * New upstream version 245
+  * Refresh patches
+  * Update symbols
+
+  [ Michael Biebl ]
+  * Disable repart, userdb, homed, fdisk, pwquality, p11kit feature.
+    Those are new features which drag in new dependencies and need further
+    review first.
+  * analyze: Fix table time output
+  * execute: Fix migration from DynamicUser=yes to no
+  * Drop manual clean up of /var/lib/private/systemd/timesync.
+    This is now done properly by systemd itself when a service switches from
+    DynamicUser=yes to no.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 11 Mar 2020 13:33:37 +0100
+
+systemd (244.3-1) unstable; urgency=medium
+
+  * New upstream version 244.3
+    - Revert "Support Plugable UD-PRO8 dock"
+      Unfortunately the same usb hub is used in other places, and causes
+      numerous regressions. (Closes: #951330)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 15 Feb 2020 15:44:45 +0100
+
+systemd (244.2-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 244.2
+    - polkit: when authorizing via PolicyKit re-resolve callback/userdata
+      instead of caching it (CVE-2020-1712, Closes: #950732)
+  * Rebase patches
+  * Bump Standards-Version to 4.5.0
+
+  [ Balint Reczey ]
+  * Remove empty /var/log/journal/ on purge
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 07 Feb 2020 19:24:20 +0100
+
+systemd (244.1-3) unstable; urgency=medium
+
+  * Update documentation regarding network interface naming.
+    Document that 73-usb-net-by-mac.link needs to be masked together with
+    99-default.link if one wants to disable the systemd naming scheme and keep
+    the kernel-provided names. (Closes: #946196)
+  * Update debian/rules clean target to remove all Python bytecode
+  * Update systemd package description.
+    Recommend init=/lib/systemd/systemd instead of init=/bin/systemd.
+    The latter is just a compat symlink which might go away eventually.
+  * shared/dropin: fix assert for invalid drop-in.
+    Fixes an assertion when running systemctl cat on inexistent
+    unit templates. (Closes: #950489)
+  * core: call dynamic_user_acquire() only when 'group' is non-null.
+    Fixes an assertion in systemd which could happen if a unit is reloaded
+    and the unit is in bad-setting state. (Closes: #950409)
+  * Don't fail upgrade if /proc is not mounted.
+    Applying ACLs on /var/log/journal via systemd-tmpfiles requires a
+    mounted /proc. Skip this step if /proc is not available, e.g. in a
+    chroot. (Closes: #950533)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 04 Feb 2020 00:11:55 +0100
+
+systemd (244.1-2) unstable; urgency=medium
+
+  * Report status of libpam-systemd and libnss-systemd in systemd reportbug
+    template.
+    Since the libpam-systemd Recommends was moved from systemd to
+    systemd-sysv we no longer get this information automatically, so request
+    it explicitly.
+  * Drop btrfs-progs Recommends from systemd-container.
+    Upstream has dropped the logic of setting up /var/lib/machines as btrfs
+    loopback mount so this Recommends is no longer necessary.
+  * Fix processing of dpkg triggers in systemd.
+    We need to use $@ instead of "$@" so we can iterate through the
+    individual trigger names which are passed as a space separated list in
+    the second argument.
+  * Fix cleanup of timesyncd state directory
+  * Enable persistent journal.
+    Create /var/log/journal on upgrades and new installs. This enables
+    persistent journal in auto mode. (Closes: #717388)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 01 Feb 2020 02:59:12 +0100
+
 systemd (244.1-1) unstable; urgency=medium
 
   [ Michael Biebl ]
