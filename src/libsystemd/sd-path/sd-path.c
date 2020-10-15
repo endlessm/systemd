@@ -362,19 +362,19 @@ static int get_path(uint64_t type, char **buffer, const char **ret) {
                 return 0;
 
         case SD_PATH_SYSUSERS:
-                *ret = ROOTPREFIX_NOSLASH "/lib/sysusers.d";
+                *ret = "/usr/lib/sysusers.d";
                 return 0;
 
         case SD_PATH_SYSCTL:
-                *ret = ROOTPREFIX_NOSLASH "/lib/sysctl.d";
+                *ret = "/usr/lib/sysctl.d";
                 return 0;
 
         case SD_PATH_BINFMT:
-                *ret = ROOTPREFIX_NOSLASH "/lib/binfmt.d";
+                *ret = "/usr/lib/binfmt.d";
                 return 0;
 
         case SD_PATH_MODULES_LOAD:
-                *ret = ROOTPREFIX_NOSLASH "/lib/modules-load.d";
+                *ret = "/usr/lib/modules-load.d";
                 return 0;
 
         case SD_PATH_CATALOG:
