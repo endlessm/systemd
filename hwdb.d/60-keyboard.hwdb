@@ -1366,6 +1366,16 @@ evdev:atkbd:dmi:bvn*:bvr*:bd*:svnOQO*Inc.*:pnOQO*Model*2*:pvr*
  KEYBOARD_KEY_f3=volumeup
 
 ###########################################################
+# Pine64
+###########################################################
+
+# Pinebook Pro
+evdev:input:b0003v258Ap001E*
+ KEYBOARD_KEY_700a5=brightnessdown
+ KEYBOARD_KEY_700a6=brightnessup
+ KEYBOARD_KEY_70066=sleep
+
+###########################################################
 # Plantronics
 ###########################################################
 
