@@ -148,9 +148,11 @@ int halt_main(void) {
 
         if (arg_force == 0) {
                 /* always try logind first */
-                if (arg_when > 0)
+                if (arg_when > 0) {
                         r = logind_schedule_shutdown();
-                else {
+                        if (r < 0)
+                                return r;
+                } else {
                         r = logind_check_inhibitors(arg_action);
                         if (r < 0)
                                 return r;
