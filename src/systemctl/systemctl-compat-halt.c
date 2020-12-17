@@ -148,11 +148,11 @@ int halt_main(void) {
         if (r < 0)
                 return r;
 
-        /* Delayed shutdown requested, and was successful */
-        if (arg_when > 0 && logind_schedule_shutdown() == 0)
-                return 0;
+        /* Delayed shutdown requested */
+        if (arg_when > 0)
+                return logind_schedule_shutdown();
 
-        /* No delay, or logind failed or is not at all available */
+        /* No delay, or logind is not at all available */
         if (geteuid() != 0) {
                 if (arg_dry_run || arg_force > 0) {
                         (void) must_be_root();
