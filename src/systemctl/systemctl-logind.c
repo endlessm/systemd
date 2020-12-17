@@ -315,8 +315,9 @@ int logind_schedule_shutdown(void) {
         (void) logind_set_wall_message();
 
         r = bus_call_method(bus, bus_login_mgr, "ScheduleShutdown", &error, NULL, "st", action, arg_when);
+        /* logind fails, cannot schedule reboot, do nothing */
         if (r < 0)
-                return log_warning_errno(r, "Failed to call ScheduleShutdown in logind, proceeding with immediate shutdown: %s", bus_error_message(&error, r));
+                return log_warning_errno(r, "Failed to call ScheduleShutdown in logind, no action will be taken: %s", bus_error_message(&error, r));
 
         if (!arg_quiet)
                 log_info("%s scheduled for %s, use 'shutdown -c' to cancel.", log_action, format_timestamp_style(date, sizeof(date), arg_when, arg_timestamp_style));
