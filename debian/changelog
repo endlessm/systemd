@@ -1,3 +1,260 @@
+systemd (247.2-5) unstable; urgency=medium
+
+  [ Matthias Klumpp ]
+  * Configure localed to run locale-gen to generate missing locale.
+    This applies an (upstreamed) patch to permit systemd-localed to run
+    locale-gen to generate missing locale when requested to switch the
+    system locale.
+    This makes localectl usable on Debian for changing locale without
+    breaking system localization or even prevent certain applications from
+    running at all after switching to a non-generated locale.
+
+  [ Michael Biebl ]
+  * systemctl: do not shutdown immediately on scheduled shutdown.
+    When, for whatever reason, a scheduled shutdown fails to be set, systemd
+    will proceed with immediate shutdown without allowing the user to react.
+    This is counterintuitive because when a scheduled shutdown is issued,
+    it means the user wants to shutdown at a specified time in the future,
+    not immediately. (Closes: #931235)
+  * test: disable DnsmasqClientTest.test_resolved_etc_hosts in
+    networkd-test.py.
+    This test appears to be flaky.
+    See: #979716
+  * Bump Standards-Version to 4.5.1
+  * Set upstream metadata fields: Bug-Submit, Bug-Database, Repository,
+    Repository-Browse
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 18 Jan 2021 13:45:15 +0100
+
+systemd (247.2-4) unstable; urgency=medium
+
+  * Move libraries and NSS modules from /lib to /usr/lib.
+    Keep libpam_systemd.so installed in /lib, as PAM doesn't support
+    loading PAM modules from /usr/lib on a split-usr system.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 02 Jan 2021 17:06:01 +0100
+
+systemd (247.2-3) unstable; urgency=medium
+
+  * test: use modern qemu numa arguments
+    This fixes TEST-36-NUMAPOLICY from the upstream autopkgtest when using
+    qemu >= 5.2.
+  * Increase timeout when running unit tests.
+    The default timeout for individual unit tests is 30s. On slower
+    architectures and environments like reproducible-builds, this sometimes
+    is not enough.
+    Instead of fine-tuning the timeout for each individual test, we instead
+    increase the timeouts by a factor of 10.
+  * init-functions, getty-static.service: Don't hard-code path to systemctl
+    binary.
+    This should simplify an eventual move of systemctl from /bin to
+    /usr/bin.
+  * getty-static.service: Skip if dbus-broker is installed.
+    Check for the binary in /usr/bin as this makes it easier to move the
+    service files from /lib/systemd to /usr/lib/systemd.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 26 Dec 2020 13:33:41 +0100
+
+systemd (247.2-2) unstable; urgency=medium
+
+  * Switch to "unified" cgroup hierarchy (i.e. cgroupv2) (Closes: #943981)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 21 Dec 2020 20:06:49 +0100
+
+systemd (247.2-1) unstable; urgency=medium
+
+  [ Balint Reczey ]
+  * debian/systemd.NEWS: Mention udev rules changes in 247
+
+  [ Michael Biebl ]
+  * New upstream version 247.2
+  * Rebase patches
+  * test: fix fd_is_mount_point() check
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 20 Dec 2020 20:44:31 +0100
+
+systemd (247.1-4) unstable; urgency=medium
+
+  [ наб ]
+  * debian/extra/kernel-install.d/85-initrd.install: Don't install initrd when
+    an explicit path was passed (Closes: #970213)
+  * debian/extra/kernel-install.d/85-initrd.install: Match initrd installation
+    messages and uninstallation to 90-loaderentry.install
+
+  [ Michael Biebl ]
+  * sd-device: keep escaped strings in DEVLINK= property (Closes: #976699)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 11 Dec 2020 20:25:31 +0100
+
+systemd (247.1-3) unstable; urgency=medium
+
+  * d/t/timedated: Ignore return code of dbus-monitor in wait_mon()
+    We are not really interested in the return code and error messages from
+    dbus-monitor after killing it, so ignore them to avoid undesired
+    autopkgtest failures.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 03 Dec 2020 23:53:29 +0100
+
+systemd (247.1-2) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Upload to unstable
+  * Revert "d/t/timedated: use /bin/bash to work around job handling issue in
+    dash"
+
+  [ Balint Reczey ]
+  * debian/tests/timedated: Wait for the killed child only.
+    There may be other children of the script due to autopkgtest machinery
+    and they exit after the script exited. (LP: #1904406)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 02 Dec 2020 23:25:32 +0100
+
+systemd (247.1-1) experimental; urgency=medium
+
+  * New upstream version 247.1
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 01 Dec 2020 17:17:28 +0100
+
+systemd (247-1) experimental; urgency=medium
+
+  * New upstream version 247
+  * Rebase patches
+  * Update symbol versions for the v247 release
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 26 Nov 2020 19:46:41 +0100
+
+systemd (247~rc2-3) experimental; urgency=medium
+
+  * Merge changes from unstable
+  * sd-device: make sd_device_has_current_tag() compatible with udev database
+    generated by older udevd
+    (Closes: #974730)
+  * Add Breaks: udev (<< 247~) to systemd.
+    This ensures that udev is upgraded alongside systemd and both support
+    the new udev tags concept introduced in v247. (Closes: #975554)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 26 Nov 2020 18:18:53 +0100
+
+systemd (247~rc2-2) experimental; urgency=medium
+
+  * missing: define several syscall numbers for MIPS arch (Closes: #974619)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 13 Nov 2020 19:22:04 +0100
+
+systemd (247~rc2-1) experimental; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 247~rc2
+    - tmpfiles: Handle filesystems without ACL support in more cases
+      (Closes: #972135)
+  * Rebase patches
+  * Explicitly disable oomd
+  * Use -Dmode=release as we want a release, not developer, build
+  * Update symbols file for libudev1 and libsystemd0
+
+  [ Luca Boccassi ]
+  * systemd-container: install systemd-dissect binary.
+    Required for TEST-50-DISSECT since:
+    https://github.com/systemd/systemd/pull/16046
+  * d/t/control: install squashfs-tools for upstream test.
+    Required by TEST-50-DISSECT since upstream PR:
+    https://github.com/systemd/systemd/pull/16046
+
+  [ Dan Streetman ]
+  * d/control: update meson minimum version
+    https://github.com/systemd/systemd/pull/13842#issuecomment-601105975
+  * d/t/upstream: convert 'blacklist' term to 'deny-list'
+    Support transition for upstream-ci from
+    https://github.com/systemd/systemd/pull/16262
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 12 Nov 2020 21:23:22 +0100
+
+systemd (246.6-5) unstable; urgency=medium
+
+  * Drop non-functional DefaultTasksMax patch.
+    This patch was supposed to remove the DefaultTasksMax limit, but lost
+    its actual logic over 4 years ago, when the patches were rebased for the
+    v231 release. Since nobody has complained so far, we can assume it is
+    safe to drop this patch. (Closes: #975335)
+  * test-seccomp: accept ENOSYS from sysctl(2) too.
+    It seems that kernel 5.9 started returning that.
+  * test/test-functions: copy /usr/lib/pam.d into $initdir.
+    The systemd-user file has been moved from /etc/pam.d into /usr/lib/pam.d,
+    so test-functions needs to copy it from /usr/lib/pam.d instead.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Nov 2020 21:53:25 +0100
+
+systemd (246.6-4) unstable; urgency=medium
+
+  * Revert "Trigger a systemctl daemon-reload when init scripts are installed
+    or removed"
+    Remove the dpkg file trigger which called systemctl daemon-reload whenever
+    a SysV init script was installed. We have proper support in debhelper
+    nowadays which makes this superfluous and we want to avoid unnecessary
+    systemctl daemon-reload calls.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 19 Nov 2020 22:35:48 +0100
+
+systemd (246.6-3) unstable; urgency=medium
+
+  * pam: include pam_keyinit session module in systemd-user.
+    We want that systemd --user gets its own keyring, not the basic keyring
+    set up by systemd --system.
+  * pam: move systemd-user PAM config from /etc/pam.d to /usr/lib/pam.d.
+    This is supported since PAM 1.2 and we want as little files in /etc as
+    possible.
+  * init-functions: update LSB hook to not use ignore-dependencies
+    job-mode=ignore-dependencies, as currently used in the LSB hook during
+    bootup and shutdown, can have undesired side-effects, like changing the
+    ordering of services and ultimately causing them to fail, due to unmet
+    dependencies.
+    So simplify that, and only apply --no-block on reload requests during
+    bootup and shutdown. (Closes: #960594)
+  * d/t/timedated: use /bin/bash to work around job handling issue in dash.
+    See: #975010
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Nov 2020 23:34:07 +0100
+
+systemd (246.6-2) unstable; urgency=medium
+
+  * XDG autostart improvements
+    - Add support for Path= in XDG Desktop File
+    - Ignore more common XDG Desktop Entry fields
+    - Lower most info messages to debug level (Closes: #968116)
+  * Re-enable seccomp support on riscv64.
+    This should be safe now, as the code has fallbacks for systems with
+    older libseccomp versions.
+  * Move sysusers.d/sysctl.d/binfmt.d/modules-load.d back to /usr.
+    In Debian, late mounting of /usr is no longer supported, so it is safe
+    to install those files in /usr.
+    We want those facilities in /usr, not /, as this will make an eventual
+    switch to a merged-usr setup easier. (Closes: #971282)
+  * units: update serial-getty@.service to support 57600 baud rate
+    (Closes: #969144)
+  * bootspec: don't fail with EIO if searching for ESP and finding one without
+    an enveloping partition table
+    (Closes: #970534)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 15 Oct 2020 23:48:34 +0200
+
+systemd (246.6-1) unstable; urgency=medium
+
+  * New upstream version 246.6
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 21 Sep 2020 20:28:36 +0200
+
+systemd (246.5-1) unstable; urgency=medium
+
+  * New upstream version 246.5
+    - network: fix NDisc handling for the case when multiple routers exist
+      (Closes: #969599)
+    - core/socket: we may get ENOTCONN from socket_instantiate_service()
+      (Closes: #970156)
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 14 Sep 2020 08:04:39 +0200
+
 systemd (246.4-1) unstable; urgency=medium
 
   * New upstream version 246.4

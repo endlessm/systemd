@@ -3,6 +3,7 @@ bin/systemctl
 bin/journalctl
 bin/loginctl
 bin/machinectl
+bin/networkctl
 bin/systemd-notify
 bin/systemd-tty-ask-password-agent
 bin/systemd-ask-password
@@ -37,6 +38,8 @@ usr/bin/busctl
 usr/bin/timedatectl
 usr/bin/localectl
 usr/bin/hostnamectl
+usr/bin/resolvectl
+usr/bin/systemd-resolve
 usr/share/man/man1/
 usr/share/man/man5/
 usr/share/man/man7/
@@ -65,4 +68,4 @@ var/lib
 ../../extra/systemd-sysv-install lib/systemd/
 ../../extra/units/* lib/systemd/system/
 ../../extra/kernel-install.d/* usr/lib/kernel/install.d
-../../extra/pam.d etc/
+../../extra/pam.d/* usr/lib/pam.d/

@@ -56,6 +56,9 @@ case "$1" in
     # Add new system group used by udev rules
     addgroup --quiet --system input
 
+    # Make /dev/kvm accessible to kvm group
+    addgroup --quiet --system kvm
+
     # Make /dev/dri/renderD* accessible to render group
     addgroup --quiet --system render
 

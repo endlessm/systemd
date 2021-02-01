@@ -12,19 +12,9 @@ _update_catalog() {
     journalctl --update-catalog || true
 }
 
-# Update Message Catalogs database and reload in response to dpkg triggers
+# Update Message Catalogs database in response to dpkg trigger
 if [ "$1" = "triggered" ]; then
-    shift
-    for trigger in $@; do
-        case $trigger in
-            /usr/lib/systemd/catalog)
-                _update_catalog
-                ;;
-            /etc/init.d)
-                _systemctl daemon-reload || true
-                ;;
-        esac
-    done
+    _update_catalog
     exit 0
 fi
 
@@ -68,11 +58,33 @@ EOF
     fi
 fi
 
+# Do a one-time migration of the RAMTMP setting
+if [ -z "$2" ]; then
+    if [ -f /etc/default/rcS ]; then
+        . /etc/default/rcS
+    fi
+    if [ -f /etc/default/tmpfs ]; then
+        . /etc/default/tmpfs
+    fi
+    if [ "$RAMTMP" = "yes" ]; then
+        # systemctl enable will work even when systemd is not the active PID 1.
+        if [ ! -e /etc/systemd/system/tmp.mount ]; then
+            cp /usr/share/systemd/tmp.mount /etc/systemd/system/tmp.mount
+            systemctl enable tmp.mount || true
+        fi
+    fi
+fi
+
 # Create /etc/machine-id
 systemd-machine-id-setup
 
 # Setup system users and groups
 addgroup --quiet --system systemd-journal
+
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Network Management" systemd-network
+adduser --quiet --system --group --no-create-home --home /run/systemd \
+    --gecos "systemd Resolver" systemd-resolve
 
 # Enable persistent journal, in auto-mode, by default on new installs and upgrades
 if dpkg --compare-versions "$2" lt "244.1-2~"; then
@@ -94,6 +106,12 @@ if [ -n "$2" ]; then
     _systemctl daemon-reexec || true
     # don't restart logind; this can be done again once this gets implemented:
     # https://github.com/systemd/systemd/issues/1163
+    if dpkg --compare-versions "$2" lt-nl "246.2-2~"; then
+        # the socket configuration changed
+        _systemctl stop systemd-networkd.socket || true
+    fi
+    _systemctl try-restart systemd-networkd.service || true
+    _systemctl try-restart systemd-resolved.service || true
     _systemctl try-restart systemd-journald.service || true
 fi
 
