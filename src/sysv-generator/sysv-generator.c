@@ -762,7 +762,7 @@ static int enumerate_sysv(const LookupPaths *lp, Hashmap *all_services) {
                         if (!fpath)
                                 return log_oom();
 
-                        log_warning("SysV service '%s' lacks a native systemd unit file. "
+                        log_debug("SysV service '%s' lacks a native systemd unit file. "
                                     "Automatically generating a unit file for compatibility. "
                                     "Please update package to include a native systemd unit file, in order to make it more safe and robust.", fpath);
 

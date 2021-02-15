@@ -522,6 +522,7 @@ static int patch_var_run(
 
         const char *e;
         char *z;
+        int log_level;
 
         e = path_startswith(*path, "/var/run/");
         if (!e)
@@ -531,7 +532,8 @@ static int patch_var_run(
         if (!z)
                 return log_oom();
 
-        log_syntax(unit, LOG_NOTICE, filename, line, 0,
+        log_level = path_startswith(filename, "/etc") ? LOG_NOTICE : LOG_DEBUG;
+        log_syntax(unit, log_level, filename, line, 0,
                    "%s= references a path below legacy directory /var/run/, updating %s → %s; "
                    "please update the unit file accordingly.", lvalue, *path, z);
 

@@ -2792,6 +2792,7 @@ static int specifier_expansion_from_arg(Item *i) {
 static int patch_var_run(const char *fname, unsigned line, char **path) {
         const char *k;
         char *n;
+        int log_level;
 
         assert(path);
         assert(*path);
@@ -2817,7 +2818,8 @@ static int patch_var_run(const char *fname, unsigned line, char **path) {
         /* Also log about this briefly. We do so at LOG_NOTICE level, as we fixed up the situation automatically, hence
          * there's no immediate need for action by the user. However, in the interest of making things less confusing
          * to the user, let's still inform the user that these snippets should really be updated. */
-        log_syntax(NULL, LOG_NOTICE, fname, line, 0,
+        log_level = path_startswith(fname, "/etc") ? LOG_NOTICE : LOG_DEBUG;
+        log_syntax(NULL, log_level, fname, line, 0,
                    "Line references path below legacy directory /var/run/, updating %s → %s; please update the tmpfiles.d/ drop-in file accordingly.",
                    *path, n);
 
