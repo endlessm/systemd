@@ -37,9 +37,8 @@ CONFFLAGS = \
 	-Db_lto=true \
 	-Db_pie=true \
 	-Dmode=release \
-	-Drootprefix=/ \
 	-Drootlibdir=/usr/lib/$(DEB_HOST_MULTIARCH) \
-	-Dsplit-usr=false \
+	-Dsplit-usr=true \
 	-Dversion-tag="$(DEB_VERSION)" \
 	-Dquotaon-path=/sbin/quotaon \
 	-Dquotacheck-path=/sbin/quotacheck \
@@ -78,9 +77,6 @@ CONFFLAGS = \
 	-Dpwquality=false \
 	-Dp11kit=false \
 	-Doomd=false \
-	-Dapparmor=false \
-	-Dnetworkd=false \
-	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Ddns-servers='' \
 	-Dlink-udev-shared=false \
@@ -89,7 +85,7 @@ CONFFLAGS = \
 	-Dnobody-user=nobody \
 	-Dnobody-group=nogroup \
 	-Dbump-proc-sys-fs-nr-open=false \
-	-Ddev-kvm-mode=0666 \
+	-Ddev-kvm-mode=0660 \
 	-Dgroup-render-mode=0660
 
 CONFFLAGS_deb = \
@@ -101,7 +97,9 @@ CONFFLAGS_deb = \
 	-Dman=true \
 	-Dnss-myhostname=true \
 	-Dnss-mymachines=true \
+	-Dnss-resolve=true \
 	-Dnss-systemd=true \
+	-Dresolve=true \
 	-Dlink-systemctl-shared=false
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -109,8 +107,8 @@ CONFFLAGS_deb += \
 	-Daudit=true \
 	-Dlibcryptsetup=true \
 	-Dcoredump=true \
-	-Dreadahead=true \
 	-Delfutils=true \
+	-Dapparmor=true \
 	-Dlibidn2=true \
 	-Dlibiptc=true \
 	-Dlibcurl=true \
@@ -124,6 +122,7 @@ CONFFLAGS_deb += \
 	-Dlibcryptsetup=false \
 	-Dcoredump=false \
 	-Delfutils=false \
+	-Dapparmor=false \
 	-Dlibidn2=false \
 	-Dlibiptc=false \
 	-Dlibcurl=false \
@@ -140,6 +139,7 @@ CONFFLAGS_udeb = \
 	-Dpam=false \
 	-Daudit=false \
 	-Dselinux=false\
+	-Dapparmor=false \
 	-Dlibidn2=false \
 	-Dlibiptc=false \
 	-Dsmack=false \
@@ -164,6 +164,7 @@ CONFFLAGS_udeb = \
 	-Dnss-mymachines=false \
 	-Dnss-resolve=false \
 	-Dnss-systemd=false \
+	-Dresolve=false \
 	-Dportabled=false \
 	-Dpolkit=false \
 	-Dacl=false \
@@ -227,9 +228,10 @@ override_dh_install:
 	rm -f debian/install/*/etc/X11/xinit/xinitrc.d/50-systemd-user.sh
 	rmdir -p --ignore-fail-on-non-empty debian/install/*/etc/X11/xinit/xinitrc.d/
 	# remove files related to factory-reset feature
-	find debian/install/ \( \
+	find debian/install/ \( -name 'systemd-update-done*' -o \
 		-name systemd-journal-catalog-update.service -o \
 		-name systemd-udev-hwdb-update.service -o \
+		-name ldconfig.service -o \
 		-name etc.conf \) -delete
 	rm -rf debian/install/*/usr/share/factory/
 	# replace upstream sysusers.d/basic.conf with proper users for Debian
@@ -241,6 +243,11 @@ ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
 endif
 
 	dh_install --remaining-packages --sourcedir=debian/install/deb
+
+	# we don't want /tmp to be a tmpfs by default
+	mv debian/systemd/lib/systemd/system/tmp.mount debian/systemd/usr/share/systemd/
+	printf '\n[Install]\nWantedBy=local-fs.target\n' >> debian/systemd/usr/share/systemd/tmp.mount
+	rm debian/systemd/lib/systemd/system/local-fs.target.wants/tmp.mount
 
 	# files shipped by cryptsetup
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -267,11 +274,6 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	install -D --mode=644 debian/extra/systemd.py debian/systemd/usr/share/apport/package-hooks/systemd.py
 	install --mode=644 debian/extra/rules-ubuntu/*.rules debian/udev/lib/udev/rules.d/
 	cp -a debian/extra/units-ubuntu/* debian/systemd/lib/systemd/system/
-endif
-
-	# Endless specific files
-ifeq ($(DEB_VENDOR),Endless)
-	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
 endif
 
 override_dh_missing:

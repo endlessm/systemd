@@ -24,6 +24,7 @@ Build-Depends: debhelper-compat (= 13),
                gnu-efi [amd64 i386 arm64 armhf],
                libcap-dev (>= 1:2.24-9~),
                libpam0g-dev,
+               libapparmor-dev (>= 2.13) <!stage1>,
                libidn2-dev <!stage1>,
                libiptc-dev <!stage1>,
                libaudit-dev <!stage1>,
@@ -66,14 +67,13 @@ Section: admin
 Priority: important
 Recommends: dbus
 Suggests: systemd-container,
-          systemd-boot-signed | systemd-boot,
           policykit-1
 Pre-Depends: ${shlibs:Pre-Depends},
              ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          libsystemd0 (= ${binary:Version}),
-         ntp | time-daemon,
+         systemd-timesyncd | time-daemon,
          util-linux (>= 2.27.1),
          mount (>= 2.26),
          adduser,
@@ -101,7 +101,7 @@ Package: systemd-sysv
 Architecture: linux-any
 Multi-Arch: foreign
 Section: admin
-Priority: required
+Priority: important
 Conflicts: sysvinit-core,
            upstart (<< 1.13.2-0ubuntu10~),
            file-rc,
@@ -144,20 +144,6 @@ Description: systemd container/nspawn tools
   * systemd-machined and machinectl
   * systemd-importd
   * systemd-portabled and portablectl
-
-Package: systemd-boot
-Architecture: linux-amd64 linux-i386 linux-arm64
-Multi-Arch: foreign
-Section: admin
-Priority: optional
-Depends: ${misc:Depends}
-Breaks: systemd (<< 241+dev69.424bf57-22)
-Replaces: systemd (<< 241+dev69.424bf57-22),
-          systemd-boot-signed
-Conflicts: systemd-boot-signed
-Description: systemd boot loader
- This package provides systemd's boot loader known as systemd-boot. It is a
- simple UEFI boot manager.
 
 Package: systemd-journal-remote
 Build-Profiles: <!stage1>
@@ -230,7 +216,7 @@ Package: libpam-systemd
 Architecture: linux-any
 Multi-Arch: same
 Section: admin
-Priority: required
+Priority: standard
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
@@ -284,6 +270,22 @@ Description: nss module to resolve hostnames for local container instances
  resolved to IP addresses of the specific container, ordered by their scope.
  .
  Installing this package automatically adds mymachines to /etc/nsswitch.conf.
+
+Package: libnss-resolve
+Architecture: linux-any
+Multi-Arch: same
+Section: admin
+Priority: optional
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         systemd (= ${binary:Version}),
+Description: nss module to resolve names via systemd-resolved
+ nss-resolve is a plugin for the GNU Name Service Switch (NSS) functionality
+ of the GNU C Library (glibc) providing DNS and LLMNR resolution to programs via
+ the systemd-resolved daemon (provided in the systemd package).
+ .
+ Installing this package automatically adds resolve to /etc/nsswitch.conf.
 
 Package: libnss-systemd
 Architecture: linux-any

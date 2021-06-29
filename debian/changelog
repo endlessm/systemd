@@ -1,3 +1,72 @@
+systemd (247.3-5) unstable; urgency=medium
+
+  * udev-udeb: setup /dev/fd, /dev/std{in,out,err} symlinks.
+    As systemd-udevd no longer sets them up itself, we create them manually
+    after mounting devtmpfs. This avoids breaking applications which expect
+    those symlinks. (Closes: #975018)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Apr 2021 20:21:24 +0200
+
+systemd (247.3-4) unstable; urgency=medium
+
+  [ Luca Boccassi ]
+  * Backport patch to fix assert with invalid LoadCredentials=
+    Regression introduced in v247, fixed in v249, see:
+    https://github.com/systemd/systemd/issues/19178
+    (Closes: #986302)
+
+  [ Michael Biebl ]
+  * network: Delay addition of IPv6 Proxy NDP addresses.
+    Fixes "IPv6 Proxy NDP addresses are being lost from interfaces after
+    networkd adds them". (Closes: #985510)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Apr 2021 16:06:46 +0200
+
+systemd (247.3-3) unstable; urgency=medium
+
+  * pkg-config: make prefix overridable again (Closes: #984763)
+  * Revert "units: turn off DNSSEC validation when timesyncd resolves
+    hostnames"
+    Support for SYSTEMD_NSS_RESOLVE_VALIDATE=0 requires the changes from
+    https://github.com/systemd/systemd/pull/17823 for the dnssec bypass
+    logic. Those are rather invasive changes and not suitable for a stable
+    backport.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Mar 2021 18:09:35 +0100
+
+systemd (247.3-2) unstable; urgency=medium
+
+  * Downgrade a couple of warnings to debug.
+    If a package still ships only a SysV init script or if a service file or
+    tmpfile uses /var/run, downgrade those messages to debug. We can use
+    lintian to detect those issues.
+    For service files and tmpfiles in /etc, keep the warning, as those files
+    are typically added locally and aren't checked by lintian.
+    (Closes: #981407)
+  * core: fix mtime calculation of dropin files
+    (Closes: #975289)
+  * analyze: slightly reword PrivateTmp= message
+    (Closes: #931753)
+  * rules: move ID_SMARTCARD_READER definition to a <70 configuration
+    (Closes: #978011)
+  * units: turn off DNSSEC validation when timesyncd resolves hostnames
+    (Closes: #898530)
+  * table: drop trailing white spaces of the last cell in row
+    (Closes: #980820)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 06 Mar 2021 22:32:14 +0100
+
+systemd (247.3-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 247.3
+  * Rebase patches
+
+  [ Ioanna Alifieraki ]
+  * systemctl: return error code when scheduled shutdown fails
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 03 Feb 2021 17:11:39 +0100
+
 systemd (247.2-5) unstable; urgency=medium
 
   [ Matthias Klumpp ]
