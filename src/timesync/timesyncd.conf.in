@@ -17,3 +17,4 @@
 #RootDistanceMaxSec=5
 #PollIntervalMinSec=32
 #PollIntervalMaxSec=2048
+#SaveIntervalSec=60
