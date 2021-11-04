@@ -231,6 +231,8 @@ override_dh_install:
 		-name systemd-udev-hwdb-update.service -o \
 		-name etc.conf \) -delete
 	rm -rf debian/install/*/usr/share/factory/
+	# replace upstream sysusers.d/basic.conf with proper users for Debian
+	debian/extra/make-sysusers-basic > debian/install/deb/usr/lib/sysusers.d/basic.conf
 	# remove resolvconf compat symlink
 	rm -f debian/install/*/sbin/resolvconf
 ifeq (, $(filter noudeb, $(DEB_BUILD_PROFILES)))
