@@ -2961,8 +2961,7 @@ if conf.get('ENABLE_OOMD') == 1
                 link_with : [libshared],
                 dependencies : [],
                 install_rpath : rootlibexecdir,
-                install : true,
-                install_dir : rootbindir)
+                install : true)
 endif
 
 if conf.get('ENABLE_BINFMT') == 1
