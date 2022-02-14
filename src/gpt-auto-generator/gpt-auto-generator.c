@@ -473,14 +473,14 @@ static int add_xbootldr(DissectedPartition *p) {
         if (r > 0)
                 return 0;
 
-        return add_automount("boot",
-                             p->node,
-                             "/boot",
-                             p->fstype,
-                             true,
-                             esp_or_xbootldr_options(p),
-                             "Boot Loader Partition",
-                             120 * USEC_PER_SEC);
+        return add_mount("boot",
+                         p->node,
+                         "/boot",
+                         p->fstype,
+                         true,
+                         esp_or_xbootldr_options(p),
+                         "Boot Loader Partition",
+                         SPECIAL_LOCAL_FS_TARGET);
 }
 
 #if ENABLE_EFI
@@ -547,14 +547,24 @@ static int add_esp(DissectedPartition *p, bool has_xbootldr) {
         } else
                 log_debug("Not an EFI boot, skipping ESP check.");
 
-        return add_automount(id,
-                             p->node,
-                             esp_path,
-                             p->fstype,
-                             true,
-                             esp_or_xbootldr_options(p),
-                             "EFI System Partition Automount",
-                             120 * USEC_PER_SEC);
+        if (streq(esp_path, "/boot"))
+                return add_mount(id,
+                                 p->node,
+                                 esp_path,
+                                 p->fstype,
+                                 true,
+                                 esp_or_xbootldr_options(p),
+                                 "EFI System Partition",
+                                 SPECIAL_LOCAL_FS_TARGET);
+        else
+                return add_automount(id,
+                                     p->node,
+                                     esp_path,
+                                     p->fstype,
+                                     true,
+                                     esp_or_xbootldr_options(p),
+                                     "EFI System Partition Automount",
+                                     120 * USEC_PER_SEC);
 }
 #else
 static int add_esp(DissectedPartition *p, bool has_xbootldr) {
