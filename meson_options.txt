@@ -436,17 +436,17 @@ option('efi-includedir', type : 'string', value : '/usr/include/efi',
        description : 'path to the EFI header directory')
 option('efi-tpm-pcr-compat', type : 'boolean', value : 'false',
        description : 'Measure kernel command line also into TPM PCR 8 (in addition to 12)')
-option('sbat-distro', type : 'string', value : 'auto',
+option('sbat-distro', type : 'string', value : 'endless',
        description : 'SBAT distribution ID, e.g. fedora, or auto for autodetection')
 option('sbat-distro-generation', type : 'integer', value : 1,
        description : 'SBAT distribution generation')
-option('sbat-distro-summary', type : 'string',
+option('sbat-distro-summary', type : 'string', value : 'Endless OS Foundation LLC',
        description : 'SBAT distribution summary, e.g. Fedora')
-option('sbat-distro-pkgname', type : 'string',
+option('sbat-distro-pkgname', type : 'string', value : 'systemd-boot',
        description : 'SBAT distribution package name, e.g. systemd')
 option('sbat-distro-version', type : 'string',
        description : 'SBAT distribution package version, e.g. 248-7.fc34')
-option('sbat-distro-url', type : 'string',
+option('sbat-distro-url', type : 'string', value : 'https://github.com/endlessm/systemd',
        description : 'SBAT distribution URL, e.g. https://src.fedoraproject.org/rpms/systemd')
 option('efi-color-normal', type : 'string', value : 'lightgray,black',
        description : 'general boot loader color in "foreground,background" form, see constants from eficon.h')
