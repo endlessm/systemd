@@ -1,6 +1,5 @@
 lib/systemd/systemd-bless-boot
 lib/systemd/system-generators/systemd-bless-boot-generator
-lib/systemd/system/sysinit.target.wants/systemd-boot-system-token.service
 lib/systemd/system/systemd-bless-boot.service
 lib/systemd/system/systemd-boot-system-token.service
 lib/systemd/system/systemd-boot-update.service
