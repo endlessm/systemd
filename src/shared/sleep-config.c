@@ -684,6 +684,7 @@ static bool can_s2h(const SleepConfig *sleep_config) {
 static bool is_product_listed(char **products) {
         int r;
         _cleanup_free_ char *p = NULL;
+        char **product;
 
         if (strv_isempty(products))
                 return false;
