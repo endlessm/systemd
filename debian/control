@@ -468,7 +468,7 @@ Build-Profiles: <!stage1>
 Architecture: amd64 i386 arm64 armhf riscv64
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         systemd-boot-efi (= ${binary:Version}),
+         systemd-boot-efi-signed (= ${binary:Version}) | systemd-boot-efi (= ${binary:Version}),
 Recommends: efibootmgr,
 Breaks: systemd (<< 251.2-3~)
 Replaces: systemd (<< 251.2-3~)
@@ -489,7 +489,9 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends},
 Depends: ${misc:Depends},
 Breaks: systemd (<< 251.2-3~)
-Replaces: systemd (<< 251.2-3~)
+Replaces: systemd (<< 251.2-3~),
+          systemd-boot-efi-signed
+Conflicts: systemd-boot-efi-signed
 Description: simple UEFI boot manager - EFI binaries
  systemd-boot (short: sd-boot) is a simple UEFI boot manager. It provides a
  textual menu to select the entry to boot and an editor for the kernel command
