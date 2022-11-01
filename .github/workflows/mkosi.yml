@@ -49,7 +49,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-    - uses: systemd/mkosi@93098e2406e12ea7f06f962d4808952b8a06d345
+    - uses: systemd/mkosi@c9772ec920f1cd03181ba14e6fe2c3d35ccb4f92
 
     - name: Install
       run: sudo apt-get update && sudo apt-get install --no-install-recommends python3-pexpect python3-jinja2
