@@ -383,6 +383,10 @@ static int list_x11_keymaps(int argc, char **argv, void *userdata) {
         return 0;
 }
 
+static int not_supported(int argc, char **argv, void *userdata) {
+        return log_error_errno(SYNTHETIC_ERRNO(EOPNOTSUPP), "Setting X11 and console keymaps is not supported in Debian.");
+}
+
 static int help(void) {
         _cleanup_free_ char *link = NULL;
         int r;
@@ -397,10 +401,7 @@ static int help(void) {
                "  status                   Show current locale settings\n"
                "  set-locale LOCALE...     Set system locale\n"
                "  list-locales             Show known locales\n"
-               "  set-keymap MAP [MAP]     Set console and X11 keyboard mappings\n"
                "  list-keymaps             Show known virtual console keyboard mappings\n"
-               "  set-x11-keymap LAYOUT [MODEL [VARIANT [OPTIONS]]]\n"
-               "                           Set X11 and console keyboard mappings\n"
                "  list-x11-keymap-models   Show known X11 keyboard mapping models\n"
                "  list-x11-keymap-layouts  Show known X11 keyboard mapping layouts\n"
                "  list-x11-keymap-variants [LAYOUT]\n"
@@ -500,9 +501,9 @@ static int localectl_main(sd_bus *bus, int argc, char *argv[]) {
                 { "status",                   VERB_ANY, 1,        VERB_DEFAULT, show_status           },
                 { "set-locale",               2,        VERB_ANY, 0,            set_locale            },
                 { "list-locales",             VERB_ANY, 1,        0,            list_locales          },
-                { "set-keymap",               2,        3,        0,            set_vconsole_keymap   },
+                { "set-keymap",               2,        3,        0,            not_supported         },
                 { "list-keymaps",             VERB_ANY, 1,        0,            list_vconsole_keymaps },
-                { "set-x11-keymap",           2,        5,        0,            set_x11_keymap        },
+                { "set-x11-keymap",           2,        5,        0,            not_supported         },
                 { "list-x11-keymap-models",   VERB_ANY, 1,        0,            list_x11_keymaps      },
                 { "list-x11-keymap-layouts",  VERB_ANY, 1,        0,            list_x11_keymaps      },
                 { "list-x11-keymap-variants", VERB_ANY, 2,        0,            list_x11_keymaps      },
