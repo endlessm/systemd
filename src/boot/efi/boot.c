@@ -1624,9 +1624,9 @@ static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
                 .timeout_sec_efivar = TIMEOUT_UNSET,
         };
 
-        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        link = resolve_link(root_dir, L"\\loader", L"\\loader.conf");
         if (!link)
-          link = L"\\loader\\entries";
+          link = L"\\loader\\loader.conf";
         err = file_read(root_dir, link, 0, 0, &content, NULL);
         if (!EFI_ERROR(err))
                 config_defaults_load_from_file(config, content);
