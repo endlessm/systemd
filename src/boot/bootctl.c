@@ -773,14 +773,11 @@ static const char *const esp_subdirs[] = {
         "EFI",
         "EFI/systemd",
         "EFI/BOOT",
-        "loader",
         NULL
 };
 
 static const char *const dollar_boot_subdirs[] = {
         /* The directories to place in the XBOOTLDR partition or the ESP, depending what exists */
-        "loader",
-        "loader/entries",  /* Type #1 entries */
         "EFI",
         "EFI/Linux",       /* Type #2 entries */
         NULL
@@ -1941,28 +1938,6 @@ static int verb_install(int argc, char *argv[], void *userdata) {
                 }
 
                 r = install_binaries(arg_esp_path, install);
-                if (r < 0)
-                        return r;
-
-                if (install) {
-                        r = install_loader_config(arg_esp_path);
-                        if (r < 0)
-                                return r;
-
-                        r = install_entry_directory(arg_dollar_boot_path());
-                        if (r < 0)
-                                return r;
-
-                        r = install_entry_token();
-                        if (r < 0)
-                                return r;
-
-                        r = install_random_seed(arg_esp_path);
-                        if (r < 0)
-                                return r;
-                }
-
-                r = install_loader_specification(arg_dollar_boot_path());
                 if (r < 0)
                         return r;
         }
