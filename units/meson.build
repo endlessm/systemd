@@ -261,7 +261,6 @@ units = [
         {
           'file' : 'systemd-boot-random-seed.service',
           'conditions' : ['ENABLE_BOOTLOADER'],
-          'symlinks' : ['sysinit.target.wants/'],
         },
         {
           'file' : 'systemd-boot-update.service',
