@@ -58,6 +58,31 @@ DECLARE_NOALLOC_SECTION(".sdmagic", "#### LoaderInfo: systemd-stub " GIT_VERSION
 
 DECLARE_SBAT_PADDED(SBAT_STUB_SECTION_TEXT);
 
+/* Allowed kernel cmdline options */
+static const char16_t *allowed_opts[] = {
+        L"ostree",
+        L"rw",
+        L"quiet",
+        L"splash",
+        L"plymouth.ignore-serial-consoles",
+        L"loglevel",
+        NULL
+};
+
+static bool validate_option(char16_t *pos, size_t len)
+{
+        size_t optlen = 0, i;
+
+        while (optlen < len && pos[optlen] != ' ' && pos[optlen] != '=')
+                optlen++;
+
+        for (i = 0; i < ELEMENTSOF(allowed_opts); i++)
+                if (strncmp16(pos, allowed_opts[i], optlen) == 0)
+                        return true;
+
+        return false;
+}
+
 static char16_t* pe_section_to_str16(
                 EFI_LOADED_IMAGE_PROTOCOL *loaded_image,
                 const PeSectionVector *section) {
@@ -1252,6 +1277,44 @@ static EFI_STATUS run(EFI_HANDLE image) {
         cmdline_append_and_measure_smbios(&cmdline, &parameters_measured);
 
         cmdline_append_console(&cmdline);
+
+        /* PAYG: combine options from both the image and the loader configuration */
+        if (loaded_image->LoadOptionsSize > 0 && *(char16_t *)loaded_image->LoadOptions > 0x1F) {
+                char16_t *line;
+                char16_t *options;
+                size_t cmdline_len, max_len, options_len, options_left, i;
+
+                options_len = (loaded_image->LoadOptionsSize / sizeof(char16_t)) * sizeof(char);
+                options_left = options_len;
+                max_len = options_len + 1;
+                err = BS->AllocatePool(EfiReservedMemoryType, max_len, (void **)&line);
+                if (err != EFI_SUCCESS)
+                        log_error_status(err, "Failed to allocate memory to combine options: %m");
+
+                /* Copy command line without the terminating null byte */
+                cmdline_len = strlen16(cmdline);
+                for (i = 0; i < cmdline_len; i++)
+                        line[i] = cmdline[i];
+
+                options = (char16_t *)loaded_image->LoadOptions;
+                for (i = 0; i < options_len; i++) {
+                        bool safe;
+
+                        safe = validate_option(&options[i], options_left);
+                        if (safe)
+                                line[cmdline_len++] = ' ';
+
+                        while (i < options_len && options[i] != ' ') {
+                                if (safe)
+                                        line[cmdline_len++] = options[i];
+                                i++;
+                                options_left--;
+                        }
+                }
+                /* Make sure we're terminated */
+                line[cmdline_len++] = '\0';
+                cmdline = line;
+        }
 
         export_common_variables(loaded_image);
         export_stub_variables(loaded_image, profile);
