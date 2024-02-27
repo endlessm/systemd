@@ -1578,9 +1578,42 @@ static EFI_STATUS efivar_get_timeout(const char16_t *var, uint64_t *ret_value) {
         return EFI_SUCCESS;
 }
 
+static char16_t *resolve_link(
+                EFI_FILE *root_dir,
+                const char16_t *link,
+                const char16_t *file) {
+        EFI_STATUS err;
+        _cleanup_free_ char *contents = NULL;
+        _cleanup_free_ char16_t *linkname = NULL;
+        _cleanup_free_ char16_t *target = NULL;
+        char16_t *out = NULL;
+
+        err = BS->AllocatePool(EfiReservedMemoryType, strsize16(link) + strsize16(L".sln"), (void **)&linkname);
+        if (err != EFI_SUCCESS)
+                return NULL;
+        strcpy16(linkname, link);
+        strcpy16(linkname + strlen16(linkname), L".sln");
+
+        err = file_read(root_dir, linkname, 0, 0, &contents, NULL);
+        if (err != EFI_SUCCESS)
+                return NULL;
+
+        target = xstr8_to_path(contents);
+        if (!target)
+                return NULL;
+
+        err = BS->AllocatePool(EfiReservedMemoryType, strsize16(target) + strsize16(file), (void **)&out);
+        if (err != EFI_SUCCESS)
+                return NULL;
+        strcpy16(out, target);
+        strcpy16(out + strlen16(out), file);
+
+        return out;
+}
+
 static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
         _cleanup_free_ char *content = NULL;
-        size_t content_size;
+        _cleanup_free_ char16_t *link = NULL;
         EFI_STATUS err;
 
         assert(root_dir);
@@ -1597,20 +1630,11 @@ static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
                 .timeout_sec_efivar = TIMEOUT_UNSET,
         };
 
-        err = file_read(root_dir, u"\\loader\\loader.conf", 0, 0, &content, &content_size);
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+                link = (char16_t *)L"\\loader\\entries";
+        err = file_read(root_dir, link, 0, 0, &content, NULL);
         if (err == EFI_SUCCESS) {
-                /* First, measure. */
-                err = tpm_log_tagged_event(
-                                TPM2_PCR_BOOT_LOADER_CONFIG,
-                                POINTER_TO_PHYSICAL_ADDRESS(content),
-                                content_size,
-                                LOADER_CONF_EVENT_TAG_ID,
-                                u"loader.conf",
-                                /* ret_measured= */ NULL);
-                if (err != EFI_SUCCESS)
-                        log_error_status(err, "Error measuring loader.conf into TPM: %m");
-
-                /* Then: parse */
                 config_defaults_load_from_file(config, content);
         }
 
@@ -1662,18 +1686,22 @@ static void config_load_type1_entries(
         _cleanup_free_ EFI_FILE_INFO *f = NULL;
         size_t f_size = 0;
         EFI_STATUS err;
+        _cleanup_free_ char16_t *link = NULL;
 
         assert(config);
         assert(device);
         assert(root_dir);
 
         /* Adds Boot Loader Type #1 entries (i.e. /loader/entries/….conf) */
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+                link = xstrdup16(L"\\loader\\entries");
+        err = open_directory(root_dir, link, &entries_dir);
 
-        const uint16_t dropin_path[] = u"\\loader\\entries";
-
-        err = open_directory(root_dir, dropin_path, &entries_dir);
         if (err != EFI_SUCCESS)
                 return;
+
+        const uint16_t dropin_path[] = u"\\loader\\entries";
 
         for (;;) {
                 _cleanup_free_ char *content = NULL;
