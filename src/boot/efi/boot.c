@@ -1545,8 +1545,42 @@ static EFI_STATUS efivar_get_timeout(const char16_t *var, uint64_t *ret_value) {
         return EFI_SUCCESS;
 }
 
+static char16_t *resolve_link(
+                EFI_FILE *root_dir,
+                const char16_t *link,
+                const char16_t *file) {
+        EFI_STATUS err;
+        _cleanup_free_ char *contents = NULL;
+        _cleanup_free_ char16_t *linkname = NULL;
+        _cleanup_free_ char16_t *target = NULL;
+        char16_t *out = NULL;
+
+        err = BS->AllocatePool(EfiReservedMemoryType, strsize16(link) + strsize16(L".sln"), (void **)&linkname);
+        if (err != EFI_SUCCESS)
+                return NULL;
+        strcpy16(linkname, link);
+        strcpy16(linkname + strlen16(linkname), L".sln");
+
+        err = file_read(root_dir, linkname, 0, 0, &contents, NULL);
+        if (EFIERR(err))
+                return NULL;
+
+        target = xstr8_to_path(contents);
+        if (!target)
+                return NULL;
+
+        err = BS->AllocatePool(EfiReservedMemoryType, strsize16(target) + strsize16(file), (void **)&out);
+        if (err != EFI_SUCCESS)
+                return NULL;
+        strcpy16(out, target);
+        strcpy16(out + strlen16(out), file);
+
+        return out;
+}
+
 static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
         _cleanup_free_ char *content = NULL;
+        _cleanup_free_ char16_t *link = NULL;
         size_t content_size, value = 0;  /* avoid false maybe-uninitialized warning */
         EFI_STATUS err;
 
@@ -1564,7 +1598,10 @@ static void config_load_defaults(Config *config, EFI_FILE *root_dir) {
                 .timeout_sec_efivar = TIMEOUT_UNSET,
         };
 
-        err = file_read(root_dir, u"\\loader\\loader.conf", 0, 0, &content, &content_size);
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+                link = L"\\loader\\entries";
+        err = file_read(root_dir, link, 0, 0, &content, &content_size);
         if (err == EFI_SUCCESS) {
                 /* First, measure. */
                 err = tpm_log_tagged_event(
@@ -1628,6 +1665,7 @@ static void config_load_type1_entries(
         _cleanup_free_ EFI_FILE_INFO *f = NULL;
         size_t f_size = 0;
         EFI_STATUS err;
+        _cleanup_free_ char16_t *link = NULL;
 
         assert(config);
         assert(device);
@@ -1635,7 +1673,10 @@ static void config_load_type1_entries(
 
         /* Adds Boot Loader Type #1 entries (i.e. /loader/entries/….conf) */
 
-        err = open_directory(root_dir, u"\\loader\\entries", &entries_dir);
+        link = resolve_link(root_dir, L"\\loader", L"\\entries");
+        if (!link)
+                link = L"\\loader\\entries";
+        err = open_directory(root_dir, link, &entries_dir);
         if (err != EFI_SUCCESS)
                 return;
 
