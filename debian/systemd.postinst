@@ -3,24 +3,17 @@
 set -e
 
 _systemctl() {
-    if [ -d /run/systemd/system ]; then
+    if [ -z "$DPKG_ROOT" ] && [ -d /run/systemd/system ]; then
         systemctl "$@"
     fi
 }
 
 _update_catalog() {
-    journalctl --update-catalog || true
+    journalctl ${DPKG_ROOT:+--root="$DPKG_ROOT"} --update-catalog || true
 }
 
 _update_binfmt() {
-    # If binfmt-support is installed and active do not restart
-    # systemd-binfmt.service. It will unregister all currently registered
-    # binary formats in ExecStop and not all packages with a binfmt-support
-    # configuration ship a corresponding binfmt.d snippet yet.
-    # Once this is the case, this additional safety check can be removed.
-    if ! _systemctl -q is-active binfmt-support.service; then
-        _systemctl try-restart systemd-binfmt.service || true
-    fi
+    _systemctl try-restart systemd-binfmt.service || true
 }
 
 # Update Message Catalogs database and binfmt registrations in response to dpkg triggers
@@ -39,55 +32,39 @@ if [ "$1" = "triggered" ]; then
     exit 0
 fi
 
-# Enable getty and remote-fs.target by default on new installs
+# Enable getty, remote-fs.target and systemd-pstore by default on new installs
 if [ -z "$2" ]; then
-    systemctl enable getty@tty1.service || true
-    systemctl enable remote-fs.target || true
-fi
-
-# Enable systemd-pstore by default on new installs and upgrades, see #952767
-if dpkg --compare-versions "$2" lt "245.4-4~"; then
-    systemctl enable systemd-pstore.service || true
+    systemctl ${DPKG_ROOT:+--root="$DPKG_ROOT"} enable getty@tty1.service || true
+    systemctl ${DPKG_ROOT:+--root="$DPKG_ROOT"} enable remote-fs.target || true
+    systemctl ${DPKG_ROOT:+--root="$DPKG_ROOT"} enable systemd-pstore.service || true
 fi
 
 # Create /etc/machine-id
-systemd-machine-id-setup
+systemd-machine-id-setup ${DPKG_ROOT:+--root="$DPKG_ROOT"}
 
-# Setup system users and groups
-addgroup --quiet --system systemd-journal
-
-# Enable persistent journal, in auto-mode, by default on new installs and upgrades
-if dpkg --compare-versions "$2" lt "244.1-2~"; then
-    mkdir -p /var/log/journal
-    # Applying ACLs requires a mounted /proc and systemd-tmpfiles will fail if
-    # /proc is not available. Skip systemd-tmpfiles in this case. This should
-    # be fine, as this typically means we are inside a chroot and systemd is
-    # not currently active. The permissions will be applied on the next boot.
-    # https://github.com/systemd/systemd/issues/14745
-    if mountpoint -q /proc; then
-        systemd-tmpfiles --create --prefix /var/log/journal
-    fi
+# Enable persistent journal, in auto-mode, by default on new installs
+if [ -z "$2" ]; then
+    mkdir -p "$DPKG_ROOT/var/log/journal"
 fi
 
 # Initial update of the Message Catalogs database
 _update_catalog
 
-if [ -n "$2" ]; then
-    _systemctl daemon-reexec || true
-    # do not restart logind; this can be done again once this gets implemented:
-    # https://github.com/systemd/systemd/issues/1163
-    _systemctl try-restart systemd-journald.service || true
-fi
-
-if dpkg --compare-versions "$2" lt-nl "245.4-4~"; then
-    # systemd-pstore.service is now enabled via sysinit.target
-    rm -f /etc/systemd/system/systemd-remount-fs.service.wants/systemd-pstore.service
-    rmdir --ignore-fail-on-non-empty /etc/systemd/system/systemd-remount-fs.service.wants 2> /dev/null || true
-fi
-
-if dpkg --compare-versions "$2" lt-nl "245.4-5~"; then
-    # Clean up removed ondemand service
-    rm -f /etc/systemd/system/multi-user.target.wants/ondemand.service
+# Move the old locale file into /etc. Symlinks will be created by tmpfiles.d later
+if [ -f /etc/default/locale ] && [ ! -L /etc/default/locale ] && [ ! -f /etc/locale.conf ]; then
+    mv /etc/default/locale /etc/locale.conf
 fi
 
 #DEBHELPER#
+
+if [ -n "$2" ]; then
+    _systemctl daemon-reexec || true
+    # Re-exec user instances so that running user managers are updated too.
+    # SIGRTMIN+25 -> reexec. Note that this is asynchronous, but we can't use
+    # D-Bus as dbus-user-session is not guaranteed to be available.
+    _systemctl kill --kill-whom='main' --signal='SIGRTMIN+25' 'user@*.service' || true
+    # do not restart logind
+    # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=919509
+    _systemctl try-restart systemd-networkd.service || true
+    _systemctl try-restart systemd-journald.service || true
+fi

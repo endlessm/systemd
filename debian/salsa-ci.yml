@@ -1,0 +1,7 @@
+include:
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
+
+variables:
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1011649
+  SALSA_CI_DISABLE_PIUPARTS: 1
