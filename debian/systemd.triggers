@@ -1,3 +1,2 @@
 interest-noawait /usr/lib/systemd/catalog
 interest-noawait /usr/lib/binfmt.d
-activate update-initramfs

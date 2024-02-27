@@ -4,8 +4,10 @@
 #export DEB_BUILD_OPTIONS = nostrip
 
 export LC_ALL = C.UTF-8
+export DEB_CFLAGS_MAINT_APPEND = -ffat-lto-objects
 
 include /usr/share/dpkg/default.mk
+include /usr/share/debhelper/dh_package_notes/package-notes.mk
 
 ifeq ($(DEB_VENDOR),Ubuntu)
     DEFAULT_NTP_SERVERS = ntp.ubuntu.com
@@ -32,10 +34,10 @@ endif
 CONFFLAGS = \
 	-Db_lto=true \
 	-Db_pie=true \
+	-Dstatic-libsystemd=true \
 	-Dmode=release \
-	-Drootprefix=/ \
 	-Drootlibdir=/usr/lib/$(DEB_HOST_MULTIARCH) \
-	-Dsplit-usr=false \
+	-Dsplit-usr=true \
 	-Dversion-tag="$(DEB_VERSION)" \
 	-Dquotaon-path=/sbin/quotaon \
 	-Dquotacheck-path=/sbin/quotacheck \
@@ -61,30 +63,24 @@ CONFFLAGS = \
 	-Dpamconfdir=no \
 	-Dpamlibdir=/lib/$(DEB_HOST_MULTIARCH)/security \
 	-Drpmmacrosdir=no \
-	-Dqrencode=false \
 	-Dvconsole=false \
-	-Dfirstboot=false \
-	-Dsysupdate=false \
+	-Dfirstboot=true \
 	-Dxkbcommon=false \
 	-Dwheel-group=false \
 	-Dpwquality=false \
-	-Dp11kit=false \
 	-Doomd=true \
-	-Dapparmor=false \
 	-Durlify=true \
 	-Dgnutls=false \
 	-Dlink-udev-shared=false \
 	-Dlink-systemctl-shared=false \
 	-Dbump-proc-sys-fs-nr-open=false \
-	-Dnetworkd=false \
-	-Dresolve=false \
 	-Dntp-servers="$(DEFAULT_NTP_SERVERS)" \
 	-Ddns-servers='' \
 	-Dsystem-uid-max=999 \
 	-Dsystem-gid-max=999 \
 	-Dnobody-user=nobody \
 	-Dnobody-group=nogroup \
-	-Ddev-kvm-mode=0666 \
+	-Ddev-kvm-mode=0660 \
 	-Dgroup-render-mode=0660 \
 	-Drepart=true \
 	-Dfdisk=true \
@@ -94,27 +90,25 @@ CONFFLAGS = \
 	-Dhwdb=true \
 	-Dsysusers=true \
 	-Dinstall-tests=$(if $(filter noinsttest,$(DEB_BUILD_PROFILES)),false,true) \
-	-Dlibcryptsetup-plugins=false \
-	-Defi=true \
-	-Dsbat-distro='endless' \
-	-Dsbat-distro-generation=1 \
-	-Dsbat-distro-summary='Endless OS Foundation LLC' \
-	-Dsbat-distro-pkgname='systemd-boot' \
-	-Dsbat-distro-version="$(DEB_VERSION)" \
-	-Dsbat-distro-url='https://github.com/endlessm/systemd' \
 	-Dman=$(if $(filter nodoc,$(DEB_BUILD_PROFILES)),false,true) \
 	-Dtranslations=true \
 	-Dnss-myhostname=true \
 	-Dnss-mymachines=true \
+	-Dnss-resolve=true \
 	-Dnss-systemd=true \
+	-Dresolve=true \
+	-Dstatus-unit-format-default=combined \
+	-Dbootloader=$(if $(filter x32,$(DEB_HOST_ARCH)),false,auto) \
 	-Dstandalone-binaries=true
 
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
 CONFFLAGS += \
 	-Daudit=true \
 	-Dlibcryptsetup=true \
+	-Dlibcryptsetup-plugins=true \
 	-Dcoredump=true \
 	-Delfutils=true \
+	-Dapparmor=true \
 	-Dlibidn2=true \
 	-Dlibiptc=true \
 	-Dlibcurl=true \
@@ -125,15 +119,20 @@ CONFFLAGS += \
 	-Ddns-over-tls=openssl \
 	-Dlibfido2=true \
 	-Dtpm2=true \
+	-Dp11kit=true \
+	-Dqrencode=true \
 	-Dhomed=true \
 	-Duserdb=true \
-	-Dpcre2=true
+	-Dpcre2=true \
+	-Dsysupdate=true
 else
 CONFFLAGS += \
 	-Daudit=false \
 	-Dlibcryptsetup=false \
+	-Dlibcryptsetup-plugins=false \
 	-Dcoredump=false \
 	-Delfutils=false \
+	-Dapparmor=false \
 	-Dlibidn2=false \
 	-Dlibiptc=false \
 	-Dlibcurl=false \
@@ -142,6 +141,8 @@ CONFFLAGS += \
 	-Dopenssl=false \
 	-Dlibfido2=false \
 	-Dtpm2=false \
+	-Dp11kit=false \
+	-Dqrencode=false \
 	-Dhomed=false \
 	-Duserdb=false \
 	-Dpcre2=false
@@ -177,6 +178,8 @@ endif
 execute_after_dh_auto_clean:
 	rm -f debian/shlibs.local
 	# remove Python byte code files
+	rm -rf src/ukify/test/__pycache__/
+	rm -rf src/ukify/__pycache__/
 	rm -rf tools/__pycache__/
 	rm -rf tools/chromiumos/__pycache__/
 	rm -f po/systemd.pot
@@ -185,7 +188,6 @@ execute_before_dh_install:
 	# remove unnecessary / unused files
 	rm -rf debian/tmp/usr/share/doc/systemd/LICENSES/
 	rm -f debian/tmp/usr/share/doc/systemd/LICENSE.*
-	rm -f debian/tmp/var/log/README
 	rm -f debian/tmp/etc/init.d/README
 	rm -f debian/tmp/lib/*.d/README
 	rm -f debian/tmp/lib/udev/*.d/README
@@ -193,30 +195,28 @@ execute_before_dh_install:
 	rm -f debian/tmp/usr/lib/sysctl.d/50-default.conf
 	rm -f debian/tmp/etc/X11/xinit/xinitrc.d/50-systemd-user.sh
 	rmdir -p --ignore-fail-on-non-empty debian/tmp/etc/X11/xinit/xinitrc.d/
-	# those files should probably be shipped in a -dev package, remove for now
-	rm -rf debian/tmp/usr/share/dbus-1/interfaces/
-	# remove files related to factory-reset feature
-	find debian/tmp/ \( \
-		-name systemd-journal-catalog-update.service -o \
-		-name systemd-hwdb-update.service -o \
-		-name etc.conf \) -print -delete
+	# remove etc.conf and usr/share/factory for now, we are not using them yet
+	find debian/tmp/ -name etc.conf -print -delete
 	rm -rf debian/tmp/usr/share/factory/
 	# replace upstream sysusers.d/basic.conf with proper users for Debian
 	debian/extra/make-sysusers-basic > debian/tmp/usr/lib/sysusers.d/basic.conf
-	# remove resolvconf compat symlink
-	rm -f debian/tmp/sbin/resolvconf
 	# remove obsolete compat symlink
 	rm -f debian/tmp/usr/bin/systemd-resolve
-	# do not create a potentially broken /etc/resolv.conf symlink
-	# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1007018
-	rm -f debian/tmp/usr/lib/tmpfiles.d/systemd-resolve.conf
 
-execute_after_dh_install:
+execute_after_dh_install-arch:
 	# install standalone binaries
 	for pkg in sysusers tmpfiles; do \
 		mkdir -p debian/systemd-standalone-$$pkg/bin; \
 		mv debian/systemd/bin/systemd-$$pkg.standalone debian/systemd-standalone-$$pkg/bin/systemd-$$pkg; \
 	done
+	# We don't want repart and shutdown standalone binaries for now
+	rm -f debian/systemd/bin/systemd-repart.standalone
+	rm -f debian/systemd/lib/systemd/systemd-shutdown.standalone
+
+	# we don't want /tmp to be a tmpfs by default
+	mv debian/systemd/lib/systemd/system/tmp.mount debian/systemd/usr/share/systemd/
+	printf '\n[Install]\nWantedBy=local-fs.target\n' >> debian/systemd/usr/share/systemd/tmp.mount
+	rm debian/systemd/lib/systemd/system/local-fs.target.wants/tmp.mount
 
 	# files shipped by cryptsetup
 ifeq (, $(filter stage1, $(DEB_BUILD_PROFILES)))
@@ -237,12 +237,7 @@ ifeq ($(DEB_VENDOR),Ubuntu)
 	cp -a debian/extra/units-ubuntu/* debian/systemd/lib/systemd/system/
 endif
 
-	# Endless specific files
-ifeq ($(DEB_VENDOR),Endless)
-	echo "LANG=en_US.utf8" > debian/systemd/etc/locale.conf
-endif
-
-execute_after_dh_installman:
+execute_after_dh_installman-arch:
 	# remove duplicate files shipped by systemd-*/udev
 	# run after dh_installman, which runs after dh_install, to include manpages
 	echo "Removing duplicate files in systemd package:"
@@ -251,27 +246,28 @@ execute_after_dh_installman:
 		(cd debian/$$pkg; find -type f -o -type l) | (cd debian/systemd; xargs rm -f --verbose); \
 		(cd debian/$$pkg; find -mindepth 1 -type d | sort -r) | (cd debian/systemd; xargs rmdir --ignore-fail-on-non-empty --verbose || true); \
 	done
-
-	# dh_installman is affected by false positives and mangles manpages named as lib*.so.*
-	# fixed in debhelper 13.7.2 by https://salsa.debian.org/debian/debhelper/-/merge_requests/69
-	for pkg in libnss-myhostname libnss-mymachines libnss-resolve libnss-systemd; do \
-		rm -rf debian/$$pkg/usr/share/man/so; \
-	done
+	# Remove empty directories from (/usr)/lib.
+	# Those are not strictly needed and can trigger piuparts errors due to
+	# accidential directory removal by dpkg on merged-/usr systems.
+	find debian/systemd/usr/lib debian/systemd/lib/ -type d -empty -print -delete
 
 override_dh_missing:
 	dh_missing $(DH_MISSING)
-
-override_dh_installinit:
-	dh_installinit --no-start
 
 override_dh_installsystemd:
 	dh_installsystemd -psystemd-timesyncd
 	dh_installsystemd -psystemd-oomd systemd-oomd.service
 	dh_installsystemd -psystemd-oomd --no-stop-on-upgrade systemd-oomd.socket
+	dh_installsystemd -psystemd-container --no-stop-on-upgrade machines.target
 	dh_installsystemd -psystemd-userdbd --no-stop-on-upgrade systemd-userdbd.socket
 	dh_installsystemd -psystemd-homed --no-also systemd-homed.service systemd-homed-activate.service
+	dh_installsystemd -psystemd-resolved
+	dh_installsystemd -pudev systemd-udevd.service
 
 override_dh_installsystemduser:
+
+execute_after_dh_installsysusers:
+	dh_installsysusers -pudev --name=debian-udev
 
 PROJECT_VERSION ?= $(shell awk '/(PROJECT|PACKAGE)_VERSION/ {print $$3}' obj-$(DEB_HOST_GNU_TYPE)/config.h | tr -d \")
 
@@ -293,9 +289,8 @@ override_dh_makeshlibs:
 
 override_dh_auto_test:
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
-	echo "01234567890123456789012345678901" > obj-$(DEB_HOST_GNU_TYPE)/machine-id
 	# some tests hang under fakeroot, so disable fakeroot
-	env -u LD_PRELOAD SYSTEMD_MACHINE_ID_PATH=$(CURDIR)/obj-$(DEB_HOST_GNU_TYPE)/machine-id meson test -C obj-$(DEB_HOST_GNU_TYPE) --print-errorlogs $(TEST_TIMEOUT_MULTIPLIER)
+	env -u LD_PRELOAD meson test -C obj-$(DEB_HOST_GNU_TYPE) --print-errorlogs $(TEST_TIMEOUT_MULTIPLIER)
 endif
 
 %:
