@@ -1,3 +1,10 @@
+systemd (254.9-1endless1) eos; urgency=medium
+
+  * This is a place holder for jenkins-obs matching systemd v254.9.
+    This should be dropped at next rebase.
+
+ -- Jian-Hong Pan <jhp@endlessos.org>  Fri, 01 Mar 2024 14:29:51 +0800
+
 systemd (254.5-1~bpo12+3) bookworm-backports; urgency=medium
 
   * Backport patch to fix CVE-2023-7008 (Closes: #1059278)
