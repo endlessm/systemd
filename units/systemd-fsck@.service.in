@@ -13,8 +13,7 @@ Documentation=man:systemd-fsck@.service(8)
 DefaultDependencies=no
 BindsTo=%i.device
 Conflicts=shutdown.target
-Wants=systemd-fsckd.socket
-After=%i.device systemd-fsck-root.service local-fs-pre.target systemd-fsckd.socket
+After=%i.device systemd-fsck-root.service local-fs-pre.target
 Before=systemd-quotacheck.service shutdown.target
 
 [Service]
