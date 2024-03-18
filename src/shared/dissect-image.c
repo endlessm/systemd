@@ -2363,7 +2363,7 @@ int partition_pick_mount_options(
                 /* The ESP might contain a pre-boot random seed. Let's make this inaccessible to regular
                  * userspace. ESP/XBOOTLDR is almost certainly VFAT, hence if we don't know assume it is. */
                 if (!fstype || fstype_can_fmask_dmask(fstype))
-                        if (!strextend_with_separator(&options, ",", "fmask=0177,dmask=0077"))
+                        if (!strextend_with_separator(&options, ",", "fmask=0022,dmask=0022"))
                                 return -ENOMEM;
                 break;
 
