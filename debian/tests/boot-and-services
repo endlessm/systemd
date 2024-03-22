@@ -114,7 +114,7 @@ class ServicesTest(unittest.TestCase):
             # has kernel messages
             self.assertRegex(log, 'kernel:.*')
         # has init messages
-        self.assertRegex(log, 'systemd.*Reached target Graphical Interface')
+        self.assertRegex(log, 'systemd.*Reached target(?: graphical.target -)? Graphical Interface')
         # has other services
         self.assertRegex(log, 'NetworkManager.*:')
 
@@ -175,7 +175,7 @@ class JournalTest(unittest.TestCase):
             # has kernel messages
             self.assertRegex(out, b'kernel:.*')
         # has init messages
-        self.assertRegex(out, b'systemd.*Reached target Graphical Interface')
+        self.assertRegex(out, b'systemd.*Reached target(?: graphical.target -)? Graphical Interface')
         # has other services
         self.assertRegex(out, b'NetworkManager.*:.*starting')
 
@@ -538,6 +538,9 @@ def pre_boot_setup():
         Identifier "test"
         Driver "dummy"
 EndSection''')
+
+    # accounts-daemon.service fails if /usr/share/accountsservice/interfaces does not exist
+    os.makedirs('/usr/share/accountsservice/interfaces', exist_ok=True)
 
 
 if __name__ == '__main__':

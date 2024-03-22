@@ -1,3 +1,4 @@
+#!/usr/bin/dh-exec
 etc/
 bin/
 lib/modprobe.d/
@@ -13,14 +14,17 @@ usr/lib/modules-load.d/
 usr/lib/sysctl.d/
 usr/lib/sysusers.d/basic.conf
 usr/lib/sysusers.d/systemd-journal.conf
+usr/lib/sysusers.d/systemd-network.conf
 usr/lib/systemd/
 usr/lib/tmpfiles.d/
 usr/lib/kernel
+<!stage1> usr/lib/*/cryptsetup/
 usr/share/bash-completion/
 usr/share/zsh/vendor-completions/
-usr/share/dbus-1/
+usr/share/dbus-1/services/
+usr/share/dbus-1/system-services/
+usr/share/dbus-1/system.d/
 usr/share/doc/
-usr/share/pkgconfig/systemd.pc
 usr/share/polkit-1/
 usr/share/systemd/kbd-model-map
 usr/share/systemd/language-fallback-map
@@ -32,3 +36,4 @@ var/lib
 ../extra/units/* lib/systemd/system/
 ../extra/kernel-install.d/* usr/lib/kernel/install.d
 ../extra/pam.d/* usr/lib/pam.d/
+../extra/journald.conf.d lib/systemd/
