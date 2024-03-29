@@ -1584,7 +1584,7 @@ static char16_t *resolve_link(
         strcpy16(linkname + strlen16(linkname), L".sln");
 
         err = file_read(root_dir, linkname, 0, 0, &contents, NULL);
-        if (EFIERR(err))
+        if (err != EFI_SUCCESS)
                 return NULL;
 
         target = xstr8_to_path(contents);
