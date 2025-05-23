@@ -128,6 +128,11 @@
 #define DEVMEM_MAGIC 0x454d444d
 #endif
 
+/* cb12fd8e0dabb9a1c8aef55a6a41e2c255fcdf4b (6.8) */
+#ifndef PID_FS_MAGIC
+#define PID_FS_MAGIC 0x50494446
+#endif
+
 /* Not in mainline but included in Ubuntu */
 #ifndef SHIFTFS_MAGIC
 #define SHIFTFS_MAGIC 0x6a656a62
@@ -191,4 +196,9 @@
 /* Not exposed yet, encoded literally in fs/ntfs3/super.c. */
 #ifndef NTFS3_SUPER_MAGIC
 #define NTFS3_SUPER_MAGIC 0x7366746e
+#endif
+
+/* Added in Linux commit e2f48c48090dea172c0c571101041de64634dae5. Remove when next sync'd */
+#ifndef BCACHEFS_SUPER_MAGIC
+#define BCACHEFS_SUPER_MAGIC 0xca451a4e
 #endif
