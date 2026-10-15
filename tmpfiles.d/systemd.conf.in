@@ -26,14 +26,14 @@ z /run/log/journal 2755 root systemd-journal - -
 Z /run/log/journal/%m ~2750 root systemd-journal - -
 {% if HAVE_ACL %}
 {% if ENABLE_ADM_GROUP and ENABLE_WHEEL_GROUP %}
-a+ /run/log/journal    - - - - d:group::r-x,d:group:adm:r-x,d:group:wheel:r-x,group::r-x,group:adm:r-x,group:wheel:r-x
-A+ /run/log/journal/%m - - - - d:group:adm:r-x,d:group:wheel:r-x,group:adm:r-X,group:wheel:r-X
+a+ /run/log/journal    - - - - d:group::r-x,d:group:adm:r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group::r-x,group:adm:r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+A+ /run/log/journal/%m - - - - d:group:adm:r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group:adm:r-X,group:{{WHEEL_GROUP_NAME}}:r-X
 {% elif ENABLE_ADM_GROUP %}
 a+ /run/log/journal    - - - - d:group::r-x,d:group:adm:r-x,group::r-x,group:adm:r-x
 A+ /run/log/journal/%m - - - - d:group:adm:r-x,group:adm:r-X
 {% elif ENABLE_WHEEL_GROUP %}
-a+ /run/log/journal    - - - - d:group::r-x,d:group:wheel:r-x,group::r-x,group:wheel:r-x
-A+ /run/log/journal/%m - - - - d:group:wheel:r-x,group:wheel:r-X
+a+ /run/log/journal    - - - - d:group::r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group::r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+A+ /run/log/journal/%m - - - - d:group:{{WHEEL_GROUP_NAME}}:r-x,group:{{WHEEL_GROUP_NAME}}:r-X
 {% endif %}
 {% endif %}
 
@@ -42,17 +42,17 @@ z /var/log/journal/%m 2755 root systemd-journal - -
 z /var/log/journal/%m/system.journal 0640 root systemd-journal - -
 {% if HAVE_ACL %}
 {% if ENABLE_ADM_GROUP and ENABLE_WHEEL_GROUP %}
-a+ /var/log/journal    - - - - d:group::r-x,d:group:adm:r-x,d:group:wheel:r-x,group::r-x,group:adm:r-x,group:wheel:r-x
-a+ /var/log/journal/%m - - - - d:group:adm:r-x,d:group:wheel:r-x,group:adm:r-x,group:wheel:r-x
-a+ /var/log/journal/%m/system.journal - - - - group:adm:r--,group:wheel:r--
+a+ /var/log/journal    - - - - d:group::r-x,d:group:adm:r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group::r-x,group:adm:r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+a+ /var/log/journal/%m - - - - d:group:adm:r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group:adm:r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+a+ /var/log/journal/%m/system.journal - - - - group:adm:r--,group:{{WHEEL_GROUP_NAME}}:r--
 {% elif ENABLE_ADM_GROUP %}
 a+ /var/log/journal    - - - - d:group::r-x,d:group:adm:r-x,group::r-x,group:adm:r-x
 a+ /var/log/journal/%m - - - - d:group:adm:r-x,group:adm:r-x
 a+ /var/log/journal/%m/system.journal - - - - group:adm:r--
 {% elif ENABLE_WHEEL_GROUP %}
-a+ /var/log/journal    - - - - d:group::r-x,d:group:wheel:r-x,group::r-x,group:wheel:r-x
-a+ /var/log/journal/%m - - - - d:group:wheel:r-x,group:wheel:r-x
-a+ /var/log/journal/%m/system.journal - - - - group:wheel:r--
+a+ /var/log/journal    - - - - d:group::r-x,d:group:{{WHEEL_GROUP_NAME}}:r-x,group::r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+a+ /var/log/journal/%m - - - - d:group:{{WHEEL_GROUP_NAME}}:r-x,group:{{WHEEL_GROUP_NAME}}:r-x
+a+ /var/log/journal/%m/system.journal - - - - group:{{WHEEL_GROUP_NAME}}:r--
 {% endif %}
 {% endif %}
 

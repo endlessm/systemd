@@ -347,6 +347,10 @@ systemd-tmpfiles --create --prefix /var/log/journal</programlisting>
 
     <programlisting># setfacl -Rnm g:wheel:rx,d:g:wheel:rx,g:adm:rx,d:g:adm:rx /var/log/journal/</programlisting>
 
+    <para>The name of the <literal>wheel</literal> group used by the default ACLs installed by
+    <filename>systemd-tmpfiles-setup.service</filename> can be changed with the
+    <varname>wheel-group-name</varname> meson option.</para>
+
     <para>Note that this command will update the ACLs both for
     existing journal files and for future journal files created in the
     <filename>/var/log/journal/</filename> directory.</para>

@@ -17,7 +17,7 @@ u! {{NOBODY_USER_NAME}} 65534:65534 "Kernel Overflow User"     -
 g adm     {{ADM_GID    }}     -            -
 
 # Administrator groups: can *do* more than normal users
-g wheel   {{WHEEL_GID  }}     -            -
+g {{WHEEL_GROUP_NAME}} {{WHEEL_GID  }}     -            -
 g empower {{EMPOWER_GID}}     -            -
 
 # Access to shared database of users on the system

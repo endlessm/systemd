@@ -85,7 +85,8 @@
     of other users. Members of the groups <literal>systemd-journal</literal>, <literal>adm</literal>, and
     <literal>wheel</literal> can read all journal files. Note that the two latter groups traditionally have
     additional privileges specified by the distribution. Members of the <literal>wheel</literal> group can
-    often perform administrative tasks.</para>
+    often perform administrative tasks. Distributions may use a different name for the latter group, which
+    is configured at build time with the <varname>wheel-group-name</varname> meson option.</para>
 
     <para>The output is paged through <command>less</command> by default, and long lines are "truncated" to
     screen width. The hidden part can be viewed by using the left-arrow and right-arrow keys. Paging can be

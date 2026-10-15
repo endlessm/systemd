@@ -288,6 +288,9 @@ option('adm-group', type : 'boolean',
        description : 'the ACL for adm group should be added')
 option('wheel-group', type : 'boolean',
        description : 'the ACL for wheel group should be added')
+option('wheel-group-name', type : 'string',
+       description : 'The name of the group that is granted administrative access (e.g. "sudo" on distributions that do not use "wheel")',
+       value : 'wheel')
 option('nobody-user', type : 'string',
        description : 'The name of the nobody user (the one with UID 65534)',
        value : 'nobody')
@@ -331,7 +334,7 @@ option('utmp-gid', type : 'integer', value : 0,
 option('video-gid', type : 'integer', value : 0,
        description : 'soft-static allocation for the "video" group')
 option('wheel-gid', type : 'integer', value : 0,
-       description : 'soft-static allocation for the "wheel" group')
+       description : 'soft-static allocation for the "wheel" group (see also wheel-group-name)')
 option('systemd-journal-gid', type : 'integer', value : 0,
        description : 'soft-static allocation for the systemd-journal group')
 option('systemd-network-uid', type : 'integer', value : 0,
