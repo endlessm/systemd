@@ -924,6 +924,7 @@ endforeach
 
 conf.set10('ENABLE_ADM_GROUP', get_option('adm-group'))
 conf.set10('ENABLE_WHEEL_GROUP', get_option('wheel-group'))
+conf.set_quoted('WHEEL_GROUP_NAME', get_option('wheel-group-name'))
 
 dev_kvm_mode = get_option('dev-kvm-mode')
 conf.set_quoted('DEV_KVM_MODE', dev_kvm_mode) # FIXME: convert to 0o… notation

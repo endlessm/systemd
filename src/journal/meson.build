@@ -166,8 +166,9 @@ if get_option('create-log-dirs')
                         'setfacl -nm g:adm:rx,d:g:adm:rx $DESTDIR/var/log/journal || :')
         endif
         if get_option('wheel-group')
+                wheel_group_name = get_option('wheel-group-name')
                 meson.add_install_script(
                         sh, '-c',
-                        'setfacl -nm g:wheel:rx,d:g:wheel:rx $DESTDIR/var/log/journal || :')
+                        f'setfacl -nm g:@wheel_group_name@:rx,d:g:@wheel_group_name@:rx $DESTDIR/var/log/journal || :')
         endif
 endif
