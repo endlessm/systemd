@@ -6,7 +6,6 @@ endif
 
 files = [['README'                                  ],
          ['home.conf'                               ],
-         ['root.conf'                               ],
          ['journal-nocow.conf'                      ],
          ['portables.conf',       'ENABLE_PORTABLED'],
          ['systemd-network.conf', 'ENABLE_NETWORKD' ],
