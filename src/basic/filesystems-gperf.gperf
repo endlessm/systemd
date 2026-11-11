@@ -61,6 +61,7 @@ ext2,            {EXT2_SUPER_MAGIC}
 ext3,            {EXT3_SUPER_MAGIC}
 ext4,            {EXT4_SUPER_MAGIC}
 exfat,           {EXFAT_SUPER_MAGIC}
+failfs,          {FAIL_FS_MAGIC}
 f2fs,            {F2FS_SUPER_MAGIC}
 # fuseblk is so closely related to fuse that it shares the same magic
 fuseblk,         {FUSE_SUPER_MAGIC}
@@ -69,6 +70,7 @@ fusectl,         {FUSE_CTL_SUPER_MAGIC}
 # gfs is an old version of gfs2 and reuses the magic
 gfs,             {GFS2_MAGIC}
 gfs2,            {GFS2_MAGIC}
+gmem,            {GUEST_MEMFD_MAGIC}
 hostfs,          {HOSTFS_SUPER_MAGIC}
 hpfs,            {HPFS_SUPER_MAGIC}
 hugetlbfs,       {HUGETLBFS_MAGIC}
