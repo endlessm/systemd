@@ -23,6 +23,19 @@
 #define NSFS_MAGIC 0x6e736673
 #endif
 
+/* 6.19+ / 7.0: immutable rootfs */
+#ifndef NULL_FS_MAGIC
+#define NULL_FS_MAGIC 0x4E554C4C
+#endif
+
+#ifndef FAIL_FS_MAGIC
+#define FAIL_FS_MAGIC 0x4641494C
+#endif
+
+#ifndef GUEST_MEMFD_MAGIC
+#define GUEST_MEMFD_MAGIC 0x474d454d
+#endif
+
 /* b2197755b2633e164a439682fb05a9b5ea48f706 (4.4) */
 #ifndef BPF_FS_MAGIC
 #define BPF_FS_MAGIC 0xcafe4a11
